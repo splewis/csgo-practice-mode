@@ -1,0 +1,8 @@
+Plugin(source='scripting/practicemode.sp')
+
+Package(name='practicemode',
+        plugins=['practicemode'],
+        filegroups={
+            '.': ['LICENSE', 'README.md'],
+        },
+)

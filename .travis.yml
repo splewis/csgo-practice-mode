@@ -1,0 +1,34 @@
+sudo: false
+
+addons:
+    apt_packages:
+        - lib32stdc++6  # needed for spcomp
+        - elinks
+
+env:
+    - SMVERSION=1.7
+
+before_script:
+    # install smbuilder
+    - git clone https://github.com/splewis/sm-builder
+    - cd sm-builder
+    - pip install --user -r requirements.txt
+    - python setup.py install --prefix=~/.local
+    - cd ..
+
+    # install the sourcemod compiler
+    - SMPACKAGE="http://sourcemod.net/latest.php?os=linux&version=${SMVERSION}"
+    - wget $SMPACKAGE
+    - tar xfz $(basename $SMPACKAGE)
+    - cd addons/sourcemod/scripting/
+    - chmod +x spcomp
+    - PATH+=":$PWD"
+    - cd include
+    - wget https://raw.githubusercontent.com/splewis/csgo-pug-setup/master/scripting/include/pugsetup.inc
+    - cd ../../../..
+
+script:
+    - smbuilder --flags="-E"
+
+notifications:
+    email: false
