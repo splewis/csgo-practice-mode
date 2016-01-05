@@ -1,17 +1,17 @@
 /**
  * Pugsetup forwards.
  */
-public Action OnSetupMenuOpen(int client, Menu menu, bool displayOnly) {
+public Action PugSetup_OnSetupMenuOpen(int client, Menu menu, bool displayOnly) {
     if (!g_PugsetupLoaded)
         return Plugin_Continue;
 
-    int leader = GetLeader(false);
+    int leader = PugSetup_GetLeader(false);
     if (!IsPlayer(leader)) {
-        SetLeader(client);
+        PugSetup_SetLeader(client);
     }
 
     int style = ITEMDRAW_DEFAULT;
-    if (!HasPermissions(client, Permission_Leader) || displayOnly) {
+    if (!PugSetup_HasPermissions(client, Permission_Leader) || displayOnly) {
         style = ITEMDRAW_DISABLED;
     }
 
@@ -24,7 +24,7 @@ public Action OnSetupMenuOpen(int client, Menu menu, bool displayOnly) {
     }
 }
 
-public void OnReadyToStart() {
+public void PugSetup_OnReadyToStart() {
     if (!g_PugsetupLoaded)
         return;
 
@@ -32,7 +32,7 @@ public void OnReadyToStart() {
         ExitPracticeMode();
 }
 
-public void OnSetupMenuSelect(Menu menu, int client, const char[] selected_info, int selected_position) {
+public void PugSetup_OnSetupMenuSelect(Menu menu, int client, const char[] selected_info, int selected_position) {
     if (!g_PugsetupLoaded)
         return;
 
@@ -42,7 +42,7 @@ public void OnSetupMenuSelect(Menu menu, int client, const char[] selected_info,
     }
 }
 
-public void OnHelpCommand(int client, ArrayList replyMessages, int maxMessageSize, bool& block) {
+public void PugSetup_OnHelpCommand(int client, ArrayList replyMessages, int maxMessageSize, bool& block) {
     if (!g_PugsetupLoaded)
         return;
 

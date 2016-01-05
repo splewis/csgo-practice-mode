@@ -283,7 +283,7 @@ public void OnMapStart() {
 
 public void OnConfigsExecuted() {
     if (g_AutostartCvar.IntValue != 0) {
-        if (g_PugsetupLoaded && GetGameState() != GameState_None) {
+        if (g_PugsetupLoaded && PugSetup_GetGameState() != GameState_None) {
             return;
         }
         LaunchPracticeMode();
@@ -558,7 +558,7 @@ public int PracticeMenuHandler(Menu menu, MenuAction action, int param1, int par
         } if (StrEqual(buffer, "end_menu")) {
             ExitPracticeMode();
             if (g_PugsetupLoaded)
-                GiveSetupMenu(client);
+                PugSetup_GiveSetupMenu(client);
         }
 
     } else if (action == MenuAction_End) {
@@ -680,7 +680,7 @@ public Action Event_WeaponFired(Event event, const char[] name, bool dontBroadca
 
 public Action Command_LaunchPracticeMode(int client, int args) {
     if (!g_InPracticeMode) {
-        if (g_PugsetupLoaded && GetGameState() >= GameState_Warmup) {
+        if (g_PugsetupLoaded && PugSetup_GetGameState() >= GameState_Warmup) {
             return Plugin_Continue;
         }
         LaunchPracticeMode();
