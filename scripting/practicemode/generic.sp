@@ -6,15 +6,9 @@
 #define PLUGIN_VERSION "0.0.1-dev"
 #endif
 
-#define MAX_INTEGER_STRING_LENGTH 16
-#define MAX_FLOAT_STRING_LENGTH 32
-
 static char _colorNames[][] = {"{NORMAL}", "{DARK_RED}", "{PINK}", "{GREEN}", "{YELLOW}", "{LIGHT_GREEN}", "{LIGHT_RED}", "{GRAY}", "{ORANGE}", "{LIGHT_BLUE}", "{DARK_BLUE}", "{PURPLE}"};
 static char _colorCodes[][] = {"\x01",     "\x02",      "\x03",   "\x04",         "\x05",     "\x06",          "\x07",        "\x08",   "\x09",     "\x0B",         "\x0C",        "\x0E"};
 
-/**
- * Switches and respawns a player onto a new team.
- */
 stock void SwitchPlayerTeam(int client, int team) {
     if (GetClientTeam(client) == team)
         return;
@@ -28,9 +22,6 @@ stock void SwitchPlayerTeam(int client, int team) {
     }
 }
 
-/**
- * Returns if a client is valid.
- */
 stock bool IsValidClient(int client) {
     return client > 0 && client <= MaxClients && IsClientConnected(client) && IsClientInGame(client);
 }
@@ -88,13 +79,6 @@ stock void GetEnabledString(char[] buffer, int length, bool variable, int client
     else
         Format(buffer, length, "disabled");
         // Format(buffer, length, "%T", "Disabled", client);
-}
-
-stock void GetTrueString(char[] buffer, int length, bool variable, int client=LANG_SERVER) {
-    if (variable)
-        Format(buffer, length, "true");
-    else
-        Format(buffer, length, "false");
 }
 
 stock int GetCvarIntSafe(const char[] cvarName) {
@@ -156,4 +140,34 @@ stock bool SplitOnSpace(const char[] str, char[] buf1, int len1, char[] buf2, in
         }
     }
     return false;
+}
+
+
+public ConVar GetCvar(const char[] name) {
+    ConVar cvar = FindConVar(name);
+    if (cvar == null) {
+        SetFailState("Failed to find cvar: \"%s\"", name);
+    }
+    return cvar;
+}
+
+public int AttemptFindTarget(const char[] target) {
+    char target_name[MAX_TARGET_LENGTH];
+    int target_list[1];
+    bool tn_is_ml;
+    int flags = COMMAND_FILTER_NO_MULTI | COMMAND_FILTER_NO_BOTS | COMMAND_FILTER_NO_IMMUNITY;
+
+    if (ProcessTargetString(
+            target,
+            0,
+            target_list,
+            1,
+            flags,
+            target_name,
+            sizeof(target_name),
+            tn_is_ml) > 0) {
+        return target_list[0];
+    } else {
+        return -1;
+    }
 }

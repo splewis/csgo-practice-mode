@@ -2,14 +2,6 @@
  * Some generic helpers functions.
  */
 
-public ConVar GetCvar(const char[] name) {
-    ConVar cvar = FindConVar(name);
-    if (cvar == null) {
-        SetFailState("Failed to find cvar: \"%s\"", name);
-    }
-    return cvar;
-}
-
 public bool IsGrenadeProjectile(const char[] className) {
     static char projectileTypes[][] = {
         "hegrenade_projectile",
@@ -43,30 +35,6 @@ public void TeleportToGrenadeHistoryPosition(int client, int index) {
     g_GrenadeHistoryAngles[client].GetArray(index, angles, sizeof(angles));
     TeleportEntity(client, origin, angles, velocity);
     SetEntityMoveType(client, MOVETYPE_WALK);
-}
-
-public void UpdatePlayerColor(int client) {
-    QueryClientConVar(client, "cl_color", QueryClientColor, client);
-}
-
-public void QueryClientColor(QueryCookie cookie, int client, ConVarQueryResult result, const char[] cvarName, const char[] cvarValue) {
-    int color = StringToInt(cvarValue);
-    GetColor(view_as<ClientColor>(color), g_ClientColors[client]);
-}
-
-public void GetColor(ClientColor c, int array[4]) {
-    int r, g, b;
-    switch(c) {
-        case ClientColor_Green:  { r = 0;   g = 255; b = 0; }
-        case ClientColor_Purple: { r = 128; g = 0;   b = 128; }
-        case ClientColor_Blue:   { r = 0;   g = 0;   b = 255; }
-        case ClientColor_Orange: { r = 255; g = 128; b = 0; }
-        case ClientColor_Yellow: { r = 255; g = 255; b = 0; }
-    }
-    array[0] = r;
-    array[1] = g;
-    array[2] = b;
-    array[3] = 255;
 }
 
 public bool TeleportToSavedGrenadePosition(int client, const char[] targetAuth, const char[] id) {
@@ -161,27 +129,6 @@ public bool DeleteGrenadeFromKv(int client, const char[] nadeIdStr) {
         PM_Message(client, "Deleted grenade id %s, \"%s\".", nadeIdStr, name);
     }
     return deleted;
-}
-
-public int AttemptFindTarget(const char[] target) {
-    char target_name[MAX_TARGET_LENGTH];
-    int target_list[1];
-    bool tn_is_ml;
-    int flags = COMMAND_FILTER_NO_MULTI | COMMAND_FILTER_NO_BOTS | COMMAND_FILTER_NO_IMMUNITY;
-
-    if (ProcessTargetString(
-            target,
-            0,
-            target_list,
-            1,
-            flags,
-            target_name,
-            sizeof(target_name),
-            tn_is_ml) > 0) {
-        return target_list[0];
-    } else {
-        return -1;
-    }
 }
 
 public bool FindTargetNameByAuth(const char[] inputAuth, char[] name, int nameLen) {

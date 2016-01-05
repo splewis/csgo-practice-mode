@@ -64,7 +64,7 @@ float g_GrenadeSpecTime = 4.0;
 // Saved grenade locations data
 #define GRENADE_DESCRIPTION_LENGTH 256
 #define GRENADE_NAME_LENGTH 64
-#define GRENADE_ID_LENGTH MAX_INTEGER_STRING_LENGTH
+#define GRENADE_ID_LENGTH 16
 #define AUTH_LENGTH 64
 char g_GrenadeLocationsFile[PLATFORM_MAX_PATH];
 KeyValues g_GrenadeLocationsKv;
@@ -95,8 +95,10 @@ Handle g_OnPracticeModeSettingChanged = INVALID_HANDLE;
 Handle g_OnPracticeModeSettingsRead = INVALID_HANDLE;
 
 #include "practicemode/pugsetup_integration.sp"
-#include "practicemode/practicemode_helpers.sp"
+#include "practicemode/grenadeutils.sp"
 #include "practicemode/natives.sp"
+#include "practicemode/commands.sp"
+#include "practicemode/grenademenus.sp"
 
 
 public Plugin myinfo = {
@@ -314,6 +316,30 @@ public void OnClientPutInServer(int client) {
     UpdatePlayerColor(client);
 }
 
+public void UpdatePlayerColor(int client) {
+    QueryClientConVar(client, "cl_color", QueryClientColor, client);
+}
+
+public void QueryClientColor(QueryCookie cookie, int client, ConVarQueryResult result, const char[] cvarName, const char[] cvarValue) {
+    int color = StringToInt(cvarValue);
+    GetColor(view_as<ClientColor>(color), g_ClientColors[client]);
+}
+
+public void GetColor(ClientColor c, int array[4]) {
+    int r, g, b;
+    switch(c) {
+        case ClientColor_Green:  { r = 0;   g = 255; b = 0; }
+        case ClientColor_Purple: { r = 128; g = 0;   b = 128; }
+        case ClientColor_Blue:   { r = 0;   g = 0;   b = 255; }
+        case ClientColor_Orange: { r = 255; g = 128; b = 0; }
+        case ClientColor_Yellow: { r = 255; g = 255; b = 0; }
+    }
+    array[0] = r;
+    array[1] = g;
+    array[2] = b;
+    array[3] = 255;
+}
+
 public Action Command_TeamJoin(int client, const char[] command, int argc) {
     if (!IsValidClient(client) || argc < 1)
         return Plugin_Handled;
@@ -322,7 +348,7 @@ public Action Command_TeamJoin(int client, const char[] command, int argc) {
         char arg[4];
         GetCmdArg(1, arg, sizeof(arg));
         int team = StringToInt(arg);
-        ChangeClientTeam(client, team);
+        SwitchPlayerTeam(client, team);
         return Plugin_Handled;
     }
 
@@ -424,23 +450,6 @@ public void ReadPracticeSettings() {
     delete kv;
 }
 
-// public void OnHelpCommand(int client, ArrayList replyMessages, int maxMessageSize, bool& block) {
-//     if (g_InPracticeMode) {
-//         block = true;
-//         PM_Message(client, "{LIGHT_GREEN}.setup {NORMAL}to change/view practicemode settings");
-//         if (g_AllowNoclip)
-//             PM_Message(client, "{LIGHT_GREEN}.noclip {NORMAL}to enter/exit noclip mode");
-//         PM_Message(client, "{LIGHT_GREEN}.back {NORMAL}to go to your last grenade position");
-//         PM_Message(client, "{LIGHT_GREEN}.forward {NORMAL}to go to your next grenade position");
-//         PM_Message(client, "{LIGHT_GREEN}.save <name> {NORMAL}to save a grenade position");
-//         PM_Message(client, "{LIGHT_GREEN}.nades [player] {NORMAL}to view all saved grenades");
-//         PM_Message(client, "{LIGHT_GREEN}.desc <description> {NORMAL}to add a nade description");
-//         PM_Message(client, "{LIGHT_GREEN}.delete {NORMAL}to delete your current grenade position");
-//         PM_Message(client, "{LIGHT_GREEN}.goto [player] <id> {NORMAL}to go to a grenadeid");
-//     }
-// }
-
-
 public void LaunchPracticeMode() {
     ServerCommand("exec sourcemod/practicemode_start.cfg");
 
@@ -454,7 +463,7 @@ public void LaunchPracticeMode() {
     Call_Finish();
 }
 
-static void ChangeSetting(int index, bool enabled, bool print=true) {
+stock void ChangeSetting(int index, bool enabled, bool print=true) {
     if (enabled) {
         ArrayList cvars = g_BinaryOptionEnabledCvars.Get(index);
         ArrayList values = g_BinaryOptionEnabledValues.Get(index);
@@ -497,75 +506,6 @@ static void ChangeSetting(int index, bool enabled, bool print=true) {
     Call_PushString(name);
     Call_PushCell(enabled);
     Call_Finish();
-}
-
-stock void GivePracticeMenu(int client, int style=ITEMDRAW_DEFAULT, int pos=-1) {
-    Menu menu = new Menu(PracticeMenuHandler);
-    SetMenuTitle(menu, "Practice Settings");
-    SetMenuExitButton(menu, true);
-
-    if (!g_InPracticeMode) {
-        AddMenuItem(menu, "launch_practice", "Start practice mode");
-        style = ITEMDRAW_DISABLED;
-    } else {
-        AddMenuItem(menu, "end_menu", "Exit practice mode", style);
-    }
-
-
-    for (int i = 0; i < g_BinaryOptionNames.Length; i++) {
-        if (!g_BinaryOptionChangeable.Get(i))
-            continue;
-
-        char name[OPTION_NAME_LENGTH];
-        g_BinaryOptionNames.GetString(i, name, sizeof(name));
-
-        char enabled[32];
-        GetEnabledString(enabled, sizeof(enabled), g_BinaryOptionEnabled.Get(i), client);
-
-        char buffer[128];
-        Format(buffer, sizeof(buffer), "%s: %s", name, enabled);
-        AddMenuItem(menu, name, buffer, style);
-    }
-
-    if (pos == -1)
-        DisplayMenu(menu, client, MENU_TIME_FOREVER);
-    else
-        DisplayMenuAtItem(menu, client, pos, MENU_TIME_FOREVER);
-}
-
-public int PracticeMenuHandler(Menu menu, MenuAction action, int param1, int param2) {
-    if (action == MenuAction_Select) {
-        int client = param1;
-        char buffer[OPTION_NAME_LENGTH];
-        int pos = GetMenuSelectionPosition();
-        menu.GetItem(param2, buffer, sizeof(buffer));
-
-        for (int i = 0; i < g_BinaryOptionNames.Length; i++) {
-            char name[OPTION_NAME_LENGTH];
-            g_BinaryOptionNames.GetString(i, name, sizeof(name));
-            if (StrEqual(name, buffer)) {
-                bool setting = !g_BinaryOptionEnabled.Get(i);
-                g_BinaryOptionEnabled.Set(i, setting);
-                ChangeSetting(i, setting);
-                GivePracticeMenu(client, ITEMDRAW_DEFAULT, pos);
-                return 0;
-            }
-        }
-
-        if (StrEqual(buffer, "launch_practice")) {
-            LaunchPracticeMode();
-            GivePracticeMenu(client);
-        } if (StrEqual(buffer, "end_menu")) {
-            ExitPracticeMode();
-            if (g_PugsetupLoaded)
-                PugSetup_GiveSetupMenu(client);
-        }
-
-    } else if (action == MenuAction_End) {
-        delete menu;
-    }
-
-    return 0;
 }
 
 public void ExitPracticeMode() {
@@ -678,320 +618,6 @@ public Action Event_WeaponFired(Event event, const char[] name, bool dontBroadca
     }
 }
 
-public Action Command_LaunchPracticeMode(int client, int args) {
-    if (!g_InPracticeMode) {
-        if (g_PugsetupLoaded && PugSetup_GetGameState() >= GameState_Warmup) {
-            return Plugin_Continue;
-        }
-        LaunchPracticeMode();
-        if (IsPlayer(client)) {
-            GivePracticeMenu(client);
-        }
-    }
-    return Plugin_Handled;
-}
-
-public Action Command_ExitPracticeMode(int client, int args) {
-    if (g_InPracticeMode) {
-        ExitPracticeMode();
-    }
-    return Plugin_Handled;
-}
-
-public Action Command_GrenadeBack(int client, int args) {
-    if (g_InPracticeMode && g_GrenadeHistoryPositions[client].Length > 0) {
-        g_GrenadeHistoryIndex[client]--;
-        if (g_GrenadeHistoryIndex[client] < 0)
-            g_GrenadeHistoryIndex[client] = 0;
-
-        TeleportToGrenadeHistoryPosition(client, g_GrenadeHistoryIndex[client]);
-        PM_Message(client, "Teleporting back to %d position in grenade history.", g_GrenadeHistoryIndex[client] + 1);
-    }
-
-    return Plugin_Handled;
-}
-
-public Action Command_GrenadeForward(int client, int args) {
-    if (g_InPracticeMode && g_GrenadeHistoryPositions[client].Length > 0) {
-        int max = g_GrenadeHistoryPositions[client].Length;
-        g_GrenadeHistoryIndex[client]++;
-        if (g_GrenadeHistoryIndex[client] >= max)
-            g_GrenadeHistoryIndex[client] = max - 1;
-        TeleportToGrenadeHistoryPosition(client, g_GrenadeHistoryIndex[client]);
-        PM_Message(client, "Teleporting forward to %d position in grenade history.", g_GrenadeHistoryIndex[client] + 1);
-    }
-
-    return Plugin_Handled;
-}
-
-public Action Command_ClearNades(int client, int args) {
-    if (g_InPracticeMode) {
-        ClearArray(g_GrenadeHistoryPositions[client]);
-        ClearArray(g_GrenadeHistoryAngles[client]);
-        PM_Message(client, "Grenade history cleared.");
-    }
-
-    return Plugin_Handled;
-}
-
-public Action Command_GotoNade(int client, int args) {
-    if (g_InPracticeMode) {
-        char arg1[32];
-        char arg2[32];
-        char name[MAX_NAME_LENGTH];
-        char auth[AUTH_LENGTH];
-
-        if (args >= 2 && GetCmdArg(1, arg1, sizeof(arg1)) && GetCmdArg(2, arg2, sizeof(arg2))) {
-            if (!FindGrenadeTarget(arg1, name, sizeof(name), auth, sizeof(auth))) {
-                PM_Message(client, "Player not found.");
-                return Plugin_Handled;
-            }
-            if (!TeleportToSavedGrenadePosition(client, auth, arg2)){
-                PM_Message(client, "Grenade id %s not found.", arg2);
-                return Plugin_Handled;
-            }
-
-        } else if (args >= 1 && GetCmdArg(1, arg1, sizeof(arg1))) {
-            GetClientName(client, name, sizeof(name));
-            GetClientAuthId(client, AuthId_Steam2, auth, sizeof(auth));
-            if (!TeleportToSavedGrenadePosition(client, auth, arg1)){
-                PM_Message(client, "Grenade id %s not found.", arg1);
-                return Plugin_Handled;
-            }
-
-        } else {
-            PM_Message(client, "Usage: .goto [player] <grenadeid>");
-        }
-    }
-
-    return Plugin_Handled;
-}
-
-public void GiveGrenadesMenu(int client) {
-    int count = 0;
-    Menu menu = new Menu(GrenadeHandler_PlayerSelection);
-    menu.SetTitle("Select a player:");
-    menu.ExitButton = true;
-
-    if (g_GrenadeLocationsKv.GotoFirstSubKey()) {
-        do {
-            int nadeCount = 0;
-            if (g_GrenadeLocationsKv.GotoFirstSubKey()) {
-                do {
-                    nadeCount++;
-                } while (g_GrenadeLocationsKv.GotoNextKey());
-                g_GrenadeLocationsKv.GoBack();
-            }
-
-            char auth[AUTH_LENGTH];
-            char name[MAX_NAME_LENGTH];
-            g_GrenadeLocationsKv.GetSectionName(auth, sizeof(auth));
-            g_GrenadeLocationsKv.GetString("name", name, sizeof(name));
-
-            char info[256];
-            Format(info, sizeof(info), "%s %s", auth, name);
-
-            char display[256];
-            Format(display, sizeof(display), "%s (%d saved)", name, nadeCount);
-
-            if (nadeCount > 0) {
-                menu.AddItem(info, display);
-                count++;
-            }
-
-        } while (g_GrenadeLocationsKv.GotoNextKey());
-    }
-    g_GrenadeLocationsKv.Rewind();
-
-    if (count == 0) {
-        PM_Message(client, "No players have grenade positions saved.");
-        delete menu;
-    } else {
-        menu.Display(client, MENU_TIME_FOREVER);
-    }
-}
-
-public Action Command_Grenades(int client, int args) {
-    if (!g_InPracticeMode) {
-        return Plugin_Handled;
-    }
-
-    char arg[MAX_NAME_LENGTH];
-    char auth[AUTH_LENGTH];
-    char name[MAX_NAME_LENGTH];
-
-    if (args >= 1 && GetCmdArg(1, arg, sizeof(arg))) {
-        if (FindGrenadeTarget(arg, name, sizeof(name), auth, sizeof(auth))) {
-            GiveGrenadesForPlayer(client, name, auth);
-            return Plugin_Handled;
-        }
-    } else {
-        GiveGrenadesMenu(client);
-    }
-
-    return Plugin_Handled;
-}
-
-public int GrenadeHandler_PlayerSelection(Menu menu, MenuAction action, int param1, int param2) {
-    if (action == MenuAction_Select && g_InPracticeMode) {
-        int client = param1;
-        char buffer[MAX_NAME_LENGTH+AUTH_LENGTH+1];
-        menu.GetItem(param2, buffer, sizeof(buffer));
-
-        // split buffer from "auth name" (seperated by whitespace)
-        char ownerAuth[AUTH_LENGTH];
-        char ownerName[MAX_NAME_LENGTH];
-        SplitOnSpace(buffer, ownerAuth, sizeof(ownerAuth), ownerName, sizeof(ownerName));
-        GiveGrenadesForPlayer(client, ownerName, ownerAuth);
-    } else if (action == MenuAction_End) {
-        delete menu;
-    }
-}
-
-stock void GiveGrenadesForPlayer(int client, const char[] ownerName, const char[] ownerAuth, int menuPosition=0) {
-    float origin[3];
-    float angles[3];
-    char description[GRENADE_DESCRIPTION_LENGTH];
-    char name[GRENADE_NAME_LENGTH];
-
-    int userCount = 0;
-    Menu menu = new Menu(GrenadeHandler_GrenadeSelection);
-    menu.SetTitle("Grenades for %s", ownerName);
-    menu.ExitButton = true;
-    menu.ExitBackButton = true;
-
-    if (g_GrenadeLocationsKv.JumpToKey(ownerAuth)) {
-        if (g_GrenadeLocationsKv.GotoFirstSubKey()) {
-            do {
-                char strId[32];
-                g_GrenadeLocationsKv.GetSectionName(strId, sizeof(strId));
-                g_GrenadeLocationsKv.GetVector("origin", origin);
-                g_GrenadeLocationsKv.GetVector("angles", angles);
-                g_GrenadeLocationsKv.GetString("description", description, sizeof(description));
-                g_GrenadeLocationsKv.GetString("name", name, sizeof(name));
-
-                char info[128];
-                Format(info, sizeof(info), "%s %s", ownerAuth, strId);
-                char display[128];
-                Format(display, sizeof(display), "%s (id %s)", name, strId);
-
-                menu.AddItem(info, display);
-                userCount++;
-            } while (g_GrenadeLocationsKv.GotoNextKey());
-            g_GrenadeLocationsKv.GoBack();
-        }
-        g_GrenadeLocationsKv.GoBack();
-    }
-
-    if (userCount == 0) {
-        PM_Message(client, "No grenades found.");
-        delete menu;
-    } else {
-        menu.DisplayAt(client, menuPosition, MENU_TIME_FOREVER);
-    }
-}
-
-public int GrenadeHandler_GrenadeSelection(Menu menu, MenuAction action, int param1, int param2) {
-    if (action == MenuAction_Select && g_InPracticeMode) {
-        int client = param1;
-        char buffer[128];
-        menu.GetItem(param2, buffer, sizeof(buffer));
-        char auth[AUTH_LENGTH];
-        char idStr[MAX_INTEGER_STRING_LENGTH];
-        // split buffer from form "<auth> <id>" (seperated by a space)
-        SplitOnSpace(buffer, auth, sizeof(auth), idStr, sizeof(idStr));
-        TeleportToSavedGrenadePosition(client, auth, idStr);
-
-    } else if (action == MenuAction_Cancel && param2 == MenuCancel_ExitBack) {
-        int client = param1;
-        GiveGrenadesMenu(client);
-
-    } else if (action == MenuAction_End) {
-        delete menu;
-    }
-}
-
-public Action Command_SaveGrenade(int client, int args) {
-    if (!g_InPracticeMode) {
-        return Plugin_Handled;
-    }
-
-    char name[GRENADE_NAME_LENGTH];
-    GetCmdArgString(name, sizeof(name));
-    TrimString(name);
-
-    if (strlen(name) == 0)  {
-        PM_Message(client, "Usage: .save <name>");
-        return Plugin_Handled;
-    }
-
-    char auth[AUTH_LENGTH];
-    GetClientAuthId(client, AuthId_Steam2, auth, sizeof(auth));
-    char grenadeId[GRENADE_ID_LENGTH];
-    if (FindGrenadeByName(auth, name, grenadeId)) {
-        PM_Message(client, "You have already used that name.");
-        return Plugin_Handled;
-    }
-
-
-    if (CountGrenadesForPlayer(auth) >= g_MaxGrenadesSavedCvar.IntValue) {
-        PM_Message(client, "You have reached the maximum number of grenades you can save (%d).",
-                        g_MaxGrenadesSavedCvar.IntValue);
-        return Plugin_Handled;
-    }
-
-    float origin[3];
-    float angles[3];
-    GetClientAbsOrigin(client, origin);
-    GetClientEyeAngles(client, angles);
-
-    Action ret = Plugin_Continue;
-    Call_StartForward(g_OnGrenadeSaved);
-    Call_PushCell(client);
-    Call_PushArray(origin, sizeof(origin));
-    Call_PushArray(angles, sizeof(angles));
-    Call_PushString(name);
-    Call_Finish(ret);
-
-    if (ret < Plugin_Handled) {
-        int nadeId = SaveGrenadeToKv(client, origin, angles, name);
-        g_CurrentSavedGrenadeId[client] = nadeId;
-        PM_Message(client, "Saved grenade (id %d). Type .desc <description> to add a description or .delete to delete this position.", nadeId);
-    }
-
-    return Plugin_Handled;
-}
-
-public Action Command_GrenadeDescription(int client, int args) {
-    int nadeId = g_CurrentSavedGrenadeId[client];
-    if (nadeId < 0 || !g_InPracticeMode) {
-        return Plugin_Handled;
-    }
-
-    char description[GRENADE_DESCRIPTION_LENGTH];
-    GetCmdArgString(description, sizeof(description));
-
-    UpdateGrenadeDescription(client, nadeId, description);
-    PM_Message(client, "Added grenade description.");
-    return Plugin_Handled;
-}
-
-public Action Command_DeleteGrenade(int client, int args) {
-    if (!g_InPracticeMode) {
-        return Plugin_Handled;
-    }
-
-    // get the grenade id first
-    char grenadeIdStr[32];
-    if (args < 1 || !GetCmdArg(1, grenadeIdStr, sizeof(grenadeIdStr))) {
-        // if this fails, use the last grenade position
-        IntToString(g_CurrentSavedGrenadeId[client], grenadeIdStr, sizeof(grenadeIdStr));
-    }
-
-    DeleteGrenadeFromKv(client, grenadeIdStr);
-    return Plugin_Handled;
-}
-
 static bool CheckChatAlias(const char[] alias, const char[] command, const char[] chatCommand, const char[] chatArgs, int client) {
     if (StrEqual(chatCommand, alias, false)) {
         // Get the original cmd reply source so it can be restored after the fake client command.
@@ -1036,7 +662,23 @@ public void OnClientSayCommand_Post(int client, const char[] command, const char
         }
     }
 
-    if (!g_PugsetupLoaded && StrEqual(chatCommand, ".setup")) {
-        GivePracticeMenu(client);
+    if (!g_PugsetupLoaded) {
+        if (StrEqual(chatCommand, ".setup"))
+            GivePracticeMenu(client);
+        if (StrEqual(chatCommand, ".help"))
+            PrintHelpInfo(client);
     }
+}
+
+public void PrintHelpInfo(int client) {
+    PM_Message(client, "{LIGHT_GREEN}.setup {NORMAL}to change/view practicemode settings");
+    if (g_AllowNoclip)
+        PM_Message(client, "{LIGHT_GREEN}.noclip {NORMAL}to enter/exit noclip mode");
+    PM_Message(client, "{LIGHT_GREEN}.back {NORMAL}to go to your last grenade position");
+    PM_Message(client, "{LIGHT_GREEN}.forward {NORMAL}to go to your next grenade position");
+    PM_Message(client, "{LIGHT_GREEN}.save <name> {NORMAL}to save a grenade position");
+    PM_Message(client, "{LIGHT_GREEN}.nades [player] {NORMAL}to view all saved grenades");
+    PM_Message(client, "{LIGHT_GREEN}.desc <description> {NORMAL}to add a nade description");
+    PM_Message(client, "{LIGHT_GREEN}.delete {NORMAL}to delete your current grenade position");
+    PM_Message(client, "{LIGHT_GREEN}.goto [player] <id> {NORMAL}to go to a grenadeid");
 }
