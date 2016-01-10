@@ -278,7 +278,14 @@ public void OnMapStart() {
     ReadPracticeSettings();
     g_BeamSprite = PrecacheModel("materials/sprites/laserbeam.vmt");
 
-    // Init map-based saved grenade spots
+    // Init map-based saved grenade spots.
+
+    // This supports backwards compatability for grenades saved in the old location
+    // configs/pugsetup/practicemode_grenades. The data is transferred to the new
+    // location if they are read from the legacy location.
+    char legacyDir[PLATFORM_MAX_PATH];
+    BuildPath(Path_SM, legacyDir, sizeof(legacyDir), "configs/pugsetup/practicemode_grenades");
+
     char dir[PLATFORM_MAX_PATH];
     BuildPath(Path_SM, dir, sizeof(dir), "data/practicemode_grenades");
     if (!DirExists(dir)) {
@@ -287,10 +294,21 @@ public void OnMapStart() {
 
     char map[PLATFORM_MAX_PATH];
     GetCleanMapName(map, sizeof(map));
+
+    char legacyFile[PLATFORM_MAX_PATH];
+    Format(legacyFile, sizeof(legacyFile), "%s/%s.cfg", legacyDir, map);
     Format(g_GrenadeLocationsFile, sizeof(g_GrenadeLocationsFile), "%s/%s.cfg", dir, map);
-    g_GrenadeLocationsKv = new KeyValues("Grenades");
-    g_GrenadeLocationsKv.ImportFromFile(g_GrenadeLocationsFile);
-    g_UpdatedGrenadeKv = false;
+
+    if (!FileExists(g_GrenadeLocationsFile) && FileExists(legacyFile)) {
+        LogMessage("Moving legacy grenade data from %s to %s", legacyFile, g_GrenadeLocationsFile);
+        g_GrenadeLocationsKv = new KeyValues("Grenades");
+        g_GrenadeLocationsKv.ImportFromFile(legacyFile);
+        g_UpdatedGrenadeKv = true;
+    } else {
+        g_GrenadeLocationsKv = new KeyValues("Grenades");
+        g_GrenadeLocationsKv.ImportFromFile(g_GrenadeLocationsFile);
+        g_UpdatedGrenadeKv = false;
+    }
 
     FindMapSpawns();
 }
