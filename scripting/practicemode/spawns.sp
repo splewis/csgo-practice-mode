@@ -4,6 +4,7 @@ public void FindMapSpawns() {
 }
 
 static void FindMapSpawnsForTeam(ArrayList list, const char[] spawnClassName) {
+    list.Clear();
     int minPriority = -1;
 
     int maxEnt = GetMaxEntities();
