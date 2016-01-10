@@ -87,6 +87,10 @@ enum ClientColor {
 
 int g_LastNoclipCommand[MAXPLAYERS+1];
 
+// Data storing spawn priorities.
+ArrayList g_CTSpawns = null;
+ArrayList g_TSpawns = null;
+
 // Forwards
 Handle g_OnGrenadeSaved = INVALID_HANDLE;
 Handle g_OnPracticeModeDisabled = INVALID_HANDLE;
@@ -94,11 +98,12 @@ Handle g_OnPracticeModeEnabled = INVALID_HANDLE;
 Handle g_OnPracticeModeSettingChanged = INVALID_HANDLE;
 Handle g_OnPracticeModeSettingsRead = INVALID_HANDLE;
 
-#include "practicemode/pugsetup_integration.sp"
-#include "practicemode/grenadeutils.sp"
-#include "practicemode/natives.sp"
 #include "practicemode/commands.sp"
 #include "practicemode/grenademenus.sp"
+#include "practicemode/grenadeutils.sp"
+#include "practicemode/natives.sp"
+#include "practicemode/pugsetup_integration.sp"
+#include "practicemode/spawns.sp"
 
 
 public Plugin myinfo = {
@@ -148,10 +153,12 @@ public void OnPluginStart() {
     RegConsoleCmd("sm_grenadeforward", Command_GrenadeForward);
     RegConsoleCmd("sm_clearnades", Command_ClearNades);
     RegConsoleCmd("sm_gotogrenade", Command_GotoNade);
+    RegConsoleCmd("sm_gotospawn", Command_GotoSpawn);
     PM_AddChatAlias(".back", "sm_grenadeback");
     PM_AddChatAlias(".forward", "sm_grenadeforward");
     PM_AddChatAlias(".clearnades", "sm_clearnades");
     PM_AddChatAlias(".goto", "sm_gotogrenade");
+    PM_AddChatAlias(".spawn", "sm_gotospawn");
 
     // Saved grenade location commands
     RegConsoleCmd("sm_grenades", Command_Grenades);
@@ -198,6 +205,9 @@ public void OnPluginStart() {
         g_ClientColors[0][2] = 0;
         g_ClientColors[0][3] = 255;
     }
+
+    g_CTSpawns = new ArrayList();
+    g_TSpawns = new ArrayList();
 
     // Remove cheats so sv_cheats isn't required for this:
     RemoveCvarFlag(g_GrenadeTrajectoryCvar, FCVAR_CHEAT);
@@ -281,6 +291,8 @@ public void OnMapStart() {
     g_GrenadeLocationsKv = new KeyValues("Grenades");
     g_GrenadeLocationsKv.ImportFromFile(g_GrenadeLocationsFile);
     g_UpdatedGrenadeKv = false;
+
+    FindMapSpawns();
 }
 
 public void OnConfigsExecuted() {

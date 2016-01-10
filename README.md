@@ -30,6 +30,7 @@ You must have [SourceMod](http://www.sourcemod.net/downloads.php) and [MetaMod:S
 - ``.goto [playername] <grenadeid>``: teleports you to a player's saved grenade (or your own if no player is named)
 - ``.back``: teleports you back a position in your grenade history
 - ``.forward``: teleports you forward a position in your grenade history
+- ``.spawn <number>``: teleports you to a spawn # for the maps's spawns, if no number is given the nearest map spawn is used (uses your current CT/T team to decide which team's spawns to use)
 
 ### ConVars
 - ``sm_practicemode_autostart``
