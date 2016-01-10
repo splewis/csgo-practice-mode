@@ -314,6 +314,20 @@ public void OnMapStart() {
 }
 
 public void OnConfigsExecuted() {
+    // Disable legacy plugin if found.
+    char legacyPluginFile[PLATFORM_MAX_PATH];
+    BuildPath(Path_SM, legacyPluginFile, sizeof(legacyPluginFile), "plugins/pugsetup_practicemode.smx");
+    if (FileExists(legacyPluginFile)) {
+        char disalbedlegacyPluginFile[PLATFORM_MAX_PATH];
+        BuildPath(Path_SM, disalbedlegacyPluginFile, sizeof(disalbedlegacyPluginFile), "plugins/disabled/pugsetup_practicemode.smx");
+        ServerCommand("sm plugins unload pugsetup_practicemode");
+        if (FileExists(disalbedlegacyPluginFile))
+            DeleteFile(disalbedlegacyPluginFile);
+        RenameFile(disalbedlegacyPluginFile, legacyPluginFile);
+        LogMessage("%s was unloaded and moved to %s", legacyPluginFile, disalbedlegacyPluginFile);
+    }
+
+    // Autostart practicemode if enabled.
     if (g_AutostartCvar.IntValue != 0) {
         if (g_PugsetupLoaded && PugSetup_GetGameState() != GameState_None) {
             return;
