@@ -318,13 +318,13 @@ public void OnConfigsExecuted() {
     char legacyPluginFile[PLATFORM_MAX_PATH];
     BuildPath(Path_SM, legacyPluginFile, sizeof(legacyPluginFile), "plugins/pugsetup_practicemode.smx");
     if (FileExists(legacyPluginFile)) {
-        char disalbedlegacyPluginFile[PLATFORM_MAX_PATH];
-        BuildPath(Path_SM, disalbedlegacyPluginFile, sizeof(disalbedlegacyPluginFile), "plugins/disabled/pugsetup_practicemode.smx");
+        char disabledLegacyPluginName[PLATFORM_MAX_PATH];
+        BuildPath(Path_SM, disabledLegacyPluginName, sizeof(disabledLegacyPluginName), "plugins/disabled/pugsetup_practicemode.smx");
         ServerCommand("sm plugins unload pugsetup_practicemode");
-        if (FileExists(disalbedlegacyPluginFile))
-            DeleteFile(disalbedlegacyPluginFile);
-        RenameFile(disalbedlegacyPluginFile, legacyPluginFile);
-        LogMessage("%s was unloaded and moved to %s", legacyPluginFile, disalbedlegacyPluginFile);
+        if (FileExists(disabledLegacyPluginName))
+            DeleteFile(disabledLegacyPluginName);
+        RenameFile(disabledLegacyPluginName, legacyPluginFile);
+        LogMessage("%s was unloaded and moved to %s", legacyPluginFile, disabledLegacyPluginName);
     }
 
     // Autostart practicemode if enabled.
