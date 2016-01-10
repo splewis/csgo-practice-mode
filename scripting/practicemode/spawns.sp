@@ -39,9 +39,10 @@ static void FindMapSpawnsForTeam(ArrayList list, const char[] spawnClassName) {
 public void TeleportToSpawnEnt(int client, int ent) {
     float origin[3];
     float angles[3];
+    float velocity[3];
     GetEntPropVector(ent, Prop_Data, "m_vecOrigin", origin);
     GetEntPropVector(ent, Prop_Data, "m_angRotation", angles);
-    TeleportEntity(client, origin, angles, NULL_VECTOR);
+    TeleportEntity(client, origin, angles, velocity);
 }
 
 public int FindNearestSpawnIndex(int client, ArrayList list) {
