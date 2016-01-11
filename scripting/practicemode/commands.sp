@@ -132,7 +132,7 @@ public Action Command_RenameGrenade(int client, int args) {
     GetCmdArgString(name, sizeof(name));
 
     UpdateGrenadeName(client, nadeId, name);
-    PM_Message(client, "Added grenade name.");
+    PM_Message(client, "Updated grenade name.");
     return Plugin_Handled;
 }
 
