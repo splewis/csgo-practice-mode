@@ -122,6 +122,20 @@ public Action Command_GrenadeDescription(int client, int args) {
     return Plugin_Handled;
 }
 
+public Action Command_RenameGrenade(int client, int args) {
+    int nadeId = g_CurrentSavedGrenadeId[client];
+    if (nadeId < 0 || !g_InPracticeMode) {
+        return Plugin_Handled;
+    }
+
+    char name[GRENADE_NAME_LENGTH];
+    GetCmdArgString(name, sizeof(name));
+
+    UpdateGrenadeName(client, nadeId, name);
+    PM_Message(client, "Added grenade name.");
+    return Plugin_Handled;
+}
+
 public Action Command_DeleteGrenade(int client, int args) {
     if (!g_InPracticeMode) {
         return Plugin_Handled;

@@ -162,6 +162,7 @@ public void OnPluginStart() {
 
     // Saved grenade location commands
     RegConsoleCmd("sm_grenades", Command_Grenades);
+    RegConsoleCmd("sm_renamegrenade", Command_RenameGrenade);
     RegConsoleCmd("sm_savegrenade", Command_SaveGrenade);
     RegConsoleCmd("sm_adddescription", Command_GrenadeDescription);
     RegConsoleCmd("sm_deletegrenade", Command_DeleteGrenade);
@@ -171,6 +172,7 @@ public void OnPluginStart() {
     PM_AddChatAlias(".savenade", "sm_savegrenade");
     PM_AddChatAlias(".save", "sm_savegrenade");
     PM_AddChatAlias(".desc", "sm_adddescription");
+    PM_AddChatAlias(".rename", "sm_renamegrenade");
     PM_AddChatAlias(".delete", "sm_deletegrenade");
 
     // New Plugin cvars

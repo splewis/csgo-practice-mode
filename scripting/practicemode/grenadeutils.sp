@@ -99,7 +99,7 @@ public int SaveGrenadeToKv(int client, const float origin[3], const float angles
     int nadeId = g_GrenadeLocationsKv.GetNum("nextid", 1);
     g_GrenadeLocationsKv.SetNum("nextid", nadeId + 1);
 
-    char idStr[32];
+    char idStr[GRENADE_ID_LENGTH];
     IntToString(nadeId, idStr, sizeof(idStr));
     g_GrenadeLocationsKv.JumpToKey(idStr, true);
 
@@ -156,11 +156,27 @@ public bool FindTargetInGrenadesKvByName(const char[] inputName, char[] name, in
     return false;
 }
 
+public void UpdateGrenadeName(int client, int index, const char[] name) {
+    g_UpdatedGrenadeKv = true;
+    char auth[AUTH_LENGTH];
+    GetClientAuthId(client, AuthId_Steam2, auth, sizeof(auth));
+    char nadeId[GRENADE_ID_LENGTH];
+    IntToString(index, nadeId, sizeof(nadeId));
+
+    if (g_GrenadeLocationsKv.JumpToKey(auth)) {
+        if (g_GrenadeLocationsKv.JumpToKey(nadeId)) {
+            g_GrenadeLocationsKv.SetString("name", name);
+            g_GrenadeLocationsKv.GoBack();
+        }
+        g_GrenadeLocationsKv.GoBack();
+    }
+}
+
 public void UpdateGrenadeDescription(int client, int index, const char[] description) {
     g_UpdatedGrenadeKv = true;
     char auth[AUTH_LENGTH];
     GetClientAuthId(client, AuthId_Steam2, auth, sizeof(auth));
-    char nadeId[32];
+    char nadeId[GRENADE_ID_LENGTH];
     IntToString(index, nadeId, sizeof(nadeId));
 
     if (g_GrenadeLocationsKv.JumpToKey(auth)) {
