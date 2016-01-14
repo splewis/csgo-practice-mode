@@ -14,6 +14,7 @@ stock void SwitchPlayerTeam(int client, int team) {
         return;
 
     if (team > CS_TEAM_SPECTATOR) {
+        ForcePlayerSuicide(client);
         CS_SwitchTeam(client, team);
         CS_UpdateClientModel(client);
         CS_RespawnPlayer(client);
