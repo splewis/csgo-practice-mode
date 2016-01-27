@@ -237,3 +237,17 @@ public Action Command_GotoSpawn(int client, int args) {
     return Plugin_Handled;
 }
 
+
+public Action Command_SetCategory(int client, int args) {
+    int nadeId = g_CurrentSavedGrenadeId[client];
+    if (nadeId < 0 || !g_InPracticeMode) {
+        return Plugin_Handled;
+    }
+
+    char category[GRENADE_CATEGORY_LENGTH];
+    GetCmdArgString(category, sizeof(category));
+
+    UpdateGrenadeCategory(client, nadeId, category);
+    PM_Message(client, "Set grenade category.");
+    return Plugin_Handled;
+}
