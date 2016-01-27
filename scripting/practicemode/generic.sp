@@ -52,22 +52,20 @@ stock void SetConVarStringSafe(const char[] name, const char[] value) {
 /**
  * Closes a nested adt-array.
  */
-stock void CloseNestedArray(Handle array, bool closeOuterArray=true) {
-    int n = GetArraySize(array);
-    for (int i = 0; i < n; i++) {
-        Handle h = GetArrayCell(array, i);
-        CloseHandle(h);
+stock void CloseNestedArray(ArrayList array, bool closeOuterArray=true) {
+    for (int i = 0; i < array.Length; i++) {
+        ArrayList h = view_as<ArrayList>(array.Get(i));
+        delete h;
     }
 
     if (closeOuterArray)
-        CloseHandle(array);
+        delete array;
 }
 
-stock void ClearNestedArray(Handle array) {
-    int n = GetArraySize(array);
-    for (int i = 0; i < n; i++) {
-        Handle h = GetArrayCell(array, i);
-        CloseHandle(h);
+stock void ClearNestedArray(ArrayList array) {
+    for (int i = 0; i < array.Length; i++) {
+        ArrayList h = view_as<ArrayList>(array.Get(i));
+        delete h;
     }
 
     ClearArray(array);
@@ -76,10 +74,8 @@ stock void ClearNestedArray(Handle array) {
 stock void GetEnabledString(char[] buffer, int length, bool variable, int client=LANG_SERVER) {
     if (variable)
         Format(buffer, length, "enabled");
-        // Format(buffer, length, "%T", "Enabled", client);
     else
         Format(buffer, length, "disabled");
-        // Format(buffer, length, "%T", "Disabled", client);
 }
 
 stock int GetCvarIntSafe(const char[] cvarName) {

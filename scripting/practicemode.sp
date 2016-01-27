@@ -699,8 +699,8 @@ public void OnClientSayCommand_Post(int client, const char[] command, const char
         char alias[ALIAS_LENGTH];
         char cmd[COMMAND_LENGTH];
         for (int i = 0; i < GetArraySize(g_ChatAliases); i++) {
-            GetArrayString(g_ChatAliases, i, alias, sizeof(alias));
-            GetArrayString(g_ChatAliasesCommands, i, cmd, sizeof(cmd));
+            g_ChatAliases.GetString(i, alias, sizeof(alias));
+            g_ChatAliasesCommands.GetString(i, cmd, sizeof(cmd));
 
             if (CheckChatAlias(alias, cmd, chatCommand, chatArgs, client)) {
                 break;
