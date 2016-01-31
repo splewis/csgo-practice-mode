@@ -3,10 +3,10 @@ sudo: false
 addons:
     apt_packages:
         - lib32stdc++6  # needed for spcomp
-        - elinks
 
 env:
     - SMVERSION=1.7
+    - SMVERSION=1.8
 
 before_script:
     # install smbuilder
@@ -29,6 +29,3 @@ before_script:
 
 script:
     - smbuilder --flags="-E"
-
-notifications:
-    email: false
