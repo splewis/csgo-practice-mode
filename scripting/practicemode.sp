@@ -182,9 +182,9 @@ public void OnPluginStart() {
     AutoExecConfig(true, "practicemode");
 
     // New cvars we don't want saved in the autoexec'd file
-    g_InfiniteMoneyCvar = CreateConVar("sm_infinite_money", "0", "Whether clients recieve infinite money");
+    g_InfiniteMoneyCvar = CreateConVar("sm_infinite_money", "0", "Whether clients recieve infinite money", FCVAR_DONTRECORD);
     g_InfiniteMoneyCvar.AddChangeHook(OnInfiniteMoneyChanged);
-    g_AllowNoclipCvar = CreateConVar("sm_allow_noclip", "0", "Whether players may use .noclip in chat to toggle noclip");
+    g_AllowNoclipCvar = CreateConVar("sm_allow_noclip", "0", "Whether players may use .noclip in chat to toggle noclip", FCVAR_DONTRECORD);
     g_AllowNoclipCvar.AddChangeHook(OnAllowNoclipChanged);
 
     g_GrenadeTrajectoryClientColorCvar = CreateConVar("sm_grenade_trajectory_use_player_color", "0", "Whether to use client colors when drawing grenade trajectories");
