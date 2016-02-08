@@ -115,7 +115,7 @@ public Plugin myinfo = {
 };
 
 public void OnPluginStart() {
-    // LoadTranslations("pugsetup.phrases");
+    LoadTranslations("pugsetup.phrases");
     g_InPracticeMode = false;
     AddCommandListener(Command_TeamJoin, "jointeam");
     AddCommandListener(Command_Noclip, "noclip");
