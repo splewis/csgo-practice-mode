@@ -146,6 +146,7 @@ public void OnPluginStart() {
 
     RegAdminCmd("sm_launchpractice", Command_LaunchPracticeMode, ADMFLAG_CHANGEMAP, "Launches practice mode");
     RegAdminCmd("sm_practice", Command_LaunchPracticeMode, ADMFLAG_CHANGEMAP, "Launches practice mode");
+    RegAdminCmd("sm_prac", Command_LaunchPracticeMode, ADMFLAG_CHANGEMAP, "Launches practice mode");
     RegAdminCmd("sm_exitpractice", Command_ExitPracticeMode, ADMFLAG_CHANGEMAP, "Exits practice mode");
 
     // Grenade history commands
