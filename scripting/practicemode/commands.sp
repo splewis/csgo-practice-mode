@@ -237,3 +237,20 @@ public Action Command_GotoSpawn(int client, int args) {
     return Plugin_Handled;
 }
 
+
+public Action Command_TestFlash(int client, int args) {
+    if (!g_InPracticeMode) {
+        return Plugin_Handled;
+    }
+
+    g_TestingFlash[client] = !g_TestingFlash[client];
+    if (g_TestingFlash[client]) {
+        PM_Message(client, "The next flash you throw will be displayed from this position.");
+        GetClientAbsOrigin(client, g_TestingFlashOrigins[client]);
+        GetClientEyeAngles(client, g_TestingFlashAngles[client]);
+    } else {
+        PM_Message(client, "Disabled flash testing.");
+    }
+
+    return Plugin_Handled;
+}

@@ -76,6 +76,10 @@ int g_GrenadeHistoryIndex[MAXPLAYERS+1];
 ArrayList g_GrenadeHistoryPositions[MAXPLAYERS+1];
 ArrayList g_GrenadeHistoryAngles[MAXPLAYERS+1];
 
+bool g_TestingFlash[MAXPLAYERS+1];
+float g_TestingFlashOrigins[MAXPLAYERS+1][3];
+float g_TestingFlashAngles[MAXPLAYERS+1][3];
+
 // These must match the values used by cl_color.
 enum ClientColor {
     ClientColor_Yellow = 0,
@@ -155,11 +159,13 @@ public void OnPluginStart() {
     RegConsoleCmd("sm_clearnades", Command_ClearNades);
     RegConsoleCmd("sm_gotogrenade", Command_GotoNade);
     RegConsoleCmd("sm_gotospawn", Command_GotoSpawn);
+    RegConsoleCmd("sm_testflash", Command_TestFlash);
     PM_AddChatAlias(".back", "sm_grenadeback");
     PM_AddChatAlias(".forward", "sm_grenadeforward");
     PM_AddChatAlias(".clearnades", "sm_clearnades");
     PM_AddChatAlias(".goto", "sm_gotogrenade");
     PM_AddChatAlias(".spawn", "sm_gotospawn");
+    PM_AddChatAlias(".flash", "sm_testflash");
 
     // Saved grenade location commands
     RegConsoleCmd("sm_grenades", Command_Grenades);
@@ -275,6 +281,7 @@ public void OnClientConnected(int client) {
     g_CurrentSavedGrenadeId[client] = -1;
     ClearArray(g_GrenadeHistoryPositions[client]);
     ClearArray(g_GrenadeHistoryAngles[client]);
+    g_TestingFlash[client] = false;
 }
 
 public void OnMapStart() {
@@ -567,8 +574,10 @@ public void ExitPracticeMode() {
 
     // force turn noclip off for everyone
     for (int i = 1; i <= MaxClients; i++) {
-        if (IsValidClient(i))
+        g_TestingFlash[i] = false;
+        if (IsValidClient(i)) {
             SetEntityMoveType(i, MOVETYPE_WALK);
+        }
     }
 
     ServerCommand("exec sourcemod/practicemode_end.cfg");
@@ -612,30 +621,56 @@ public int OnEntitySpawned(int entity) {
     char className[64];
     GetEdictClassname(entity, className, sizeof(className));
 
-    if (!IsGrenadeProjectile(className))
-        return;
-
-    int client = 0; // will use the default color (green)
-    if (g_GrenadeTrajectoryClientColor) {
-        int owner = GetEntPropEnt(entity, Prop_Data, "m_hOwnerEntity");
-        if (IsPlayer(owner)) {
-            client = owner;
-            UpdatePlayerColor(client);
+    if (IsGrenadeProjectile(className)) {
+        // Get the cl_color value for the client that threw this grenade.
+        int client = 0; // will use the default color (green)
+        if (g_GrenadeTrajectoryClientColor) {
+            int owner = GetEntPropEnt(entity, Prop_Data, "m_hOwnerEntity");
+            if (IsPlayer(owner)) {
+                client = owner;
+                UpdatePlayerColor(client);
+            }
         }
-    }
 
-    if (IsValidEntity(entity)) {
-        for (int i = 1; i <= MaxClients; i++) {
-            if (!IsClientConnected(i) || !IsClientInGame(i)) {
-                continue;
+        if (IsValidEntity(entity)) {
+            // Send a temp ent beam that follows the grenade entity to all other clients.
+            for (int i = 1; i <= MaxClients; i++) {
+                if (!IsClientConnected(i) || !IsClientInGame(i)) {
+                    continue;
+                }
+
+                // Note: the technique using temporary entities is taken from InternetBully's NadeTails plugin
+                // which you can find at https://forums.alliedmods.net/showthread.php?t=240668
+                float time = (GetClientTeam(i) == CS_TEAM_SPECTATOR) ? g_GrenadeSpecTime : g_GrenadeTime;
+                TE_SetupBeamFollow(entity, g_BeamSprite, 0, time, g_GrenadeThickness * 5, g_GrenadeThickness * 5, 1, g_ClientColors[client]);
+                TE_SendToClient(i);
             }
 
-            // Note: the technique using temporary entities is taken from InternetBully's NadeTails plugin
-            // which you can find at https://forums.alliedmods.net/showthread.php?t=240668
-            float time = (GetClientTeam(i) == CS_TEAM_SPECTATOR) ? g_GrenadeSpecTime : g_GrenadeTime;
-            TE_SetupBeamFollow(entity, g_BeamSprite, 0, time, g_GrenadeThickness * 5, g_GrenadeThickness * 5, 1, g_ClientColors[client]);
-            TE_SendToClient(i);
+            // If the user recently indicated they are testing a flash (.flash),
+            // teleport to that spot.
+            if (g_TestingFlash[client]) {
+                CreateTimer(0.5, Timer_TeleportClient, GetClientSerial(client));
+                CreateTimer(4.0, Timer_FakeGrenadeBack, GetClientSerial(client));
+            }
         }
+    }
+}
+
+public Action Timer_TeleportClient(Handle timer, int serial) {
+    int client = GetClientFromSerial(serial);
+    if (g_InPracticeMode && IsPlayer(client) && g_TestingFlash[client]) {
+        float velocity[3];
+        TeleportEntity(client,
+            g_TestingFlashOrigins[client],
+            g_TestingFlashAngles[client],
+            velocity);
+    }
+}
+
+public Action Timer_FakeGrenadeBack(Handle timer, int serial) {
+    int client = GetClientFromSerial(serial);
+    if (g_InPracticeMode && IsPlayer(client) && g_TestingFlash[client]) {
+        FakeClientCommand(client, "sm_grenadeback");
     }
 }
 
