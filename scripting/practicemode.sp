@@ -770,4 +770,6 @@ public void PrintHelpInfo(int client) {
     PM_Message(client, "{LIGHT_GREEN}.desc <description> {NORMAL}to add a nade description");
     PM_Message(client, "{LIGHT_GREEN}.delete {NORMAL}to delete your current grenade position");
     PM_Message(client, "{LIGHT_GREEN}.goto [player] <id> {NORMAL}to go to a grenadeid");
+    PM_Message(client, "{LIGHT_GREEN}.flash {NORMAL}to save a position for flashbang testing");
+    PM_Message(client, "{LIGHT_GREEN}.endflash {NORMAL}to stop flashbang testing");
 }

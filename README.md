@@ -33,6 +33,8 @@ You must have [SourceMod](http://www.sourcemod.net/downloads.php) and [MetaMod:S
 - ``.back``: teleports you back a position in your grenade history
 - ``.forward``: teleports you forward a position in your grenade history
 - ``.spawn <number>``: teleports you to a spawn # for the maps's spawns, if no number is given the nearest map spawn is used (uses your current CT/T team to decide which team's spawns to use)
+- ``.flash``:  saves you position to test flashbangs against it. Use this command in a spot you want to try to blind, then move and throw the flashbang; you will be teleported back to the position and see how effective the flashbang is
+- ``.stopflash``: stops flash testing
 
 ### ConVars
 - ``sm_practicemode_autostart``
