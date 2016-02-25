@@ -1,7 +1,7 @@
 csgo-practice-mode
 ===========================
 
-[![Build Status](https://travis-ci.org/splewis/csgo-practice-mode.svg?branch=master)](https://travis-ci.org/splewis/csgo-practice-mode)
+[![Build status](http://ci.splewis.net/job/csgo-practice-mode/badge/icon)](http://ci.splewis.net/job/csgo-practice-mode/)
 
 Practice Mode is a sourcemod plugin for helping players/teams run practices. It was formerly a part of [PugSetup](https://github.com/splewis/csgo-pug-setup) but has since been made into a separate project. It still contains integrations with pugsetup to make it available on it's ``.setup`` menu. It is also still distributed in pugsetup's releases.
 
