@@ -9,6 +9,8 @@ Practice Mode is a sourcemod plugin for helping players/teams run practices. It 
 
 Download from [the releases section](https://github.com/splewis/csgo-practice-mode/releases).
 
+You may also download the [latest development build](http://ci.splewis.net/job/csgo-practice-mode/lastSuccessfulBuild/) if you wish. If you report any bugs from these, make sure to include the build number (when typing ``sm plugins list`` into the server console, the build number will be displayed with the plugin version).
+
 ### Installation
 
 Extract the files in the release archive to the ``csgo`` server directory.
