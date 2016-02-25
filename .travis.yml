@@ -8,6 +8,10 @@ env:
     - SMVERSION=1.7
     - SMVERSION=1.8
 
+matrix:
+    allow_failures:
+        - env: SMVERSION=1.8
+
 before_script:
     # install smbuilder
     - git clone https://github.com/splewis/sm-builder
