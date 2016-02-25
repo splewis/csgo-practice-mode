@@ -655,7 +655,7 @@ public int OnEntitySpawned(int entity) {
 
             // If the user recently indicated they are testing a flash (.flash),
             // teleport to that spot.
-            if (g_TestingFlash[client]) {
+            if (StrEqual(className, "flashbang_projectile") && g_TestingFlash[client]) {
                 CreateTimer(0.5, Timer_TeleportClient, GetClientSerial(client));
                 CreateTimer(4.0, Timer_FakeGrenadeBack, GetClientSerial(client));
             }
@@ -760,16 +760,27 @@ public void OnClientSayCommand_Post(int client, const char[] command, const char
 }
 
 public void PrintHelpInfo(int client) {
-    PM_Message(client, "{LIGHT_GREEN}.setup {NORMAL}to change/view practicemode settings");
+    HelpMessage(client, "{LIGHT_GREEN}.setup {NORMAL}to change/view practicemode settings");
     if (g_AllowNoclip)
-        PM_Message(client, "{LIGHT_GREEN}.noclip {NORMAL}to enter/exit noclip mode");
-    PM_Message(client, "{LIGHT_GREEN}.back {NORMAL}to go to your last grenade position");
-    PM_Message(client, "{LIGHT_GREEN}.forward {NORMAL}to go to your next grenade position");
-    PM_Message(client, "{LIGHT_GREEN}.save <name> {NORMAL}to save a grenade position");
-    PM_Message(client, "{LIGHT_GREEN}.nades [player] {NORMAL}to view all saved grenades");
-    PM_Message(client, "{LIGHT_GREEN}.desc <description> {NORMAL}to add a nade description");
-    PM_Message(client, "{LIGHT_GREEN}.delete {NORMAL}to delete your current grenade position");
-    PM_Message(client, "{LIGHT_GREEN}.goto [player] <id> {NORMAL}to go to a grenadeid");
-    PM_Message(client, "{LIGHT_GREEN}.flash {NORMAL}to save a position for flashbang testing");
-    PM_Message(client, "{LIGHT_GREEN}.endflash {NORMAL}to stop flashbang testing");
+        HelpMessage(client, "{LIGHT_GREEN}.noclip {NORMAL}to enter/exit noclip mode");
+    HelpMessage(client, "{LIGHT_GREEN}.back {NORMAL}to go to your last grenade position");
+    HelpMessage(client, "{LIGHT_GREEN}.forward {NORMAL}to go to your next grenade position");
+    HelpMessage(client, "{LIGHT_GREEN}.save <name> {NORMAL}to save a grenade position");
+    HelpMessage(client, "{LIGHT_GREEN}.nades [player] {NORMAL}to view all saved grenades");
+    HelpMessage(client, "{LIGHT_GREEN}.desc <description> {NORMAL}to add a nade description");
+    HelpMessage(client, "{LIGHT_GREEN}.delete {NORMAL}to delete your current grenade position");
+    HelpMessage(client, "{LIGHT_GREEN}.goto [player] <id> {NORMAL}to go to a grenadeid");
+    HelpMessage(client, "{LIGHT_GREEN}.flash {NORMAL}to save a position for flashbang testing");
+    HelpMessage(client, "{LIGHT_GREEN}.endflash {NORMAL}to stop flashbang testing");
+}
+
+static void HelpMessage(int client, const char[] str) {
+    PM_Message(client, str);
+
+    if (client != 0) {
+        char consoleStr[128];
+        strcopy(consoleStr, sizeof(consoleStr), str);
+        Colorize(consoleStr, sizeof(consoleStr), true);
+        PrintToConsole(client, consoleStr);
+    }
 }
