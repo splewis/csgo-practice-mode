@@ -7,32 +7,22 @@ static void FindMapSpawnsForTeam(ArrayList list, const char[] spawnClassName) {
     list.Clear();
     int minPriority = -1;
 
-    int maxEnt = GetMaxEntities();
-    char className[128];
-
     // First pass over spawns to find minPriority.
-    for (int i = MaxClients; i < maxEnt; i++) {
-        bool valid = IsValidEdict(i) && IsValidEntity(i);
-        if (valid && GetEdictClassname(i, className, sizeof(className))) {
-            if (StrEqual(className, spawnClassName)) {
-                int priority = GetEntProp(i, Prop_Data, "m_iPriority");
-                if (priority < minPriority || minPriority == -1) {
-                    minPriority = priority;
-                }
-            }
+    int ent = -1;
+    while ((ent = FindEntityByClassname(ent, spawnClassName)) != -1) {
+        int priority = GetEntProp(ent, Prop_Data, "m_iPriority");
+        if (priority < minPriority || minPriority == -1) {
+            minPriority = priority;
         }
     }
 
+
     // Second pass only adds spawns with the lowest priority to the list.
-    for (int i = MaxClients; i < maxEnt; i++) {
-        bool valid = IsValidEdict(i) && IsValidEntity(i);
-        if (valid && GetEdictClassname(i, className, sizeof(className))) {
-            if (StrEqual(className, spawnClassName)) {
-                int priority = GetEntProp(i, Prop_Data, "m_iPriority");
-                if (priority == minPriority) {
-                    list.Push(i);
-                }
-            }
+    ent = -1;
+    while ((ent = FindEntityByClassname(ent, spawnClassName)) != -1) {
+        int priority = GetEntProp(ent, Prop_Data, "m_iPriority");
+        if (priority == minPriority) {
+            list.Push(ent);
         }
     }
 }
