@@ -142,6 +142,7 @@ public void OnPluginStart() {
 
     // Setup stuff for grenade history
     HookEvent("weapon_fire", Event_WeaponFired);
+    HookEvent("flashbang_detonate", Event_FlashDetonate);
     for (int i = 0; i <= MAXPLAYERS; i++) {
         g_GrenadeHistoryPositions[i] = new ArrayList(3);
         g_GrenadeHistoryAngles[i] = new ArrayList(3);
@@ -160,8 +161,10 @@ public void OnPluginStart() {
     RegConsoleCmd("sm_gotospawn", Command_GotoSpawn);
     RegConsoleCmd("sm_testflash", Command_TestFlash);
     RegConsoleCmd("sm_stopflash", Command_StopFlash);
+    RegConsoleCmd("sm_lastgrenade", Command_LastGrenade);
 
     PM_AddChatAlias(".back", "sm_grenadeback");
+    PM_AddChatAlias(".last", "sm_lastgrenade");
     PM_AddChatAlias(".forward", "sm_grenadeforward");
     PM_AddChatAlias(".clearnades", "sm_clearnades");
     PM_AddChatAlias(".goto", "sm_gotogrenade");
@@ -656,7 +659,6 @@ public int OnEntitySpawned(int entity) {
             // teleport to that spot.
             if (StrEqual(className, "flashbang_projectile") && g_TestingFlash[client]) {
                 CreateTimer(0.5, Timer_TeleportClient, GetClientSerial(client));
-                CreateTimer(4.0, Timer_FakeGrenadeBack, GetClientSerial(client));
             }
         }
     }
@@ -676,7 +678,7 @@ public Action Timer_TeleportClient(Handle timer, int serial) {
 public Action Timer_FakeGrenadeBack(Handle timer, int serial) {
     int client = GetClientFromSerial(serial);
     if (g_InPracticeMode && IsPlayer(client) && g_TestingFlash[client]) {
-        FakeClientCommand(client, "sm_grenadeback");
+        FakeClientCommand(client, "sm_lastgrenade");
     }
 }
 
@@ -703,6 +705,38 @@ public Action Event_WeaponFired(Event event, const char[] name, bool dontBroadca
         PushArrayArray(g_GrenadeHistoryPositions[client], position, sizeof(position));
         PushArrayArray(g_GrenadeHistoryAngles[client], angles, sizeof(angles));
         g_GrenadeHistoryIndex[client] = g_GrenadeHistoryPositions[client].Length;
+    }
+}
+
+
+public Action Event_FlashDetonate(Event event, const char[] name, bool dontBroadcast) {
+    if (!g_InPracticeMode) {
+        return;
+    }
+
+    int userid = event.GetInt("userid");
+    int client = GetClientOfUserId(userid);
+
+    if (g_TestingFlash[client]) {
+        // Get the impact of the flash next frame, since doing it in
+        // this frame doesn't work.
+        RequestFrame(GetFlashInfo, GetClientSerial(client));
+    }
+}
+
+public void GetFlashInfo(int serial) {
+    int client = GetClientFromSerial(serial);
+    if (IsPlayer(client) && g_TestingFlash[client]) {
+        float flashDuration = GetEntDataFloat(client, FindSendPropOffs("CCSPlayer", "m_flFlashDuration"));
+        PM_Message(client, "Flash duration: %.1f seconds", flashDuration);
+
+        // TODO: this should be customizable (able to disable and change the threshold)
+        if (flashDuration < 2.0) {
+            PM_Message(client, "Ineffective flash");
+            CreateTimer(1.0, Timer_FakeGrenadeBack, GetClientSerial(client));
+        } else {
+            CreateTimer(3.2, Timer_FakeGrenadeBack, GetClientSerial(client));
+        }
     }
 }
 
@@ -762,8 +796,9 @@ public void PrintHelpInfo(int client) {
     HelpMessage(client, "{LIGHT_GREEN}.setup {NORMAL}to change/view practicemode settings");
     if (g_AllowNoclip)
         HelpMessage(client, "{LIGHT_GREEN}.noclip {NORMAL}to enter/exit noclip mode");
-    HelpMessage(client, "{LIGHT_GREEN}.back {NORMAL}to go to your last grenade position");
-    HelpMessage(client, "{LIGHT_GREEN}.forward {NORMAL}to go to your next grenade position");
+    HelpMessage(client, "{LIGHT_GREEN}.last {NORMAL}to go to your last grenade position");
+    HelpMessage(client, "{LIGHT_GREEN}.back {NORMAL}to go to backward in grenade position history");
+    HelpMessage(client, "{LIGHT_GREEN}.forward {NORMAL}to go forward in grenade position history");
     HelpMessage(client, "{LIGHT_GREEN}.save <name> {NORMAL}to save a grenade position");
     HelpMessage(client, "{LIGHT_GREEN}.nades [player] {NORMAL}to view all saved grenades");
     HelpMessage(client, "{LIGHT_GREEN}.desc <description> {NORMAL}to add a nade description");

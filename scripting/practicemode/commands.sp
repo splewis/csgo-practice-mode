@@ -18,6 +18,16 @@ public Action Command_ExitPracticeMode(int client, int args) {
     return Plugin_Handled;
 }
 
+public Action Command_LastGrenade(int client, int args) {
+    int index = g_GrenadeHistoryPositions[client].Length - 1;
+    if (g_InPracticeMode && index >= 0) {
+        TeleportToGrenadeHistoryPosition(client, index);
+        PM_Message(client, "Teleporting back to position %d in grenade history.", index + 1);
+    }
+
+    return Plugin_Handled;
+}
+
 public Action Command_GrenadeBack(int client, int args) {
     if (g_InPracticeMode && g_GrenadeHistoryPositions[client].Length > 0) {
         g_GrenadeHistoryIndex[client]--;
@@ -25,7 +35,7 @@ public Action Command_GrenadeBack(int client, int args) {
             g_GrenadeHistoryIndex[client] = 0;
 
         TeleportToGrenadeHistoryPosition(client, g_GrenadeHistoryIndex[client]);
-        PM_Message(client, "Teleporting back to %d position in grenade history.", g_GrenadeHistoryIndex[client] + 1);
+        PM_Message(client, "Teleporting back to position %d in grenade history.", g_GrenadeHistoryIndex[client] + 1);
     }
 
     return Plugin_Handled;
@@ -38,7 +48,7 @@ public Action Command_GrenadeForward(int client, int args) {
         if (g_GrenadeHistoryIndex[client] >= max)
             g_GrenadeHistoryIndex[client] = max - 1;
         TeleportToGrenadeHistoryPosition(client, g_GrenadeHistoryIndex[client]);
-        PM_Message(client, "Teleporting forward to %d position in grenade history.", g_GrenadeHistoryIndex[client] + 1);
+        PM_Message(client, "Teleporting forward to position %d in grenade history.", g_GrenadeHistoryIndex[client] + 1);
     }
 
     return Plugin_Handled;
