@@ -160,12 +160,19 @@ public void OnPluginStart() {
     RegConsoleCmd("sm_gotogrenade", Command_GotoNade);
     RegConsoleCmd("sm_gotospawn", Command_GotoSpawn);
     RegConsoleCmd("sm_testflash", Command_TestFlash);
+    RegConsoleCmd("sm_stopflash", Command_StopFlash);
+
     PM_AddChatAlias(".back", "sm_grenadeback");
     PM_AddChatAlias(".forward", "sm_grenadeforward");
     PM_AddChatAlias(".clearnades", "sm_clearnades");
     PM_AddChatAlias(".goto", "sm_gotogrenade");
     PM_AddChatAlias(".spawn", "sm_gotospawn");
+
     PM_AddChatAlias(".flash", "sm_testflash");
+    PM_AddChatAlias(".testflash", "sm_testflash");
+    PM_AddChatAlias(".startflash", "sm_testflash");
+    PM_AddChatAlias(".endflash", "sm_stopflash");
+    PM_AddChatAlias(".stopflash", "sm_stopflash");
 
     // Saved grenade location commands
     RegConsoleCmd("sm_grenades", Command_Grenades);

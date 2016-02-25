@@ -237,20 +237,25 @@ public Action Command_GotoSpawn(int client, int args) {
     return Plugin_Handled;
 }
 
-
 public Action Command_TestFlash(int client, int args) {
     if (!g_InPracticeMode) {
         return Plugin_Handled;
     }
 
-    g_TestingFlash[client] = !g_TestingFlash[client];
-    if (g_TestingFlash[client]) {
-        PM_Message(client, "The next flash you throw will be displayed from this position.");
-        GetClientAbsOrigin(client, g_TestingFlashOrigins[client]);
-        GetClientEyeAngles(client, g_TestingFlashAngles[client]);
-    } else {
-        PM_Message(client, "Disabled flash testing.");
+    g_TestingFlash[client] = true;
+    PM_Message(client, "Saved your position. Throw a flashbang and you will be teleported back here to see the flashbang's effect.");
+    GetClientAbsOrigin(client, g_TestingFlashOrigins[client]);
+    GetClientEyeAngles(client, g_TestingFlashAngles[client]);
+    return Plugin_Handled;
+}
+
+
+public Action Command_StopFlash(int client, int args) {
+    if (!g_InPracticeMode) {
+        return Plugin_Handled;
     }
 
+    g_TestingFlash[client] = false;
+    PM_Message(client, "Disabled flash testing.");
     return Plugin_Handled;
 }
