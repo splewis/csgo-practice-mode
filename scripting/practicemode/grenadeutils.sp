@@ -42,6 +42,7 @@ public bool TeleportToSavedGrenadePosition(int client, const char[] targetAuth, 
     float angles[3];
     float velocity[3];
     char description[GRENADE_DESCRIPTION_LENGTH];
+    char category[GRENADE_CATEGORY_LENGTH];
     bool success = false;
 
     // update the client's current grenade id, if it was their grenade
@@ -67,6 +68,7 @@ public bool TeleportToSavedGrenadePosition(int client, const char[] targetAuth, 
             g_GrenadeLocationsKv.GetVector("angles", angles);
             g_GrenadeLocationsKv.GetString("name", grenadeName, sizeof(grenadeName));
             g_GrenadeLocationsKv.GetString("description", description, sizeof(description));
+            g_GrenadeLocationsKv.GetString("categories", category, sizeof(category));
             TeleportEntity(client, origin, angles, velocity);
             SetEntityMoveType(client, MOVETYPE_WALK);
 
@@ -78,6 +80,11 @@ public bool TeleportToSavedGrenadePosition(int client, const char[] targetAuth, 
 
             if (!StrEqual(description, "")) {
                 PM_Message(client, "Description: %s", description);
+            }
+
+            if (!StrEqual(category, "")) {
+                ReplaceString(category, sizeof(category), ";", ", ");
+                PM_Message(client, "Categories: %s", category);
             }
 
             g_GrenadeLocationsKv.GoBack();
@@ -197,22 +204,23 @@ public void UpdateGrenadeDescription(int client, int index, const char[] descrip
 
 public void AddGrenadeCategory(int client, int index, const char[] category) {
     char categoryString[GRENADE_CATEGORY_LENGTH];
-    GetGrenadeData(client, index, "category", categoryString, sizeof(categoryString));
+    GetGrenadeData(client, index, "categories", categoryString, sizeof(categoryString));
     if (!StrEqual(categoryString, ""))
         StrCat(categoryString, sizeof(categoryString), ";");
     StrCat(categoryString, sizeof(categoryString), category);
-    SetGrenadeData(client, index, "category", categoryString);
+    SetGrenadeData(client, index, "categories", categoryString);
+    CheckNewCategory(category);
 }
 
 public bool RemoveGrenadeCategory(int client, int index, const char[] category) {
     char categoryString[GRENADE_CATEGORY_LENGTH];
-    GetGrenadeData(client, index, "category", categoryString, sizeof(categoryString));
+    GetGrenadeData(client, index, "categories", categoryString, sizeof(categoryString));
 
     char removeString[GRENADE_CATEGORY_LENGTH];
     Format(removeString, sizeof(removeString), "%s;", category);
     int numreplaced = ReplaceString(categoryString, sizeof(categoryString), removeString, "");
 
-    SetGrenadeData(client, index, "category", categoryString);
+    SetGrenadeData(client, index, "categories", categoryString);
     return numreplaced > 0;
 }
 
@@ -259,4 +267,40 @@ public int CountGrenadesForPlayer(const char[] auth) {
         g_GrenadeLocationsKv.GoBack();
     }
     return count;
+}
+
+public void FindGrenadeCategories() {
+    IterateGrenades(_FindGrenadeCategories_Helper);
+}
+
+public Action _FindGrenadeCategories_Helper(const char[] ownerName,
+    const char[] ownerAuth, const char[] name,
+    const char[] description, ArrayList cats,
+    const char[] grenadeId,
+    const float origin[3], const float angles[3], any data) {
+
+    for (int i = 0; i < cats.Length; i++) {
+        char cat[64];
+        cats.GetString(i, cat, sizeof(cat));
+        CheckNewCategory(cat);
+    }
+    return Plugin_Continue;
+}
+
+public void CheckNewCategory(const char[] cat) {
+    if (!StrEqual(cat, "") && g_KnownNadeCategories.FindString(cat) == -1) {
+        g_KnownNadeCategories.PushString(cat);
+    }
+}
+
+public int AddCategoriesToList(const char[] categoryString, ArrayList list) {
+    const int maxCats = 10;
+    const int catSize = 64;
+    char parts[maxCats][catSize];
+    int foundCats = ExplodeString(categoryString, ";", parts, maxCats, catSize);
+    for (int i = 0; i < foundCats; i++) {
+        if (!StrEqual(parts[i], ""))
+            list.PushString(parts[i]);
+    }
+    return foundCats;
 }

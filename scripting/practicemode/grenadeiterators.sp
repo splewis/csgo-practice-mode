@@ -1,0 +1,121 @@
+typedef GrenadeIteratorFunction = function Action (const char[] ownerName,
+    const char[] ownerAuth, const char[] name,
+    const char[] description, ArrayList categories,
+    const char[] grenadeId,
+    const float origin[3], const float angles[3],
+    any data);
+
+// Helper that calls a GrenadeIteratorFunction over all grenades
+// for the current map.
+stock void IterateGrenades(GrenadeIteratorFunction f, any data=0) {
+    char ownerName[MAX_NAME_LENGTH];
+    char ownerAuth[AUTH_LENGTH];
+    char name[GRENADE_NAME_LENGTH];
+    char description[GRENADE_DESCRIPTION_LENGTH];
+    char categoryString[GRENADE_CATEGORY_LENGTH];
+    char grenadeId[GRENADE_ID_LENGTH];
+    float origin[3];
+    float angles[3];
+
+    // Outer iteration by users.
+    if (g_GrenadeLocationsKv.GotoFirstSubKey()) {
+        do {
+            g_GrenadeLocationsKv.GetSectionName(ownerAuth, sizeof(ownerAuth));
+            g_GrenadeLocationsKv.GetString("name", ownerName, sizeof(ownerName));
+
+            // Inner iteration by grenades for a user.
+            if (g_GrenadeLocationsKv.GotoFirstSubKey()) {
+                do {
+                    g_GrenadeLocationsKv.GetSectionName(grenadeId, sizeof(grenadeId));
+                    g_GrenadeLocationsKv.GetString("name", name, sizeof(name));
+                    g_GrenadeLocationsKv.GetString("description", description, sizeof(description));
+                    g_GrenadeLocationsKv.GetString("categories", categoryString, sizeof(categoryString));
+                    g_GrenadeLocationsKv.GetVector("origin", origin);
+                    g_GrenadeLocationsKv.GetVector("angles", angles);
+
+                    ArrayList cats = new ArrayList(64);
+                    AddCategoriesToList(categoryString, cats);
+
+                    Action ret = Plugin_Continue;
+                    Call_StartFunction(INVALID_HANDLE, f);
+                    Call_PushString(ownerName);
+                    Call_PushString(ownerAuth);
+                    Call_PushString(name);
+                    Call_PushString(description);
+                    Call_PushCell(cats);
+                    Call_PushString(grenadeId);
+                    Call_PushArray(origin, sizeof(origin));
+                    Call_PushArray(angles, sizeof(angles));
+                    Call_PushCell(data);
+                    Call_Finish(ret);
+                    delete cats;
+
+                    if (ret >= Plugin_Handled) {
+                        g_GrenadeLocationsKv.GoBack();
+                        g_GrenadeLocationsKv.GoBack();
+                        return;
+                    }
+
+                } while(g_GrenadeLocationsKv.GotoNextKey());
+                g_GrenadeLocationsKv.GoBack();
+            }
+
+
+        } while(g_GrenadeLocationsKv.GotoNextKey());
+        g_GrenadeLocationsKv.GoBack();
+    }
+}
+
+// Helper that calls a GrenadeIteratorFunction over all grenades
+// for the current map for a given user's auth.
+public void IterateAuthGrenades(GrenadeIteratorFunction f, const char[] auth) {
+    char ownerName[MAX_NAME_LENGTH];
+    char name[GRENADE_NAME_LENGTH];
+    char description[GRENADE_DESCRIPTION_LENGTH];
+    char categoryString[GRENADE_CATEGORY_LENGTH];
+    char grenadeId[GRENADE_ID_LENGTH];
+    float origin[3];
+    float angles[3];
+
+    // Outer iteration by users.
+    if (g_GrenadeLocationsKv.JumpToKey(auth)) {
+        g_GrenadeLocationsKv.GetString("name", ownerName, sizeof(ownerName));
+
+        // Inner iteration by grenades for a user.
+        if (g_GrenadeLocationsKv.GotoFirstSubKey()) {
+            do {
+                g_GrenadeLocationsKv.GetSectionName(grenadeId, sizeof(grenadeId));
+                g_GrenadeLocationsKv.GetString("name", name, sizeof(name));
+                g_GrenadeLocationsKv.GetString("description", description, sizeof(description));
+                g_GrenadeLocationsKv.GetString("categories", categoryString, sizeof(categoryString));
+                g_GrenadeLocationsKv.GetVector("origin", origin);
+                g_GrenadeLocationsKv.GetVector("angles", angles);
+
+                ArrayList cats = new ArrayList(64);
+                AddCategoriesToList(categoryString, cats);
+
+                Action ret = Plugin_Continue;
+                Call_StartFunction(INVALID_HANDLE, f);
+                Call_PushString(auth);
+                Call_PushString(auth);
+                Call_PushString(name);
+                Call_PushString(description);
+                Call_PushCell(cats);
+                Call_PushString(grenadeId);
+                Call_PushArray(origin, sizeof(origin));
+                Call_PushArray(angles, sizeof(angles));
+                Call_Finish(ret);
+                delete cats;
+
+                if (ret >= Plugin_Handled) {
+                    g_GrenadeLocationsKv.GoBack();
+                    g_GrenadeLocationsKv.GoBack();
+                    return;
+                }
+
+            } while(g_GrenadeLocationsKv.GotoNextKey());
+            g_GrenadeLocationsKv.GoBack();
+        }
+        g_GrenadeLocationsKv.GoBack();
+    }
+}

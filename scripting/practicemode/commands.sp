@@ -277,18 +277,20 @@ public Action Command_Category(int client, int args) {
     }
 
     char categoryString[GRENADE_CATEGORY_LENGTH];
-    GetGrenadeData(client, nadeId, "category", categoryString, sizeof(categoryString));
+    GetGrenadeData(client, nadeId, "categories", categoryString, sizeof(categoryString));
 
-    const int maxCats = 10;
-    const int catSize = 64;
-    char parts[maxCats][catSize];
-    int foundCats = ExplodeString(categoryString, ";", parts, maxCats, catSize);
-    for (int i = 0; i < foundCats; i++) {
-        PM_Message(client, "Category %d: %s", i + 1, parts[i]);
+    ArrayList categories = new ArrayList(64);
+    AddCategoriesToList(categoryString, categories);
+
+    for (int i = 0; i < categories.Length; i++) {
+        char cat[64];
+        categories.GetString(i, cat, sizeof(cat));
+        PM_Message(client, "Category %d: %s", i + 1, cat);
     }
-    if (foundCats == 0) {
+    if (categories.Length == 0) {
         PM_Message(client, "No categories found");
     }
+    delete categories;
 
     return Plugin_Handled;
 }
@@ -301,6 +303,7 @@ public Action Command_AddCategory(int client, int args) {
 
     char category[GRENADE_CATEGORY_LENGTH];
     GetCmdArgString(category, sizeof(category));
+    LowerString(category);
 
     AddGrenadeCategory(client, nadeId, category);
     PM_Message(client, "Added grenade category.");
@@ -315,6 +318,7 @@ public Action Command_RemoveCategory(int client, int args) {
 
     char category[GRENADE_CATEGORY_LENGTH];
     GetCmdArgString(category, sizeof(category));
+    LowerString(category);
 
     if (RemoveGrenadeCategory(client, nadeId, category))
         PM_Message(client, "Removed grenade category.");

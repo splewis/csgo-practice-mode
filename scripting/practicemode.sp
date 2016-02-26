@@ -81,6 +81,8 @@ bool g_TestingFlash[MAXPLAYERS+1];
 float g_TestingFlashOrigins[MAXPLAYERS+1][3];
 float g_TestingFlashAngles[MAXPLAYERS+1][3];
 
+ArrayList g_KnownNadeCategories = null;
+
 // These must match the values used by cl_color.
 enum ClientColor {
     ClientColor_Yellow = 0,
@@ -103,6 +105,7 @@ Handle g_OnPracticeModeEnabled = INVALID_HANDLE;
 Handle g_OnPracticeModeSettingChanged = INVALID_HANDLE;
 Handle g_OnPracticeModeSettingsRead = INVALID_HANDLE;
 
+#include "practicemode/grenadeiterators.sp"
 #include "practicemode/grenademenus.sp"
 #include "practicemode/grenadeutils.sp"
 #include "practicemode/natives.sp"
@@ -236,6 +239,7 @@ public void OnPluginStart() {
 
     g_CTSpawns = new ArrayList();
     g_TSpawns = new ArrayList();
+    g_KnownNadeCategories = new ArrayList(GRENADE_CATEGORY_LENGTH);
 
     // Remove cheats so sv_cheats isn't required for this:
     RemoveCvarFlag(g_GrenadeTrajectoryCvar, FCVAR_CHEAT);
@@ -306,6 +310,7 @@ public void OnClientConnected(int client) {
 public void OnMapStart() {
     ReadPracticeSettings();
     g_BeamSprite = PrecacheModel("materials/sprites/laserbeam.vmt");
+    g_KnownNadeCategories.Clear();
 
     // Init map-based saved grenade spots.
 
@@ -339,6 +344,7 @@ public void OnMapStart() {
         g_UpdatedGrenadeKv = false;
     }
 
+    FindGrenadeCategories();
     FindMapSpawns();
 }
 

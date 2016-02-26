@@ -168,3 +168,10 @@ public int AttemptFindTarget(const char[] target) {
         return -1;
     }
 }
+
+public void LowerString(char[] string) {
+    int len = strlen(string);
+    for (int i = 0; i < len; i++) {
+        string[i] = CharToLower(string[i]);
+    }
+}
