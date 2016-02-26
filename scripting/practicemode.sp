@@ -797,7 +797,7 @@ public void OnClientSayCommand_Post(int client, const char[] command, const char
     if (!g_PugsetupLoaded) {
         if (StrEqual(chatCommand, ".setup"))
             GivePracticeMenu(client);
-        if (StrEqual(chatCommand, ".help"))
+        else if (StrEqual(chatCommand, ".help"))
             PrintHelpInfo(client);
     }
 }

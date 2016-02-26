@@ -128,11 +128,6 @@ public int GrenadeHandler_PlayerSelection(Menu menu, MenuAction action, int para
 }
 
 stock void GiveGrenadesForPlayer(int client, const char[] ownerName, const char[] ownerAuth, int menuPosition=0) {
-    float origin[3];
-    float angles[3];
-    char description[GRENADE_DESCRIPTION_LENGTH];
-    char name[GRENADE_NAME_LENGTH];
-
     int userCount = 0;
     Menu menu = new Menu(GrenadeHandler_GrenadeSelection);
     menu.SetTitle("Grenades for %s", ownerName);
@@ -142,19 +137,7 @@ stock void GiveGrenadesForPlayer(int client, const char[] ownerName, const char[
     if (g_GrenadeLocationsKv.JumpToKey(ownerAuth)) {
         if (g_GrenadeLocationsKv.GotoFirstSubKey()) {
             do {
-                char strId[32];
-                g_GrenadeLocationsKv.GetSectionName(strId, sizeof(strId));
-                g_GrenadeLocationsKv.GetVector("origin", origin);
-                g_GrenadeLocationsKv.GetVector("angles", angles);
-                g_GrenadeLocationsKv.GetString("description", description, sizeof(description));
-                g_GrenadeLocationsKv.GetString("name", name, sizeof(name));
-
-                char info[128];
-                Format(info, sizeof(info), "%s %s", ownerAuth, strId);
-                char display[128];
-                Format(display, sizeof(display), "%s (id %s)", name, strId);
-
-                menu.AddItem(info, display);
+                AddGrenadeToMenu(menu, g_GrenadeLocationsKv, ownerAuth);
                 userCount++;
             } while (g_GrenadeLocationsKv.GotoNextKey());
             g_GrenadeLocationsKv.GoBack();
@@ -173,14 +156,7 @@ stock void GiveGrenadesForPlayer(int client, const char[] ownerName, const char[
 public int GrenadeHandler_GrenadeSelection(Menu menu, MenuAction action, int param1, int param2) {
     if (action == MenuAction_Select && g_InPracticeMode) {
         int client = param1;
-        char buffer[128];
-        menu.GetItem(param2, buffer, sizeof(buffer));
-        char auth[AUTH_LENGTH];
-        char idStr[GRENADE_ID_LENGTH];
-        // split buffer from form "<auth> <id>" (seperated by a space)
-        SplitOnSpace(buffer, auth, sizeof(auth), idStr, sizeof(idStr));
-        TeleportToSavedGrenadePosition(client, auth, idStr);
-
+        HandleGrenadeSelected(client, menu, param2);
     } else if (action == MenuAction_Cancel && param2 == MenuCancel_ExitBack) {
         int client = param1;
         GiveGrenadesMenu(client);
@@ -188,4 +164,35 @@ public int GrenadeHandler_GrenadeSelection(Menu menu, MenuAction action, int par
     } else if (action == MenuAction_End) {
         delete menu;
     }
+}
+
+public void AddGrenadeToMenu(Menu menu, KeyValues kv, const char[] ownerAuth) {
+    float origin[3];
+    float angles[3];
+    char description[GRENADE_DESCRIPTION_LENGTH];
+    char name[GRENADE_NAME_LENGTH];
+    char strId[32];
+
+    kv.GetSectionName(strId, sizeof(strId));
+    kv.GetVector("origin", origin);
+    kv.GetVector("angles", angles);
+    kv.GetString("description", description, sizeof(description));
+    kv.GetString("name", name, sizeof(name));
+
+    char info[128];
+    Format(info, sizeof(info), "%s %s", ownerAuth, strId);
+    char display[128];
+    Format(display, sizeof(display), "%s (id %s)", name, strId);
+
+    menu.AddItem(info, display);
+}
+
+public void HandleGrenadeSelected(int client, Menu menu, int param2) {
+    char buffer[128];
+    menu.GetItem(param2, buffer, sizeof(buffer));
+    char auth[AUTH_LENGTH];
+    char idStr[GRENADE_ID_LENGTH];
+    // split buffer from form "<auth> <id>" (seperated by a space)
+    SplitOnSpace(buffer, auth, sizeof(auth), idStr, sizeof(idStr));
+    TeleportToSavedGrenadePosition(client, auth, idStr);
 }
