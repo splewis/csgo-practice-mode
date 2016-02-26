@@ -237,8 +237,30 @@ public Action Command_GotoSpawn(int client, int args) {
     return Plugin_Handled;
 }
 
+public Action Command_Category(int client, int args) {
+    int nadeId = g_CurrentSavedGrenadeId[client];
+    if (nadeId < 0 || !g_InPracticeMode) {
+        return Plugin_Handled;
+    }
 
-public Action Command_SetCategory(int client, int args) {
+    char categoryString[GRENADE_CATEGORY_LENGTH];
+    GetGrenadeData(client, nadeId, "category", categoryString, sizeof(categoryString));
+
+    const int maxCats = 10;
+    const int catSize = 64;
+    char parts[maxCats][catSize];
+    int foundCats = ExplodeString(categoryString, ";", parts, maxCats, catSize);
+    for (int i = 0; i < foundCats; i++) {
+        PM_Message(client, "Category %d: %s", i + 1, parts[i]);
+    }
+    if (foundCats == 0) {
+        PM_Message(client, "No categories found");
+    }
+
+    return Plugin_Handled;
+}
+
+public Action Command_AddCategory(int client, int args) {
     int nadeId = g_CurrentSavedGrenadeId[client];
     if (nadeId < 0 || !g_InPracticeMode) {
         return Plugin_Handled;
@@ -247,7 +269,24 @@ public Action Command_SetCategory(int client, int args) {
     char category[GRENADE_CATEGORY_LENGTH];
     GetCmdArgString(category, sizeof(category));
 
-    UpdateGrenadeCategory(client, nadeId, category);
-    PM_Message(client, "Set grenade category.");
+    AddGrenadeCategory(client, nadeId, category);
+    PM_Message(client, "Added grenade category.");
+    return Plugin_Handled;
+}
+
+public Action Command_RemoveCategory(int client, int args) {
+    int nadeId = g_CurrentSavedGrenadeId[client];
+    if (nadeId < 0 || !g_InPracticeMode) {
+        return Plugin_Handled;
+    }
+
+    char category[GRENADE_CATEGORY_LENGTH];
+    GetCmdArgString(category, sizeof(category));
+
+    if (RemoveGrenadeCategory(client, nadeId, category))
+        PM_Message(client, "Removed grenade category.");
+    else
+        PM_Message(client, "Category not found.");
+
     return Plugin_Handled;
 }

@@ -172,6 +172,21 @@ public void SetGrenadeData(int client, int index, const char[] key, const char[]
     }
 }
 
+public void GetGrenadeData(int client, int index, const char[] key, char[] value, int valueLength) {
+    char auth[AUTH_LENGTH];
+    GetClientAuthId(client, AuthId_Steam2, auth, sizeof(auth));
+    char nadeId[GRENADE_ID_LENGTH];
+    IntToString(index, nadeId, sizeof(nadeId));
+
+    if (g_GrenadeLocationsKv.JumpToKey(auth)) {
+        if (g_GrenadeLocationsKv.JumpToKey(nadeId)) {
+            g_GrenadeLocationsKv.GetString(key, value, valueLength);
+            g_GrenadeLocationsKv.GoBack();
+        }
+        g_GrenadeLocationsKv.GoBack();
+    }
+}
+
 public void UpdateGrenadeName(int client, int index, const char[] name) {
     SetGrenadeData(client, index, "name", name);
 }
@@ -180,8 +195,25 @@ public void UpdateGrenadeDescription(int client, int index, const char[] descrip
     SetGrenadeData(client, index, "description", description);
 }
 
-public void UpdateGrenadeCategory(int client, int index, const char[] category) {
-    SetGrenadeData(client, index, "category", category);
+public void AddGrenadeCategory(int client, int index, const char[] category) {
+    char categoryString[GRENADE_CATEGORY_LENGTH];
+    GetGrenadeData(client, index, "category", categoryString, sizeof(categoryString));
+    if (!StrEqual(categoryString, ""))
+        StrCat(categoryString, sizeof(categoryString), ";");
+    StrCat(categoryString, sizeof(categoryString), category);
+    SetGrenadeData(client, index, "category", categoryString);
+}
+
+public bool RemoveGrenadeCategory(int client, int index, const char[] category) {
+    char categoryString[GRENADE_CATEGORY_LENGTH];
+    GetGrenadeData(client, index, "category", categoryString, sizeof(categoryString));
+
+    char removeString[GRENADE_CATEGORY_LENGTH];
+    Format(removeString, sizeof(removeString), "%s;", category);
+    int numreplaced = ReplaceString(categoryString, sizeof(categoryString), removeString, "");
+
+    SetGrenadeData(client, index, "category", categoryString);
+    return numreplaced > 0;
 }
 
 public bool FindGrenadeTarget(const char[] nameInput, char[] name, int nameLen, char[] auth, int authLen) {
