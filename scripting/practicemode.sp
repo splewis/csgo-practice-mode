@@ -47,19 +47,12 @@ bool g_InfiniteMoney = false;
 int g_BeamSprite = -1;
 int g_ClientColors[MAXPLAYERS+1][4];
 ConVar g_GrenadeTrajectoryClientColorCvar;
-bool g_GrenadeTrajectoryClientColor = true;
 
 ConVar g_AllowNoclipCvar;
-bool g_AllowNoclip = false;
-
 ConVar g_GrenadeTrajectoryCvar;
 ConVar g_GrenadeThicknessCvar;
 ConVar g_GrenadeTimeCvar;
 ConVar g_GrenadeSpecTimeCvar;
-bool g_GrenadeTrajectory = false;
-float g_GrenadeThickness = 0.2;
-float g_GrenadeTime = 20.0;
-float g_GrenadeSpecTime = 4.0;
 
 // Saved grenade locations data
 #define GRENADE_DESCRIPTION_LENGTH 256
@@ -211,23 +204,17 @@ public void OnPluginStart() {
     AutoExecConfig(true, "practicemode");
 
     // New cvars we don't want saved in the autoexec'd file
-    g_InfiniteMoneyCvar = CreateConVar("sm_infinite_money", "0", "Whether clients recieve infinite money", FCVAR_DONTRECORD);
+    g_InfiniteMoneyCvar = CreateConVar("sm_infinite_money", "0", "Whether clients recieve infinite money", FCVAR_DONTRECORD|FCVAR_CHEAT);
     g_InfiniteMoneyCvar.AddChangeHook(OnInfiniteMoneyChanged);
-    g_AllowNoclipCvar = CreateConVar("sm_allow_noclip", "0", "Whether players may use .noclip in chat to toggle noclip", FCVAR_DONTRECORD);
-    g_AllowNoclipCvar.AddChangeHook(OnAllowNoclipChanged);
+    g_AllowNoclipCvar = CreateConVar("sm_allow_noclip", "0", "Whether players may use .noclip in chat to toggle noclip", FCVAR_DONTRECORD|FCVAR_CHEAT);
 
     g_GrenadeTrajectoryClientColorCvar = CreateConVar("sm_grenade_trajectory_use_player_color", "0", "Whether to use client colors when drawing grenade trajectories");
-    g_GrenadeTrajectoryClientColorCvar.AddChangeHook(OnGrenadeTrajectoryClientColorChanged);
 
     // Patched builtin cvars
     g_GrenadeTrajectoryCvar = GetCvar("sv_grenade_trajectory");
     g_GrenadeThicknessCvar = GetCvar("sv_grenade_trajectory_thickness");
     g_GrenadeTimeCvar = GetCvar("sv_grenade_trajectory_time");
     g_GrenadeSpecTimeCvar = GetCvar("sv_grenade_trajectory_time_spectator");
-    g_GrenadeTrajectoryCvar.AddChangeHook(OnGrenadeTrajectoryChanged);
-    g_GrenadeThicknessCvar.AddChangeHook(OnGrenadeThicknessChanged);
-    g_GrenadeTimeCvar.AddChangeHook(OnGrenadeTimeChanged);
-    g_GrenadeSpecTimeCvar.AddChangeHook(OnGrenadeSpecTimeChanged);
 
     // set default colors to green
     for (int i = 0; i <= MAXPLAYERS; i++) {
@@ -263,30 +250,6 @@ public int OnInfiniteMoneyChanged(Handle cvar, const char[] oldValue, const char
     if (!previousValue && g_InfiniteMoney) {
         CreateTimer(1.0, Timer_GivePlayersMoney, _, TIMER_REPEAT);
     }
-}
-
-public int OnGrenadeTrajectoryChanged(Handle cvar, const char[] oldValue, const char[] newValue) {
-    g_GrenadeTrajectory = !StrEqual(newValue, "0");
-}
-
-public int OnGrenadeTrajectoryClientColorChanged(Handle cvar, const char[] oldValue, const char[] newValue) {
-    g_GrenadeTrajectoryClientColor = !StrEqual(newValue, "0");
-}
-
-public int OnGrenadeThicknessChanged(Handle cvar, const char[] oldValue, const char[] newValue) {
-    g_GrenadeThickness = StringToFloat(newValue);
-}
-
-public int OnGrenadeTimeChanged(Handle cvar, const char[] oldValue, const char[] newValue) {
-    g_GrenadeTime = StringToFloat(newValue);
-}
-
-public int OnGrenadeSpecTimeChanged(Handle cvar, const char[] oldValue, const char[] newValue) {
-    g_GrenadeSpecTime = StringToFloat(newValue);
-}
-
-public int OnAllowNoclipChanged(Handle cvar, const char[] oldValue, const char[] newValue) {
-    g_AllowNoclip = !StrEqual(newValue, "0");
 }
 
 /**
@@ -440,7 +403,7 @@ public Action Command_Noclip(int client, const char[] command, int argc) {
 }
 
 public Action OnClientSayCommand(int client, const char[] command, const char[] text) {
-    if (g_AllowNoclip && StrEqual(text, ".noclip") && IsPlayer(client)) {
+    if (g_AllowNoclipCvar.IntValue != 0 && StrEqual(text, ".noclip") && IsPlayer(client)) {
         PerformNoclipAction(client);
     }
 }
@@ -452,7 +415,8 @@ public void PerformNoclipAction(int client) {
     // (sv_cheats and allow noclip), this double bind would cause the noclip type to be toggled twice.
     // Therefore the fix is to only perform 1 noclip action per-frame per-client at most, implemented
     // by saving the frame count of each use in g_LastNoclipCommand.
-    if (g_LastNoclipCommand[client] == GetGameTickCount() || (!g_AllowNoclip && GetCvarIntSafe("sv_cheats") == 0)) {
+    if (g_LastNoclipCommand[client] == GetGameTickCount() ||
+        (g_AllowNoclipCvar.IntValue == 0 && GetCvarIntSafe("sv_cheats") == 0)) {
         return;
     }
 
@@ -633,14 +597,14 @@ public Action Timer_GivePlayersMoney(Handle timer) {
 }
 
 public void OnEntityCreated(int entity, const char[] className) {
-    if (!g_GrenadeTrajectory || !IsValidEntity(entity) || !IsGrenadeProjectile(className))
+    if (g_GrenadeTrajectoryCvar.IntValue == 0 || !IsValidEntity(entity) || !IsGrenadeProjectile(className))
         return;
 
     SDKHook(entity, SDKHook_SpawnPost, OnEntitySpawned);
 }
 
 public int OnEntitySpawned(int entity) {
-    if (!g_GrenadeTrajectory || !IsValidEdict(entity))
+    if (g_GrenadeTrajectoryCvar.IntValue == 0 || !IsValidEdict(entity))
         return;
 
     char className[64];
@@ -649,7 +613,7 @@ public int OnEntitySpawned(int entity) {
     if (IsGrenadeProjectile(className)) {
         // Get the cl_color value for the client that threw this grenade.
         int client = 0; // will use the default color (green)
-        if (g_GrenadeTrajectoryClientColor) {
+        if (g_GrenadeTrajectoryClientColorCvar.IntValue != 0) {
             int owner = GetEntPropEnt(entity, Prop_Data, "m_hOwnerEntity");
             if (IsPlayer(owner)) {
                 client = owner;
@@ -666,15 +630,19 @@ public int OnEntitySpawned(int entity) {
 
                 // Note: the technique using temporary entities is taken from InternetBully's NadeTails plugin
                 // which you can find at https://forums.alliedmods.net/showthread.php?t=240668
-                float time = (GetClientTeam(i) == CS_TEAM_SPECTATOR) ? g_GrenadeSpecTime : g_GrenadeTime;
-                TE_SetupBeamFollow(entity, g_BeamSprite, 0, time, g_GrenadeThickness * 5, g_GrenadeThickness * 5, 1, g_ClientColors[client]);
+                float time = (GetClientTeam(i) == CS_TEAM_SPECTATOR) ? g_GrenadeSpecTimeCvar.FloatValue : g_GrenadeTimeCvar.FloatValue;
+                TE_SetupBeamFollow(entity, g_BeamSprite, 0, time,
+                    g_GrenadeThicknessCvar.FloatValue * 5,
+                    g_GrenadeThicknessCvar.FloatValue * 5,
+                    1,
+                    g_ClientColors[client]);
                 TE_SendToClient(i);
             }
 
             // If the user recently indicated they are testing a flash (.flash),
             // teleport to that spot.
             if (StrEqual(className, "flashbang_projectile") && g_TestingFlash[client]) {
-                CreateTimer(0.5, Timer_TeleportClient, GetClientSerial(client));
+                CreateTimer(1.0, Timer_TeleportClient, GetClientSerial(client));
             }
         }
     }
@@ -810,7 +778,7 @@ public void OnClientSayCommand_Post(int client, const char[] command, const char
 
 public void PrintHelpInfo(int client) {
     HelpMessage(client, "{LIGHT_GREEN}.setup {NORMAL}to change/view practicemode settings");
-    if (g_AllowNoclip)
+    if (g_AllowNoclipCvar.IntValue != 0)
         HelpMessage(client, "{LIGHT_GREEN}.noclip {NORMAL}to enter/exit noclip mode");
     HelpMessage(client, "{LIGHT_GREEN}.last {NORMAL}to go to your last grenade position");
     HelpMessage(client, "{LIGHT_GREEN}.back {NORMAL}to go to backward in grenade position history");
