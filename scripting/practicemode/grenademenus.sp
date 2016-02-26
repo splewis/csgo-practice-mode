@@ -104,12 +104,16 @@ public void GiveGrenadesMenu(int client) {
     for (int i = 0; i < g_KnownNadeCategories.Length; i++) {
         char cat[64];
         g_KnownNadeCategories.GetString(i, cat, sizeof(cat));
+        int count = CountCategoryNades(cat);
+
         char info[256];
         Format(info, sizeof(info), "cat %s", cat);
         char display[256];
         // TODO: add number saved in the category like the player display has.
-        Format(display, sizeof(display), "Category: %s", cat);
-        menu.AddItem(info, display);
+        Format(display, sizeof(display), "Category: %s (%d saved)", cat, count);
+
+        if (count > 0)
+            menu.AddItem(info, display);
     }
 
     if (menu.ItemCount == 0) {
@@ -241,5 +245,36 @@ public Action _AddCategoryToMenu_Helper(const char[] ownerName,
 
     if (categories.FindString(cat) >= 0) {
         AddGrenadeToMenu(menu, ownerAuth, grenadeId, name);
+    }
+}
+
+public int CountCategoryNades(const char[] category) {
+    DataPack p = CreateDataPack();
+    p.WriteCell(0);
+    p.WriteString(category);
+    IterateGrenades(_CountCategoryNades_Helper, p);
+    p.Reset();
+    int count = p.ReadCell();
+    delete p;
+    return count;
+}
+
+public Action _CountCategoryNades_Helper(const char[] ownerName,
+    const char[] ownerAuth, const char[] name,
+    const char[] description, ArrayList categories,
+    const char[] grenadeId,
+    const float origin[3], const float angles[3],
+    any data) {
+    DataPack p = view_as<DataPack>(data);
+    ResetPack(p, false);
+    int count = p.ReadCell();
+    char cat[64];
+    p.ReadString(cat, sizeof(cat));
+
+    if (categories.FindString(cat) >= 0) {
+        count++;
+        ResetPack(p, true);
+        p.WriteCell(count);
+        p.WriteString(cat);
     }
 }
