@@ -642,7 +642,7 @@ public int OnEntitySpawned(int entity) {
             // If the user recently indicated they are testing a flash (.flash),
             // teleport to that spot.
             if (StrEqual(className, "flashbang_projectile") && g_TestingFlash[client]) {
-                CreateTimer(1.0, Timer_TeleportClient, GetClientSerial(client));
+                CreateTimer(0.5, Timer_TeleportClient, GetClientSerial(client));
             }
         }
     }
