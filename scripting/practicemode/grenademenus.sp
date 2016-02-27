@@ -154,7 +154,7 @@ stock void GiveGrenadesForPlayer(int client, const char[] ownerName, const char[
     if (g_GrenadeLocationsKv.JumpToKey(ownerAuth)) {
         if (g_GrenadeLocationsKv.GotoFirstSubKey()) {
             do {
-                AddKvGrenadeToMenu(menu, g_GrenadeLocationsKv, ownerAuth);
+                AddKvGrenadeToMenu(menu, g_GrenadeLocationsKv, ownerAuth, ownerAuth);
             } while (g_GrenadeLocationsKv.GotoNextKey());
             g_GrenadeLocationsKv.GoBack();
         }
@@ -190,15 +190,22 @@ public int GrenadeHandler_GrenadeSelection(Menu menu, MenuAction action, int par
     }
 }
 
-public void AddGrenadeToMenu(Menu menu, const char[] ownerAuth, const char[] strId, const char[] name) {
+stock void AddGrenadeToMenu(Menu menu, const char[] ownerAuth, const char[] ownerName,
+    const char[] strId, const char[] name, bool showPlayerName=false) {
     char info[128];
     Format(info, sizeof(info), "%s %s", ownerAuth, strId);
+
     char display[128];
-    Format(display, sizeof(display), "%s (id %s)", name, strId);
+    if (showPlayerName) {
+        Format(display, sizeof(display), "%s (id %s-%s)", name, strId, ownerName);
+    } else {
+        Format(display, sizeof(display), "%s (id %s)", name, strId);
+    }
+
     menu.AddItem(info, display);
 }
 
-public void AddKvGrenadeToMenu(Menu menu, KeyValues kv, const char[] ownerAuth) {
+public void AddKvGrenadeToMenu(Menu menu, KeyValues kv, const char[] ownerAuth, const char[] ownerName) {
     float origin[3];
     float angles[3];
     char description[GRENADE_DESCRIPTION_LENGTH];
@@ -210,7 +217,7 @@ public void AddKvGrenadeToMenu(Menu menu, KeyValues kv, const char[] ownerAuth) 
     kv.GetVector("angles", angles);
     kv.GetString("description", description, sizeof(description));
     kv.GetString("name", name, sizeof(name));
-    AddGrenadeToMenu(menu, ownerAuth, strId, name);
+    AddGrenadeToMenu(menu, ownerAuth, ownerName, strId, name);
 }
 
 public void HandleGrenadeSelected(int client, Menu menu, int param2) {
@@ -244,7 +251,7 @@ public Action _AddCategoryToMenu_Helper(const char[] ownerName,
     p.ReadString(cat, sizeof(cat));
 
     if (categories.FindString(cat) >= 0) {
-        AddGrenadeToMenu(menu, ownerAuth, grenadeId, name);
+        AddGrenadeToMenu(menu, ownerAuth, ownerName, grenadeId, name, true);
     }
 }
 

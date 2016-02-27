@@ -180,7 +180,6 @@ public void OnPluginStart() {
     RegConsoleCmd("sm_savegrenade", Command_SaveGrenade);
     RegConsoleCmd("sm_adddescription", Command_GrenadeDescription);
     RegConsoleCmd("sm_deletegrenade", Command_DeleteGrenade);
-    RegConsoleCmd("sm_category", Command_Category);
     RegConsoleCmd("sm_addcategory", Command_AddCategory);
     RegConsoleCmd("sm_removecategory", Command_RemoveCategory);
     PM_AddChatAlias(".nades", "sm_grenades");
@@ -191,8 +190,8 @@ public void OnPluginStart() {
     PM_AddChatAlias(".desc", "sm_adddescription");
     PM_AddChatAlias(".rename", "sm_renamegrenade");
     PM_AddChatAlias(".delete", "sm_deletegrenade");
-    PM_AddChatAlias(".category", "sm_category");
-    PM_AddChatAlias(".cat", "sm_category");
+    PM_AddChatAlias(".category", "sm_addcategory");
+    PM_AddChatAlias(".cat", "sm_addcategory");
     PM_AddChatAlias(".addcategory", "sm_addcategory");
     PM_AddChatAlias(".addcat", "sm_addcategory");
     PM_AddChatAlias(".removecategory", "sm_removecategory");
@@ -790,7 +789,7 @@ public void PrintHelpInfo(int client) {
     HelpMessage(client, "{LIGHT_GREEN}.delete {NORMAL}to delete your current grenade position");
     HelpMessage(client, "{LIGHT_GREEN}.goto [player] <id> {NORMAL}to go to a grenadeid");
     HelpMessage(client, "{LIGHT_GREEN}.flash {NORMAL}to save a position for flashbang testing");
-    HelpMessage(client, "{LIGHT_GREEN}.endflash {NORMAL}to stop flashbang testing");
+    HelpMessage(client, "{LIGHT_GREEN}.stopflash {NORMAL}to stop flashbang testing");
 }
 
 static void HelpMessage(int client, const char[] str) {

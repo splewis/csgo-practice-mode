@@ -107,7 +107,15 @@ public Action Command_Grenades(int client, int args) {
     char name[MAX_NAME_LENGTH];
 
     if (args >= 1 && GetCmdArg(1, arg, sizeof(arg))) {
-        if (FindGrenadeTarget(arg, name, sizeof(name), auth, sizeof(auth))) {
+        // Get a lower case version of the arg for a category search.
+        char argLower[MAX_NAME_LENGTH];
+        strcopy(argLower, sizeof(argLower), arg);
+        LowerString(argLower);
+
+        if (g_KnownNadeCategories.FindString(argLower) >= 0) {
+            GiveCategoryGrenades(client, argLower);
+            return Plugin_Handled;
+        } else if (FindGrenadeTarget(arg, name, sizeof(name), auth, sizeof(auth))) {
             GiveGrenadesForPlayer(client, name, auth);
             return Plugin_Handled;
         }

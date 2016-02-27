@@ -142,6 +142,7 @@ public bool FindTargetNameByAuth(const char[] inputAuth, char[] name, int nameLe
     if (g_GrenadeLocationsKv.JumpToKey(inputAuth, false)) {
         g_GrenadeLocationsKv.GetString("name", name, nameLen);
         g_GrenadeLocationsKv.GoBack();
+        return true;
     }
     return false;
 }
