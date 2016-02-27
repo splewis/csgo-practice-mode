@@ -149,6 +149,7 @@ public void OnPluginStart() {
     RegAdminCmd("sm_practice", Command_LaunchPracticeMode, ADMFLAG_CHANGEMAP, "Launches practice mode");
     RegAdminCmd("sm_prac", Command_LaunchPracticeMode, ADMFLAG_CHANGEMAP, "Launches practice mode");
     RegAdminCmd("sm_exitpractice", Command_ExitPracticeMode, ADMFLAG_CHANGEMAP, "Exits practice mode");
+    RegAdminCmd("sm_translategrenades", Command_TranslateGrenades, ADMFLAG_CHANGEMAP, "Translates all grenades on this map");
 
     // Grenade history commands
     RegConsoleCmd("sm_grenadeback", Command_GrenadeBack);

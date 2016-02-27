@@ -327,3 +327,24 @@ public Action Command_RemoveCategory(int client, int args) {
 
     return Plugin_Handled;
 }
+
+public Action Command_TranslateGrenades(int client, int args) {
+    if (args != 3) {
+        ReplyToCommand(client, "Usage: sm_translategrenades <dx> <dy> <dz>");
+        return Plugin_Handled;
+    }
+
+    char buffer[32];
+    GetCmdArg(1, buffer, sizeof(buffer));
+    float dx = StringToFloat(buffer);
+
+    GetCmdArg(2, buffer, sizeof(buffer));
+    float dy = StringToFloat(buffer);
+
+    GetCmdArg(3, buffer, sizeof(buffer));
+    float dz = StringToFloat(buffer);
+
+    TranslateGrenades(dx, dy, dz);
+
+    return Plugin_Handled;
+}

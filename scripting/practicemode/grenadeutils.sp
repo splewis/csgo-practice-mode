@@ -304,3 +304,29 @@ public int AddCategoriesToList(const char[] categoryString, ArrayList list) {
     }
     return foundCats;
 }
+
+public void TranslateGrenades(float dx, float dy, float dz) {
+    DataPack p = CreateDataPack();
+    p.WriteFloat(dx);
+    p.WriteFloat(dy);
+    p.WriteFloat(dz);
+    g_UpdatedGrenadeKv = true;
+    IterateGrenades(TranslateGrenadeHelper, p);
+    delete p;
+}
+
+public Action TranslateGrenadeHelper(const char[] ownerName,
+    const char[] ownerAuth, const char[] name,
+    const char[] description, ArrayList categories,
+    const char[] grenadeId,
+    float origin[3], float angles[3],
+    any data) {
+    DataPack p = view_as<DataPack>(data);
+    p.Reset();
+    float dx = p.ReadFloat();
+    float dy = p.ReadFloat();
+    float dz = p.ReadFloat();
+    origin[0] += dx;
+    origin[1] += dy;
+    origin[2] += dz;
+}
