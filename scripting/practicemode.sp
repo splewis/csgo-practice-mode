@@ -41,7 +41,6 @@ ConVar g_MaxGrenadesSavedCvar;
 
 // Infinite money data
 ConVar g_InfiniteMoneyCvar;
-bool g_InfiniteMoney = false;
 
 // Grenade trajectory fix data
 int g_BeamSprite = -1;
@@ -205,7 +204,6 @@ public void OnPluginStart() {
 
     // New cvars we don't want saved in the autoexec'd file
     g_InfiniteMoneyCvar = CreateConVar("sm_infinite_money", "0", "Whether clients recieve infinite money", FCVAR_DONTRECORD|FCVAR_CHEAT);
-    g_InfiniteMoneyCvar.AddChangeHook(OnInfiniteMoneyChanged);
     g_AllowNoclipCvar = CreateConVar("sm_allow_noclip", "0", "Whether players may use .noclip in chat to toggle noclip", FCVAR_DONTRECORD|FCVAR_CHEAT);
 
     g_GrenadeTrajectoryClientColorCvar = CreateConVar("sm_grenade_trajectory_use_player_color", "0", "Whether to use client colors when drawing grenade trajectories");
@@ -234,6 +232,8 @@ public void OnPluginStart() {
     HookEvent("server_cvar", Event_CvarChanged, EventHookMode_Pre);
 
     g_PugsetupLoaded = LibraryExists("pugsetup");
+
+    CreateTimer(1.0, Timer_GivePlayersMoney, _, TIMER_REPEAT);
 }
 
 public void OnLibraryAdded(const char[] name) {
@@ -242,14 +242,6 @@ public void OnLibraryAdded(const char[] name) {
 
 public void OnLibraryRemoved(const char[] name) {
     g_PugsetupLoaded = LibraryExists("pugsetup");
-}
-
-public int OnInfiniteMoneyChanged(Handle cvar, const char[] oldValue, const char[] newValue) {
-    bool previousValue = g_InfiniteMoney;
-    g_InfiniteMoney = !StrEqual(newValue, "0");
-    if (!previousValue && g_InfiniteMoney) {
-        CreateTimer(1.0, Timer_GivePlayersMoney, _, TIMER_REPEAT);
-    }
 }
 
 /**
@@ -583,13 +575,11 @@ public void SetCvar(const char[] name, int value) {
 }
 
 public Action Timer_GivePlayersMoney(Handle timer) {
-    if (!g_InfiniteMoney) {
-        return Plugin_Handled;
-    }
-
-    for (int i = 1; i <= MaxClients; i++) {
-        if (IsValidClient(i) && !IsFakeClient(i)) {
-            SetEntProp(i, Prop_Send, "m_iAccount", 16000);
+    if (g_InfiniteMoneyCvar.IntValue != 0) {
+        for (int i = 1; i <= MaxClients; i++) {
+            if (IsPlayer(i)) {
+                SetEntProp(i, Prop_Send, "m_iAccount", 16000);
+            }
         }
     }
 
