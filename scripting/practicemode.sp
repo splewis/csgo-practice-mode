@@ -45,6 +45,7 @@ ConVar g_InfiniteMoneyCvar;
 // Grenade trajectory fix data
 int g_BeamSprite = -1;
 int g_ClientColors[MAXPLAYERS+1][4];
+ConVar g_PatchGrenadeTrajectoryCvar;
 ConVar g_GrenadeTrajectoryClientColorCvar;
 
 ConVar g_AllowNoclipCvar;
@@ -206,6 +207,7 @@ public void OnPluginStart() {
     g_InfiniteMoneyCvar = CreateConVar("sm_infinite_money", "0", "Whether clients recieve infinite money", FCVAR_DONTRECORD|FCVAR_CHEAT);
     g_AllowNoclipCvar = CreateConVar("sm_allow_noclip", "0", "Whether players may use .noclip in chat to toggle noclip", FCVAR_DONTRECORD|FCVAR_CHEAT);
 
+    g_PatchGrenadeTrajectoryCvar = CreateConVar("sm_patch_grenade_trajectory_cvar", "1", "Whether the plugin patches sv_grenade_trajectory with its own grenade trails");
     g_GrenadeTrajectoryClientColorCvar = CreateConVar("sm_grenade_trajectory_use_player_color", "0", "Whether to use client colors when drawing grenade trajectories");
 
     // Patched builtin cvars
@@ -587,15 +589,20 @@ public Action Timer_GivePlayersMoney(Handle timer) {
 }
 
 public void OnEntityCreated(int entity, const char[] className) {
-    if (g_GrenadeTrajectoryCvar.IntValue == 0 || !IsValidEntity(entity) || !IsGrenadeProjectile(className))
+    if (g_GrenadeTrajectoryCvar.IntValue == 0 ||
+        g_PatchGrenadeTrajectoryCvar.IntValue == 0 ||
+        !IsValidEntity(entity) ||
+        !IsGrenadeProjectile(className)) {
         return;
+    }
 
     SDKHook(entity, SDKHook_SpawnPost, OnEntitySpawned);
 }
 
 public int OnEntitySpawned(int entity) {
-    if (g_GrenadeTrajectoryCvar.IntValue == 0 || !IsValidEdict(entity))
+    if (!IsValidEdict(entity)) {
         return;
+    }
 
     char className[64];
     GetEdictClassname(entity, className, sizeof(className));
@@ -612,21 +619,26 @@ public int OnEntitySpawned(int entity) {
         }
 
         if (IsValidEntity(entity)) {
-            // Send a temp ent beam that follows the grenade entity to all other clients.
-            for (int i = 1; i <= MaxClients; i++) {
-                if (!IsClientConnected(i) || !IsClientInGame(i)) {
-                    continue;
-                }
+            if (g_GrenadeTrajectoryCvar.IntValue != 0 && g_PatchGrenadeTrajectoryCvar.IntValue != 0) {
+                // Send a temp ent beam that follows the grenade entity to all other clients.
+                for (int i = 1; i <= MaxClients; i++) {
+                    if (!IsClientConnected(i) || !IsClientInGame(i)) {
+                        continue;
+                    }
 
-                // Note: the technique using temporary entities is taken from InternetBully's NadeTails plugin
-                // which you can find at https://forums.alliedmods.net/showthread.php?t=240668
-                float time = (GetClientTeam(i) == CS_TEAM_SPECTATOR) ? g_GrenadeSpecTimeCvar.FloatValue : g_GrenadeTimeCvar.FloatValue;
-                TE_SetupBeamFollow(entity, g_BeamSprite, 0, time,
-                    g_GrenadeThicknessCvar.FloatValue * 5,
-                    g_GrenadeThicknessCvar.FloatValue * 5,
-                    1,
-                    g_ClientColors[client]);
-                TE_SendToClient(i);
+                    // Note: the technique using temporary entities is taken from InternetBully's NadeTails plugin
+                    // which you can find at https://forums.alliedmods.net/showthread.php?t=240668
+                    float time = (GetClientTeam(i) == CS_TEAM_SPECTATOR) ?
+                        g_GrenadeSpecTimeCvar.FloatValue :
+                        g_GrenadeTimeCvar.FloatValue;
+
+                    TE_SetupBeamFollow(entity, g_BeamSprite, 0, time,
+                        g_GrenadeThicknessCvar.FloatValue * 5,
+                        g_GrenadeThicknessCvar.FloatValue * 5,
+                        1,
+                        g_ClientColors[client]);
+                    TE_SendToClient(i);
+                }
             }
 
             // If the user recently indicated they are testing a flash (.flash),
