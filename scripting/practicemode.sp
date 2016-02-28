@@ -658,6 +658,7 @@ public Action Timer_TeleportClient(Handle timer, int serial) {
             g_TestingFlashOrigins[client],
             g_TestingFlashAngles[client],
             velocity);
+        SetEntityMoveType(client, MOVETYPE_NONE);
     }
 }
 

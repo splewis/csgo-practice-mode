@@ -27,14 +27,14 @@ public bool IsGrenadeWeapon(const char[] weapon) {
     return FindStringInArray2(grenades, sizeof(grenades), weapon) >= 0;
 }
 
-public void TeleportToGrenadeHistoryPosition(int client, int index) {
+stock void TeleportToGrenadeHistoryPosition(int client, int index, MoveType moveType=MOVETYPE_WALK) {
     float origin[3];
     float angles[3];
     float velocity[3];
     g_GrenadeHistoryPositions[client].GetArray(index, origin, sizeof(origin));
     g_GrenadeHistoryAngles[client].GetArray(index, angles, sizeof(angles));
     TeleportEntity(client, origin, angles, velocity);
-    SetEntityMoveType(client, MOVETYPE_WALK);
+    SetEntityMoveType(client, moveType);
 }
 
 public bool TeleportToSavedGrenadePosition(int client, const char[] targetAuth, const char[] id) {
