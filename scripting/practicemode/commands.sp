@@ -390,3 +390,21 @@ public Action Command_TranslateGrenades(int client, int args) {
 
     return Plugin_Handled;
 }
+
+public Action Command_Time(int client, int args) {
+    if (!g_InPracticeMode) {
+        return Plugin_Handled;
+    }
+
+    if (g_RunningTimeCommand[client]) { // Stopping the timer
+        g_RunningTimeCommand[client] = false;
+        float dt = GetEngineTime() - g_LastTimeCommand[client];
+        PM_Message(client, "Timer result: %.2f seconds", dt);
+    } else { // Starting the timer
+        PM_Message(client, "Starting timer");
+        g_RunningTimeCommand[client] = true;
+        g_LastTimeCommand[client] = GetEngineTime();
+    }
+    return Plugin_Handled;
+
+}

@@ -87,6 +87,9 @@ enum ClientColor {
 
 int g_LastNoclipCommand[MAXPLAYERS+1];
 
+bool g_RunningTimeCommand[MAXPLAYERS+1];
+float g_LastTimeCommand[MAXPLAYERS+1];
+
 // Data storing spawn priorities.
 ArrayList g_CTSpawns = null;
 ArrayList g_TSpawns = null;
@@ -161,6 +164,7 @@ public void OnPluginStart() {
     RegConsoleCmd("sm_testflash", Command_TestFlash);
     RegConsoleCmd("sm_stopflash", Command_StopFlash);
     RegConsoleCmd("sm_lastgrenade", Command_LastGrenade);
+    RegConsoleCmd("sm_time", Command_Time);
 
     PM_AddChatAlias(".back", "sm_grenadeback");
     PM_AddChatAlias(".last", "sm_lastgrenade");
@@ -176,6 +180,9 @@ public void OnPluginStart() {
     PM_AddChatAlias(".startflash", "sm_testflash");
     PM_AddChatAlias(".endflash", "sm_stopflash");
     PM_AddChatAlias(".stopflash", "sm_stopflash");
+
+    PM_AddChatAlias(".timer", "sm_time");
+    PM_AddChatAlias(".time", "sm_time");
 
     // Saved grenade location commands
     RegConsoleCmd("sm_grenades", Command_Grenades);
@@ -265,6 +272,7 @@ public void OnClientConnected(int client) {
     ClearArray(g_GrenadeHistoryPositions[client]);
     ClearArray(g_GrenadeHistoryAngles[client]);
     g_TestingFlash[client] = false;
+    g_RunningTimeCommand[client] = false;
 }
 
 public void OnMapStart() {
