@@ -192,6 +192,7 @@ public void OnPluginStart() {
     RegConsoleCmd("sm_deletegrenade", Command_DeleteGrenade);
     RegConsoleCmd("sm_addcategory", Command_AddCategory);
     RegConsoleCmd("sm_removecategory", Command_RemoveCategory);
+    RegConsoleCmd("sm_clearcategories", Command_ClearGrenadeCategories);
     PM_AddChatAlias(".nades", "sm_grenades");
     PM_AddChatAlias(".grenades", "sm_grenades");
     PM_AddChatAlias(".addnade", "sm_savegrenade");
@@ -202,10 +203,12 @@ public void OnPluginStart() {
     PM_AddChatAlias(".delete", "sm_deletegrenade");
     PM_AddChatAlias(".category", "sm_addcategory");
     PM_AddChatAlias(".cat", "sm_addcategory");
+    PM_AddChatAlias(".cats", "sm_addcategory");
     PM_AddChatAlias(".addcategory", "sm_addcategory");
     PM_AddChatAlias(".addcat", "sm_addcategory");
     PM_AddChatAlias(".removecategory", "sm_removecategory");
     PM_AddChatAlias(".removecat", "sm_removecategory");
+    PM_AddChatAlias(".clearcats", "sm_clearcategories");
 
     // New Plugin cvars
     g_AutostartCvar = CreateConVar("sm_practicemode_autostart", "0", "Whether the plugin is automatically started on mapstart");

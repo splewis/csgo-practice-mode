@@ -110,7 +110,7 @@ public Action Command_Grenades(int client, int args) {
         // Get a lower case version of the arg for a category search.
         char argLower[MAX_NAME_LENGTH];
         strcopy(argLower, sizeof(argLower), arg);
-        LowerString(argLower);
+        NormalizeCategory(argLower);
 
         if (g_KnownNadeCategories.FindString(argLower) >= 0) {
             GiveCategoryGrenades(client, argLower);
@@ -339,15 +339,18 @@ public Action Command_Category(int client, int args) {
 
 public Action Command_AddCategory(int client, int args) {
     int nadeId = g_CurrentSavedGrenadeId[client];
-    if (nadeId < 0 || !g_InPracticeMode) {
+    if (nadeId < 0 || !g_InPracticeMode || args < 1) {
         return Plugin_Handled;
     }
 
     char category[GRENADE_CATEGORY_LENGTH];
-    GetCmdArgString(category, sizeof(category));
-    LowerString(category);
 
-    AddGrenadeCategory(client, nadeId, category);
+    for (int i = 1; i <= args; i++) {
+        GetCmdArg(i, category, sizeof(category));
+        NormalizeCategory(category);
+        AddGrenadeCategory(client, nadeId, category);
+    }
+
     PM_Message(client, "Added grenade category.");
     return Plugin_Handled;
 }
@@ -360,12 +363,24 @@ public Action Command_RemoveCategory(int client, int args) {
 
     char category[GRENADE_CATEGORY_LENGTH];
     GetCmdArgString(category, sizeof(category));
-    LowerString(category);
+    NormalizeCategory(category);
 
     if (RemoveGrenadeCategory(client, nadeId, category))
         PM_Message(client, "Removed grenade category.");
     else
         PM_Message(client, "Category not found.");
+
+    return Plugin_Handled;
+}
+
+public Action Command_ClearGrenadeCategories(int client, int args) {
+    int nadeId = g_CurrentSavedGrenadeId[client];
+    if (nadeId < 0 || !g_InPracticeMode) {
+        return Plugin_Handled;
+    }
+
+    SetGrenadeData(client, nadeId, "categories", "");
+    PM_Message(client, "Cleared grenade categories for id %d.", nadeId);
 
     return Plugin_Handled;
 }

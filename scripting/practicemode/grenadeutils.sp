@@ -84,6 +84,10 @@ public bool TeleportToSavedGrenadePosition(int client, const char[] targetAuth, 
 
             if (!StrEqual(category, "")) {
                 ReplaceString(category, sizeof(category), ";", ", ");
+                // Cut off the last two characters of the category string to avoid
+                // an extraneous comma and space.
+                int len = strlen(category);
+                category[len - 2] = '\0';
                 PM_Message(client, "Categories: %s", category);
             }
 
@@ -206,10 +210,11 @@ public void UpdateGrenadeDescription(int client, int index, const char[] descrip
 public void AddGrenadeCategory(int client, int index, const char[] category) {
     char categoryString[GRENADE_CATEGORY_LENGTH];
     GetGrenadeData(client, index, "categories", categoryString, sizeof(categoryString));
-    if (!StrEqual(categoryString, ""))
-        StrCat(categoryString, sizeof(categoryString), ";");
+
     StrCat(categoryString, sizeof(categoryString), category);
+    StrCat(categoryString, sizeof(categoryString), ";");
     SetGrenadeData(client, index, "categories", categoryString);
+
     CheckNewCategory(category);
 }
 
@@ -219,8 +224,8 @@ public bool RemoveGrenadeCategory(int client, int index, const char[] category) 
 
     char removeString[GRENADE_CATEGORY_LENGTH];
     Format(removeString, sizeof(removeString), "%s;", category);
-    int numreplaced = ReplaceString(categoryString, sizeof(categoryString), removeString, "");
 
+    int numreplaced = ReplaceString(categoryString, sizeof(categoryString), removeString, "");
     SetGrenadeData(client, index, "categories", categoryString);
     return numreplaced > 0;
 }
@@ -330,4 +335,12 @@ public Action TranslateGrenadeHelper(const char[] ownerName,
     origin[0] += dx;
     origin[1] += dy;
     origin[2] += dz;
+}
+
+public void NormalizeCategory(char[] category) {
+    if (strlen(category) == 1) {
+        UpperString(category);
+    }  else {
+        LowerString(category);
+    }
 }

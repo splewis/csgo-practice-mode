@@ -140,7 +140,7 @@ stock bool SplitOnSpace(const char[] str, char[] buf1, int len1, char[] buf2, in
 }
 
 
-public ConVar GetCvar(const char[] name) {
+stock ConVar GetCvar(const char[] name) {
     ConVar cvar = FindConVar(name);
     if (cvar == null) {
         SetFailState("Failed to find cvar: \"%s\"", name);
@@ -148,7 +148,7 @@ public ConVar GetCvar(const char[] name) {
     return cvar;
 }
 
-public int AttemptFindTarget(const char[] target) {
+stock int AttemptFindTarget(const char[] target) {
     char target_name[MAX_TARGET_LENGTH];
     int target_list[1];
     bool tn_is_ml;
@@ -169,9 +169,16 @@ public int AttemptFindTarget(const char[] target) {
     }
 }
 
-public void LowerString(char[] string) {
+stock void LowerString(char[] string) {
     int len = strlen(string);
     for (int i = 0; i < len; i++) {
         string[i] = CharToLower(string[i]);
+    }
+}
+
+stock void UpperString(char[] string) {
+    int len = strlen(string);
+    for (int i = 0; i < len; i++) {
+        string[i] = CharToUpper(string[i]);
     }
 }
