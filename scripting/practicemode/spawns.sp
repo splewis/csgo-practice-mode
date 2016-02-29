@@ -41,18 +41,39 @@ public int FindNearestSpawnIndex(int client, ArrayList list) {
     GetClientAbsOrigin(client, clientOrigin);
 
     float origin[3];
-    int closest = -1;
+    int closestIndex = -1;
     float minDist = 0.0;
 
     for (int i = 0; i < list.Length; i++) {
         int ent = list.Get(i);
         GetEntPropVector(ent, Prop_Data, "m_vecOrigin", origin);
         float dist = GetVectorDistance(clientOrigin, origin);
-        if (closest < 0 || dist < minDist) {
+        if (closestIndex < 0 || dist < minDist) {
             minDist = dist;
-            closest = i;
+            closestIndex = i;
         }
     }
 
-    return closest;
+    return closestIndex;
+}
+
+public int FindFurthestSpawnIndex(int client, ArrayList list) {
+    float clientOrigin[3];
+    GetClientAbsOrigin(client, clientOrigin);
+
+    float origin[3];
+    int farthestIndex = -1;
+    float maxDist = 0.0;
+
+    for (int i = 0; i < list.Length; i++) {
+        int ent = list.Get(i);
+        GetEntPropVector(ent, Prop_Data, "m_vecOrigin", origin);
+        float dist = GetVectorDistance(clientOrigin, origin);
+        if (farthestIndex < 0 || dist > maxDist) {
+            maxDist = dist;
+            farthestIndex = i;
+        }
+    }
+
+    return farthestIndex;
 }

@@ -255,6 +255,40 @@ public Action Command_GotoSpawn(int client, int args) {
     return Plugin_Handled;
 }
 
+public Action Command_GotoWorstSpawn(int client, int args) {
+    if (!g_InPracticeMode) {
+        return Plugin_Handled;
+    }
+
+    if (IsPlayer(client)) {
+        ArrayList spawnList = null;
+        if (GetClientTeam(client) == CS_TEAM_CT) {
+            spawnList = g_CTSpawns;
+        } else {
+            spawnList = g_TSpawns;
+        }
+
+        char arg[32];
+        int spawnIndex = -1;
+        if (args >= 1 && GetCmdArg(1, arg, sizeof(arg))) {
+            spawnIndex = StringToInt(arg) - 1; // One-indexed for users.
+        } else {
+            spawnIndex = FindFurthestSpawnIndex(client, spawnList);
+        }
+
+        if (spawnIndex < 0 || spawnIndex >= spawnList.Length) {
+            PM_Message(client, "Spawn number out of range. (%d max)", spawnList.Length);
+            return Plugin_Handled;
+        }
+
+        int ent = spawnList.Get(spawnIndex);
+        TeleportToSpawnEnt(client, ent);
+        SetEntityMoveType(client, MOVETYPE_WALK);
+        PM_Message(client, "Moved to spawn %d (of %d).", spawnIndex + 1, spawnList.Length);
+    }
+    return Plugin_Handled;
+}
+
 public Action Command_TestFlash(int client, int args) {
     if (!g_InPracticeMode) {
         return Plugin_Handled;

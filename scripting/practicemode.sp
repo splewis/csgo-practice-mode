@@ -157,6 +157,7 @@ public void OnPluginStart() {
     RegConsoleCmd("sm_clearnades", Command_ClearNades);
     RegConsoleCmd("sm_gotogrenade", Command_GotoNade);
     RegConsoleCmd("sm_gotospawn", Command_GotoSpawn);
+    RegConsoleCmd("sm_worstspawn", Command_GotoWorstSpawn);
     RegConsoleCmd("sm_testflash", Command_TestFlash);
     RegConsoleCmd("sm_stopflash", Command_StopFlash);
     RegConsoleCmd("sm_lastgrenade", Command_LastGrenade);
@@ -167,6 +168,8 @@ public void OnPluginStart() {
     PM_AddChatAlias(".clearnades", "sm_clearnades");
     PM_AddChatAlias(".goto", "sm_gotogrenade");
     PM_AddChatAlias(".spawn", "sm_gotospawn");
+    PM_AddChatAlias(".bestspawn", "sm_gotospawn");
+    PM_AddChatAlias(".worstspawn", "sm_worstspawn");
 
     PM_AddChatAlias(".flash", "sm_testflash");
     PM_AddChatAlias(".testflash", "sm_testflash");
