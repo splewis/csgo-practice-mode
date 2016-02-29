@@ -312,28 +312,11 @@ public Action Command_StopFlash(int client, int args) {
     return Plugin_Handled;
 }
 
-public Action Command_Category(int client, int args) {
-    int nadeId = g_CurrentSavedGrenadeId[client];
-    if (nadeId < 0 || !g_InPracticeMode) {
+public Action Command_Categories(int client, int args) {
+    if (!g_InPracticeMode) {
         return Plugin_Handled;
     }
-
-    char categoryString[GRENADE_CATEGORY_LENGTH];
-    GetGrenadeData(client, nadeId, "categories", categoryString, sizeof(categoryString));
-
-    ArrayList categories = new ArrayList(64);
-    AddCategoriesToList(categoryString, categories);
-
-    for (int i = 0; i < categories.Length; i++) {
-        char cat[64];
-        categories.GetString(i, cat, sizeof(cat));
-        PM_Message(client, "Category %d: %s", i + 1, cat);
-    }
-    if (categories.Length == 0) {
-        PM_Message(client, "No categories found");
-    }
-    delete categories;
-
+    GiveGrenadesMenu(client, true);
     return Plugin_Handled;
 }
 

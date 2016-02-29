@@ -67,12 +67,16 @@ public int PracticeMenuHandler(Menu menu, MenuAction action, int param1, int par
     return 0;
 }
 
-public void GiveGrenadesMenu(int client) {
+stock void GiveGrenadesMenu(int client, bool categoriesOnly=false) {
     Menu menu = new Menu(GrenadeMenu_Handler);
-    menu.SetTitle("Select a player/category:");
     menu.ExitButton = true;
 
-    if (g_GrenadeLocationsKv.GotoFirstSubKey()) {
+    if (categoriesOnly)
+        menu.SetTitle("Select a category:");
+    else
+        menu.SetTitle("Select a player/category:");
+
+    if (!categoriesOnly && g_GrenadeLocationsKv.GotoFirstSubKey()) {
         do {
             int nadeCount = 0;
             if (g_GrenadeLocationsKv.GotoFirstSubKey()) {
@@ -98,8 +102,8 @@ public void GiveGrenadesMenu(int client) {
             }
 
         } while (g_GrenadeLocationsKv.GotoNextKey());
+        g_GrenadeLocationsKv.GoBack();
     }
-    g_GrenadeLocationsKv.Rewind();
 
     for (int i = 0; i < g_KnownNadeCategories.Length; i++) {
         char cat[64];
@@ -117,7 +121,10 @@ public void GiveGrenadesMenu(int client) {
     }
 
     if (menu.ItemCount == 0) {
-        PM_Message(client, "No players have grenade positions saved.");
+        if (categoriesOnly)
+            PM_Message(client, "No categories have been set yet.");
+        else
+            PM_Message(client, "No players have grenade positions saved.");
         delete menu;
     } else {
         menu.Display(client, MENU_TIME_FOREVER);
