@@ -398,11 +398,27 @@ public Action Command_Time(int client, int args) {
         g_RunningTimeCommand[client] = false;
         float dt = GetEngineTime() - g_LastTimeCommand[client];
         PM_Message(client, "Timer result: %.2f seconds", dt);
+        PrintHintText(client, "<b>Time: %.2f</b> seconds", dt);
     } else { // Starting the timer
         PM_Message(client, "Starting timer");
         g_RunningTimeCommand[client] = true;
         g_LastTimeCommand[client] = GetEngineTime();
+        CreateTimer(0.1, Timer_DisplayClientTimer, GetClientSerial(client), TIMER_REPEAT|TIMER_FLAG_NO_MAPCHANGE);
     }
     return Plugin_Handled;
 
+}
+
+public Action Timer_DisplayClientTimer(Handle timer, int serial) {
+    int client = GetClientFromSerial(serial);
+    if (IsPlayer(client) && g_RunningTimeCommand[client]) {
+        if (g_RunningTimeCommand[client]) {
+            float dt = GetEngineTime() - g_LastTimeCommand[client];
+            PrintHintText(client, "<b>Time: %.1f</b> seconds", dt);
+            return Plugin_Continue;
+        } else {
+            return Plugin_Stop;
+        }
+    }
+    return Plugin_Stop;
 }
