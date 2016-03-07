@@ -729,7 +729,7 @@ public Action Event_FlashDetonate(Event event, const char[] name, bool dontBroad
 public void GetFlashInfo(int serial) {
     int client = GetClientFromSerial(serial);
     if (IsPlayer(client) && g_TestingFlash[client]) {
-        float flashDuration = GetEntDataFloat(client, FindSendPropOffs("CCSPlayer", "m_flFlashDuration"));
+        float flashDuration = GetEntDataFloat(client, FindSendPropInfo("CCSPlayer", "m_flFlashDuration"));
         PM_Message(client, "Flash duration: %.1f seconds", flashDuration);
 
         // TODO: this should be customizable (able to disable and change the threshold)
