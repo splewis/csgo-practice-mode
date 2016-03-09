@@ -394,19 +394,30 @@ public Action Command_Time(int client, int args) {
         return Plugin_Handled;
     }
 
-    if (g_RunningTimeCommand[client]) { // Stopping the timer
-        g_RunningTimeCommand[client] = false;
-        float dt = GetEngineTime() - g_LastTimeCommand[client];
-        PM_Message(client, "Timer result: %.2f seconds", dt);
-        PrintHintText(client, "<b>Time: %.2f</b> seconds", dt);
-    } else { // Starting the timer
-        PM_Message(client, "Starting timer");
+    if (!g_RunningTimeCommand[client]) {
+        // Start command.
+        PM_Message(client, "When you start moving a timer will run until you stop.");
         g_RunningTimeCommand[client] = true;
-        g_LastTimeCommand[client] = GetEngineTime();
-        CreateTimer(0.1, Timer_DisplayClientTimer, GetClientSerial(client), TIMER_REPEAT|TIMER_FLAG_NO_MAPCHANGE);
+        g_RunningLiveTimeCommand[client] = false;
+    } else {
+        // Early stop command.
+        g_RunningTimeCommand[client] = false;
+        g_RunningLiveTimeCommand[client] = false;
+        StopClientTimer(client);
     }
-    return Plugin_Handled;
 
+    return Plugin_Handled;
+}
+
+public void StartClientTimer(int client) {
+    g_LastTimeCommand[client] = GetEngineTime();
+    CreateTimer(0.1, Timer_DisplayClientTimer, GetClientSerial(client), TIMER_REPEAT|TIMER_FLAG_NO_MAPCHANGE);
+}
+
+public void StopClientTimer(int client) {
+    float dt = GetEngineTime() - g_LastTimeCommand[client];
+    PM_Message(client, "Timer result: %.2f seconds", dt);
+    PrintHintText(client, "<b>Time: %.2f</b> seconds", dt);
 }
 
 public Action Timer_DisplayClientTimer(Handle timer, int serial) {

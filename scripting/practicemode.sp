@@ -70,6 +70,7 @@ int g_GrenadeHistoryIndex[MAXPLAYERS+1];
 ArrayList g_GrenadeHistoryPositions[MAXPLAYERS+1];
 ArrayList g_GrenadeHistoryAngles[MAXPLAYERS+1];
 
+float g_LastGrenadeThrowTime[MAXPLAYERS+1];
 bool g_TestingFlash[MAXPLAYERS+1];
 float g_TestingFlashOrigins[MAXPLAYERS+1][3];
 float g_TestingFlashAngles[MAXPLAYERS+1][3];
@@ -88,6 +89,7 @@ enum ClientColor {
 int g_LastNoclipCommand[MAXPLAYERS+1];
 
 bool g_RunningTimeCommand[MAXPLAYERS+1];
+bool g_RunningLiveTimeCommand[MAXPLAYERS+1];
 float g_LastTimeCommand[MAXPLAYERS+1];
 
 // Data storing spawn priorities.
@@ -143,6 +145,9 @@ public void OnPluginStart() {
     // Setup stuff for grenade history
     HookEvent("weapon_fire", Event_WeaponFired);
     HookEvent("flashbang_detonate", Event_FlashDetonate);
+    HookEvent("molotov_detonate", Event_MoltovDetonate);
+    HookEvent("smokegrenade_detonate", Event_SmokeDetonate);
+
     for (int i = 0; i <= MAXPLAYERS; i++) {
         g_GrenadeHistoryPositions[i] = new ArrayList(3);
         g_GrenadeHistoryAngles[i] = new ArrayList(3);
@@ -277,6 +282,7 @@ public void OnClientConnected(int client) {
     ClearArray(g_GrenadeHistoryAngles[client]);
     g_TestingFlash[client] = false;
     g_RunningTimeCommand[client] = false;
+    g_RunningLiveTimeCommand[client] = false;
 }
 
 public void OnMapStart() {
@@ -389,6 +395,44 @@ public void GetColor(ClientColor c, int array[4]) {
     array[1] = g;
     array[2] = b;
     array[3] = 255;
+}
+
+
+public Action OnPlayerRunCmd(int client, int& buttons, int& impulse,
+    float vel[3], float angles[3],
+    int& weapon, int& subtype, int& cmdnum,
+    int& tickcount, int& seed, int mouse[2]) {
+    if (!IsPlayer(client))
+        return Plugin_Continue;
+
+    if (g_InPracticeMode) {
+        bool moving = MovingButtons(buttons);
+
+        if (g_RunningTimeCommand[client] && !g_RunningLiveTimeCommand[client]) { // if using autotimer
+            if (moving) {
+                g_RunningLiveTimeCommand[client] = true;
+                StartClientTimer(client);
+            }
+        }
+
+        if (g_RunningTimeCommand[client] && g_RunningLiveTimeCommand[client]) {
+            if (!moving) {
+                g_RunningTimeCommand[client] = false;
+                g_RunningLiveTimeCommand[client] = false;
+                StopClientTimer(client);
+            }
+        }
+    }
+
+    return Plugin_Continue;
+}
+
+static bool MovingButtons(int buttons) {
+    return
+      buttons & IN_FORWARD != 0 ||
+      buttons & IN_MOVELEFT    != 0 ||
+      buttons & IN_MOVERIGHT   != 0 ||
+      buttons & IN_BACK    != 0;
 }
 
 public Action Command_TeamJoin(int client, const char[] command, int argc) {
@@ -624,13 +668,10 @@ public int OnEntitySpawned(int entity) {
 
     if (IsGrenadeProjectile(className)) {
         // Get the cl_color value for the client that threw this grenade.
-        int client = 0; // will use the default color (green)
-        if (g_GrenadeTrajectoryClientColorCvar.IntValue != 0) {
-            int owner = GetEntPropEnt(entity, Prop_Data, "m_hOwnerEntity");
-            if (IsPlayer(owner)) {
-                client = owner;
-                UpdatePlayerColor(client);
-            }
+        int client = GetEntPropEnt(entity, Prop_Data, "m_hOwnerEntity");
+        if (IsPlayer(client)) {
+            g_LastGrenadeThrowTime[client] = GetEngineTime();
+            UpdatePlayerColor(client);
         }
 
         if (IsValidEntity(entity)) {
@@ -647,11 +688,16 @@ public int OnEntitySpawned(int entity) {
                         g_GrenadeSpecTimeCvar.FloatValue :
                         g_GrenadeTimeCvar.FloatValue;
 
+                    int coloringClient = client;
+                    if (g_GrenadeTrajectoryClientColorCvar.IntValue == 0) {
+                        coloringClient = 0;
+                    }
+
                     TE_SetupBeamFollow(entity, g_BeamSprite, 0, time,
                         g_GrenadeThicknessCvar.FloatValue * 5,
                         g_GrenadeThicknessCvar.FloatValue * 5,
                         1,
-                        g_ClientColors[client]);
+                        g_ClientColors[coloringClient]);
                     TE_SendToClient(i);
                 }
             }
@@ -710,6 +756,28 @@ public Action Event_WeaponFired(Event event, const char[] name, bool dontBroadca
     }
 }
 
+public Action Event_SmokeDetonate(Event event, const char[] name, bool dontBroadcast) {
+    if (!g_InPracticeMode) {
+        return;
+    }
+    GrenadeDetonateTimerHelper(event, "smoke grenade");
+}
+
+public Action Event_MoltovDetonate(Event event, const char[] name, bool dontBroadcast) {
+    if (!g_InPracticeMode) {
+        return;
+    }
+    GrenadeDetonateTimerHelper(event, "molotov grenade");
+}
+
+public void GrenadeDetonateTimerHelper(Event event, const char[] grenadeName) {
+    int userid = event.GetInt("userid");
+    int client = GetClientOfUserId(userid);
+    if (IsPlayer(client)) {
+        float dt = GetEngineTime() - g_LastGrenadeThrowTime[client];
+        PM_Message(client, "Airtime of %s: %.1f seconds", grenadeName, dt);
+    }
+}
 
 public Action Event_FlashDetonate(Event event, const char[] name, bool dontBroadcast) {
     if (!g_InPracticeMode) {
@@ -719,11 +787,13 @@ public Action Event_FlashDetonate(Event event, const char[] name, bool dontBroad
     int userid = event.GetInt("userid");
     int client = GetClientOfUserId(userid);
 
-    if (g_TestingFlash[client]) {
+    if (IsPlayer(client) && g_TestingFlash[client]) {
         // Get the impact of the flash next frame, since doing it in
         // this frame doesn't work.
         RequestFrame(GetFlashInfo, GetClientSerial(client));
     }
+
+    GrenadeDetonateTimerHelper(event, "molotov grenade");
 }
 
 public void GetFlashInfo(int serial) {
