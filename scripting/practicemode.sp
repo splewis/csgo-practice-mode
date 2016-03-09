@@ -429,10 +429,10 @@ public Action OnPlayerRunCmd(int client, int& buttons, int& impulse,
 
 static bool MovingButtons(int buttons) {
     return
-      buttons & IN_FORWARD != 0 ||
-      buttons & IN_MOVELEFT    != 0 ||
-      buttons & IN_MOVERIGHT   != 0 ||
-      buttons & IN_BACK    != 0;
+      buttons & IN_FORWARD   != 0 ||
+      buttons & IN_MOVELEFT  != 0 ||
+      buttons & IN_MOVERIGHT != 0 ||
+      buttons & IN_BACK      != 0;
 }
 
 public Action Command_TeamJoin(int client, const char[] command, int argc) {
@@ -873,11 +873,13 @@ public void PrintHelpInfo(int client) {
     HelpMessage(client, "{LIGHT_GREEN}.forward {NORMAL}to go forward in grenade position history");
     HelpMessage(client, "{LIGHT_GREEN}.save <name> {NORMAL}to save a grenade position");
     HelpMessage(client, "{LIGHT_GREEN}.nades [player] {NORMAL}to view all saved grenades");
+    HelpMessage(client, "{LIGHT_GREEN}.cat <name> {NORMAL}to add a grenade category");
     HelpMessage(client, "{LIGHT_GREEN}.desc <description> {NORMAL}to add a nade description");
     HelpMessage(client, "{LIGHT_GREEN}.delete {NORMAL}to delete your current grenade position");
     HelpMessage(client, "{LIGHT_GREEN}.goto [player] <id> {NORMAL}to go to a grenadeid");
     HelpMessage(client, "{LIGHT_GREEN}.flash {NORMAL}to save a position for flashbang testing");
     HelpMessage(client, "{LIGHT_GREEN}.stopflash {NORMAL}to stop flashbang testing");
+    HelpMessage(client, "{LIGHT_GREEN}.timer {NORMAL}to time duration of a run");
 }
 
 static void HelpMessage(int client, const char[] str) {
