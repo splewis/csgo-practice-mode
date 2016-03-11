@@ -793,7 +793,7 @@ public Action Event_FlashDetonate(Event event, const char[] name, bool dontBroad
         RequestFrame(GetFlashInfo, GetClientSerial(client));
     }
 
-    GrenadeDetonateTimerHelper(event, "molotov grenade");
+    GrenadeDetonateTimerHelper(event, "flash grenade");
 }
 
 public void GetFlashInfo(int serial) {
