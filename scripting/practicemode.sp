@@ -97,7 +97,11 @@ float g_LastTimeCommand[MAXPLAYERS+1];
 ArrayList g_CTSpawns = null;
 ArrayList g_TSpawns = null;
 
+#define SHOW_AIRTIME_DEFAULT true
 Handle g_ShowGrenadeAirtimeCookie = INVALID_HANDLE;
+
+#define FLASH_EFFECTIVE_THRESHOLD 2.0
+Handle g_FlashEffectiveThresholdCookie = INVALID_HANDLE;
 
 // Forwards
 Handle g_OnGrenadeSaved = INVALID_HANDLE;
@@ -253,6 +257,8 @@ public void OnPluginStart() {
     // Create client cookies.
     g_ShowGrenadeAirtimeCookie = RegClientCookie("practicemode_grenade_airtime",
         "Whether to display airtime of grenades in chat", CookieAccess_Public);
+    g_FlashEffectiveThresholdCookie = RegClientCookie("practicemode_flash_threshold",
+        "Number of seconds a flash must last to be effective", CookieAccess_Public);
 
     // Remove cheats so sv_cheats isn't required for this:
     RemoveCvarFlag(g_GrenadeTrajectoryCvar, FCVAR_CHEAT);
@@ -403,7 +409,6 @@ public void GetColor(ClientColor c, int array[4]) {
     array[2] = b;
     array[3] = 255;
 }
-
 
 public Action OnPlayerRunCmd(int client, int& buttons, int& impulse,
     float vel[3], float angles[3],
@@ -780,7 +785,7 @@ public Action Event_MoltovDetonate(Event event, const char[] name, bool dontBroa
 public void GrenadeDetonateTimerHelper(Event event, const char[] grenadeName) {
     int userid = event.GetInt("userid");
     int client = GetClientOfUserId(userid);
-    if (IsPlayer(client) && GetCookieBool(client, g_ShowGrenadeAirtimeCookie)) {
+    if (IsPlayer(client) && GetCookieBool(client, g_ShowGrenadeAirtimeCookie, SHOW_AIRTIME_DEFAULT)) {
         float dt = GetEngineTime() - g_LastGrenadeThrowTime[client];
         PM_Message(client, "Airtime of %s: %.1f seconds", grenadeName, dt);
     }
@@ -810,7 +815,7 @@ public void GetFlashInfo(int serial) {
         PM_Message(client, "Flash duration: %.1f seconds", flashDuration);
 
         // TODO: this should be customizable (able to disable and change the threshold)
-        if (flashDuration < 2.0) {
+        if (flashDuration < GetCookieFloat(client, g_FlashEffectiveThresholdCookie, FLASH_EFFECTIVE_THRESHOLD)) {
             PM_Message(client, "Ineffective flash");
             CreateTimer(1.0, Timer_FakeGrenadeBack, GetClientSerial(client));
         } else {
