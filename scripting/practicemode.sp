@@ -1,3 +1,4 @@
+#include <clientprefs>
 #include <cstrike>
 #include <sdkhooks>
 #include <sdktools>
@@ -95,6 +96,8 @@ float g_LastTimeCommand[MAXPLAYERS+1];
 // Data storing spawn priorities.
 ArrayList g_CTSpawns = null;
 ArrayList g_TSpawns = null;
+
+Handle g_ShowGrenadeAirtimeCookie = INVALID_HANDLE;
 
 // Forwards
 Handle g_OnGrenadeSaved = INVALID_HANDLE;
@@ -246,6 +249,10 @@ public void OnPluginStart() {
     g_CTSpawns = new ArrayList();
     g_TSpawns = new ArrayList();
     g_KnownNadeCategories = new ArrayList(GRENADE_CATEGORY_LENGTH);
+
+    // Create client cookies.
+    g_ShowGrenadeAirtimeCookie = RegClientCookie("practicemode_grenade_airtime",
+        "Whether to display airtime of grenades in chat", CookieAccess_Public);
 
     // Remove cheats so sv_cheats isn't required for this:
     RemoveCvarFlag(g_GrenadeTrajectoryCvar, FCVAR_CHEAT);
@@ -773,7 +780,7 @@ public Action Event_MoltovDetonate(Event event, const char[] name, bool dontBroa
 public void GrenadeDetonateTimerHelper(Event event, const char[] grenadeName) {
     int userid = event.GetInt("userid");
     int client = GetClientOfUserId(userid);
-    if (IsPlayer(client)) {
+    if (IsPlayer(client) && GetCookieBool(client, g_ShowGrenadeAirtimeCookie)) {
         float dt = GetEngineTime() - g_LastGrenadeThrowTime[client];
         PM_Message(client, "Airtime of %s: %.1f seconds", grenadeName, dt);
     }
