@@ -3,7 +3,7 @@
 
 #tryinclude "manual_version.sp"
 #if !defined PLUGIN_VERSION
-#define PLUGIN_VERSION "1.0.2"
+#define PLUGIN_VERSION "1.0.3-dev"
 #endif
 
 static char _colorNames[][] = {"{NORMAL}", "{DARK_RED}", "{PINK}", "{GREEN}", "{YELLOW}", "{LIGHT_GREEN}", "{LIGHT_RED}", "{GRAY}", "{ORANGE}", "{LIGHT_BLUE}", "{DARK_BLUE}", "{PURPLE}"};
@@ -181,4 +181,45 @@ stock void UpperString(char[] string) {
     for (int i = 0; i < len; i++) {
         string[i] = CharToUpper(string[i]);
     }
+}
+
+stock void SetCookieInt(int client, Handle cookie, int value) {
+    char buffer[32];
+    IntToString(value, buffer, sizeof(buffer));
+    SetClientCookie(client, cookie, buffer);
+}
+
+stock int GetCookieInt(int client, Handle cookie, int defaultValue=0) {
+    char buffer[32];
+    GetClientCookie(client, cookie, buffer, sizeof(buffer));
+    if (StrEqual(buffer, "")) {
+        return defaultValue;
+    }
+
+    return StringToInt(buffer);
+}
+
+stock void SetCookieBool(int client, Handle cookie, bool value) {
+    int convertedInt = value ? 1 : 0;
+    SetCookieInt(client, cookie, convertedInt);
+}
+
+stock bool GetCookieBool(int client, Handle cookie, bool defaultValue=false) {
+    return GetCookieInt(client, cookie, defaultValue) != 0;
+}
+
+stock void SetCookieFloat(int client, Handle cookie, float value) {
+    char buffer[32];
+    FloatToString(value, buffer, sizeof(buffer));
+    SetClientCookie(client, cookie, buffer);
+}
+
+stock float GetCookieFloat(int client, Handle cookie, float defaultValue=0.0) {
+    char buffer[32];
+    GetClientCookie(client, cookie, buffer, sizeof(buffer));
+    if (StrEqual(buffer, "")) {
+        return defaultValue;
+    }
+
+    return StringToFloat(buffer);
 }
