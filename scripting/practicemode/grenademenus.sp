@@ -204,7 +204,7 @@ stock void AddGrenadeToMenu(Menu menu, const char[] ownerAuth, const char[] owne
 
     char display[128];
     if (showPlayerName) {
-        Format(display, sizeof(display), "%s (id %s-%s)", name, strId, ownerName);
+        Format(display, sizeof(display), "%s (%s-%s)", name, ownerName, strId);
     } else {
         Format(display, sizeof(display), "%s (id %s)", name, strId);
     }
