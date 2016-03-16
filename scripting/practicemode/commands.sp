@@ -28,6 +28,25 @@ public Action Command_LastGrenade(int client, int args) {
     return Plugin_Handled;
 }
 
+public Action Command_NextGrenade(int client, int args) {
+    int nadeId = g_CurrentSavedGrenadeId[client];
+    if (nadeId < 0 || !g_InPracticeMode) {
+        return Plugin_Handled;
+    }
+
+    int nextId = FindNextGrenadeId(client, nadeId);
+    if (nextId != -1) {
+        char auth[AUTH_LENGTH];
+        GetClientAuthId(client, AUTH_METHOD, auth, sizeof(auth));
+
+        char idBuffer[GRENADE_ID_LENGTH];
+        IntToString(nextId, idBuffer, sizeof(idBuffer));
+        TeleportToSavedGrenadePosition(client, auth, idBuffer);
+    }
+
+    return Plugin_Handled;
+}
+
 public Action Command_GrenadeBack(int client, int args) {
     if (g_InPracticeMode && g_GrenadeHistoryPositions[client].Length > 0) {
         g_GrenadeHistoryIndex[client]--;
@@ -83,7 +102,7 @@ public Action Command_GotoNade(int client, int args) {
 
         } else if (args >= 1 && GetCmdArg(1, arg1, sizeof(arg1))) {
             GetClientName(client, name, sizeof(name));
-            GetClientAuthId(client, AuthId_Steam2, auth, sizeof(auth));
+            GetClientAuthId(client, AUTH_METHOD, auth, sizeof(auth));
             if (!TeleportToSavedGrenadePosition(client, auth, arg1)){
                 PM_Message(client, "Grenade id %s not found.", arg1);
                 return Plugin_Handled;
@@ -185,7 +204,7 @@ public Action Command_SaveGrenade(int client, int args) {
     }
 
     char auth[AUTH_LENGTH];
-    GetClientAuthId(client, AuthId_Steam2, auth, sizeof(auth));
+    GetClientAuthId(client, AUTH_METHOD, auth, sizeof(auth));
     char grenadeId[GRENADE_ID_LENGTH];
     if (FindGrenadeByName(auth, name, grenadeId)) {
         PM_Message(client, "You have already used that name.");

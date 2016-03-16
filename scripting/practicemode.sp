@@ -61,6 +61,7 @@ ConVar g_GrenadeSpecTimeCvar;
 #define GRENADE_ID_LENGTH 16
 #define GRENADE_CATEGORY_LENGTH 128
 #define AUTH_LENGTH 64
+#define AUTH_METHOD AuthId_Steam2
 char g_GrenadeLocationsFile[PLATFORM_MAX_PATH];
 KeyValues g_GrenadeLocationsKv;
 int g_CurrentSavedGrenadeId[MAXPLAYERS+1];
@@ -177,12 +178,16 @@ public void OnPluginStart() {
     RegConsoleCmd("sm_stopflash", Command_StopFlash);
     RegConsoleCmd("sm_lastgrenade", Command_LastGrenade);
     RegConsoleCmd("sm_time", Command_Time);
+    RegConsoleCmd("sm_nextgrenade", Command_NextGrenade);
 
     PM_AddChatAlias(".back", "sm_grenadeback");
     PM_AddChatAlias(".last", "sm_lastgrenade");
     PM_AddChatAlias(".forward", "sm_grenadeforward");
     PM_AddChatAlias(".clearnades", "sm_clearnades");
     PM_AddChatAlias(".goto", "sm_gotogrenade");
+    PM_AddChatAlias(".next", "sm_nextgrenade");
+    PM_AddChatAlias(".nextid", "sm_nextgrenade");
+
     PM_AddChatAlias(".spawn", "sm_gotospawn");
     PM_AddChatAlias(".bestspawn", "sm_gotospawn");
     PM_AddChatAlias(".worstspawn", "sm_worstspawn");
