@@ -387,6 +387,10 @@ public void OnMapEnd() {
     delete g_GrenadeLocationsKv;
 }
 
+public void OnClientSettingsChanged(int client) {
+    UpdatePlayerColor(client);
+}
+
 public void OnClientPutInServer(int client) {
     UpdatePlayerColor(client);
 }
@@ -688,7 +692,6 @@ public int OnEntitySpawned(int entity) {
         int client = GetEntPropEnt(entity, Prop_Data, "m_hOwnerEntity");
         if (IsPlayer(client)) {
             g_LastGrenadeThrowTime[client] = GetEngineTime();
-            UpdatePlayerColor(client);
         }
 
         if (IsValidEntity(entity)) {
