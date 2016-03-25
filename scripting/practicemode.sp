@@ -745,7 +745,7 @@ public Action Timer_TeleportClient(Handle timer, int serial) {
 
 public Action Timer_FakeGrenadeBack(Handle timer, int serial) {
     int client = GetClientFromSerial(serial);
-    if (g_InPracticeMode && IsPlayer(client) && g_TestingFlash[client]) {
+    if (g_InPracticeMode && IsPlayer(client)) {
         FakeClientCommand(client, "sm_lastgrenade");
     }
 }
