@@ -437,7 +437,7 @@ public Action OnPlayerRunCmd(int client, int& buttons, int& impulse,
         }
 
         if (g_RunningTimeCommand[client] && g_RunningLiveTimeCommand[client]) {
-            if (!moving) {
+            if (!moving && GetEntityFlags(client) & FL_ONGROUND) {
                 g_RunningTimeCommand[client] = false;
                 g_RunningLiveTimeCommand[client] = false;
                 StopClientTimer(client);
@@ -709,7 +709,7 @@ public int OnEntitySpawned(int entity) {
                         g_GrenadeTimeCvar.FloatValue;
 
                     int coloringClient = client;
-                    if (g_GrenadeTrajectoryClientColorCvar.IntValue == 0) {
+                    if (g_GrenadeTrajectoryClientColorCvar.IntValue == 0 || !IsPlayer(client)) {
                         coloringClient = 0;
                     }
 
