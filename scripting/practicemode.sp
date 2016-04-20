@@ -407,11 +407,12 @@ public void QueryClientColor(QueryCookie cookie, int client, ConVarQueryResult r
 public void GetColor(ClientColor c, int array[4]) {
     int r, g, b;
     switch(c) {
-        case ClientColor_Green:  { r = 0;   g = 255; b = 0; }
-        case ClientColor_Purple: { r = 128; g = 0;   b = 128; }
-        case ClientColor_Blue:   { r = 0;   g = 0;   b = 255; }
-        case ClientColor_Orange: { r = 255; g = 128; b = 0; }
-        case ClientColor_Yellow: { r = 255; g = 255; b = 0; }
+        case ClientColor_Yellow: { r = 229; g = 224; b = 44;  }
+        case ClientColor_Purple: { r = 150; g = 45;  b = 225; }
+        case ClientColor_Green:  { r = 23;  g = 255; b = 102; }
+        case ClientColor_Blue:   { r = 112; g = 191; b = 255; }
+        case ClientColor_Orange: { r = 227; g = 152; b = 33;  }
+        default:                 { r = 23;  g = 255; b = 102; }
     }
     array[0] = r;
     array[1] = g;
