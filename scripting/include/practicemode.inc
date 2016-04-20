@@ -37,6 +37,16 @@ forward Action PM_OnGrenadeSaved(int client, const float origin[3], const float 
 forward void PM_OnSettingChanged(int settingNumber, const char[] settingId, const char[] displayName, bool enabled);
 
 /**
+ * Starts practice mode, returning if it was started.
+ */
+native bool PM_StartPracticeMode();
+
+/**
+ * Exits practice mode, returning if it was exited.
+ */
+native bool PM_ExitPracticeMode();
+
+/**
  * Adds a new setting to practice mode.
  * @note The practicemode plugin will take over ownership of the enabledCvars and enabledValues arrays.
  * @return the settingNumber value for the new setting.
@@ -73,6 +83,8 @@ public SharedPlugin __pl_practicemode = {
 
 #if !defined REQUIRE_PLUGIN
 public __pl_practicemode_SetNTVOptional() {
+    MarkNativeAsOptional("PM_StartPracticeMode");
+    MarkNativeAsOptional("PM_ExitPracticeMode");
     MarkNativeAsOptional("PM_AddSetting");
     MarkNativeAsOptional("PM_IsPracticeModeEnabled");
     MarkNativeAsOptional("PM_IsSettingEnabled");

@@ -6,12 +6,33 @@
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max) {
     g_ChatAliases = new ArrayList(ALIAS_LENGTH);
     g_ChatAliasesCommands = new ArrayList(COMMAND_LENGTH);
+    CreateNative("PM_StartPracticeMode", Native_StartPracticeMode);
+    CreateNative("PM_ExitPracticeMode", Native_ExitPracticeMode);
     CreateNative("PM_AddSetting", Native_AddSetting);
     CreateNative("PM_IsPracticeModeEnabled", Native_IsPracticeModeEnabled);
     CreateNative("PM_IsSettingEnabled", Native_IsSettingEnabled);
     CreateNative("PM_Message", Native_Message);
     CreateNative("PM_MessageToAll", Native_MessageToAll);
     CreateNative("PM_AddChatAlias", Native_AddChatAlias);
+    RegPluginLibrary("practicemode");
+}
+
+public int Native_StartPracticeMode(Handle plugin, int numParams) {
+    if (g_InPracticeMode) {
+        return false;
+    } else {
+        LaunchPracticeMode();
+        return true;
+    }
+}
+
+public int Native_ExitPracticeMode(Handle plugin, int numParams) {
+    if (g_InPracticeMode) {
+        ExitPracticeMode();
+        return true;
+    } else {
+        return false;
+    }
 }
 
 public int Native_AddSetting(Handle plugin, int numParams) {
