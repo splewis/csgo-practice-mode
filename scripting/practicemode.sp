@@ -499,6 +499,12 @@ public void PerformNoclipAction(int client) {
     MoveType t = GetEntityMoveType(client);
     MoveType next = (t == MOVETYPE_WALK) ? MOVETYPE_NOCLIP : MOVETYPE_WALK;
     SetEntityMoveType(client, next);
+
+    if (next == MOVETYPE_WALK) {
+        SetEntProp(client, Prop_Data, "m_CollisionGroup", 5);
+    } else {
+        SetEntProp(client, Prop_Data, "m_CollisionGroup", 0);
+    }
 }
 
 public void ReadPracticeSettings() {
