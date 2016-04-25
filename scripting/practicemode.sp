@@ -275,6 +275,12 @@ public void OnPluginStart() {
     CreateTimer(1.0, Timer_GivePlayersMoney, _, TIMER_REPEAT);
 }
 
+public void OnPluginEnd() {
+    if (g_InPracticeMode) {
+        ExitPracticeMode();
+    }
+}
+
 public void OnLibraryAdded(const char[] name) {
     g_PugsetupLoaded = LibraryExists("pugsetup");
 }
