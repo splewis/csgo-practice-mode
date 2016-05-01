@@ -101,8 +101,11 @@ ArrayList g_TSpawns = null;
 #define SHOW_AIRTIME_DEFAULT true
 Handle g_ShowGrenadeAirtimeCookie = INVALID_HANDLE;
 
-#define FLASH_EFFECTIVE_THRESHOLD 2.0
+#define FLASH_EFFECTIVE_THRESHOLD_DEFAULT 2.0
 Handle g_FlashEffectiveThresholdCookie = INVALID_HANDLE;
+
+#define TEST_FLASH_TELEPORT_DELAY_DEFAULT 0.3
+Handle g_TestFlashTeleportDelayCookie = INVALID_HANDLE;
 
 // Forwards
 Handle g_OnGrenadeSaved = INVALID_HANDLE;
@@ -264,6 +267,8 @@ public void OnPluginStart() {
         "Whether to display airtime of grenades in chat", CookieAccess_Public);
     g_FlashEffectiveThresholdCookie = RegClientCookie("practicemode_flash_threshold",
         "Number of seconds a flash must last to be effective", CookieAccess_Public);
+    g_TestFlashTeleportDelayCookie = RegClientCookie("practicemode_testflash_delay",
+        "Seconds (as a float) waited before teleporting after throwing a flash using .flash", CookieAccess_Public);
 
     // Remove cheats so sv_cheats isn't required for this:
     RemoveCvarFlag(g_GrenadeTrajectoryCvar, FCVAR_CHEAT);
@@ -738,7 +743,13 @@ public int OnEntitySpawned(int entity) {
             // If the user recently indicated they are testing a flash (.flash),
             // teleport to that spot.
             if (StrEqual(className, "flashbang_projectile") && g_TestingFlash[client]) {
-                CreateTimer(0.5, Timer_TeleportClient, GetClientSerial(client));
+                float delay = GetCookieFloat(client,
+                    g_TestFlashTeleportDelayCookie, TEST_FLASH_TELEPORT_DELAY_DEFAULT);
+
+                if (delay <= 0.0)
+                    delay = 0.1;
+
+                CreateTimer(delay, Timer_TeleportClient, GetClientSerial(client));
             }
         }
     }
@@ -835,12 +846,11 @@ public void GetFlashInfo(int serial) {
         float flashDuration = GetEntDataFloat(client, FindSendPropInfo("CCSPlayer", "m_flFlashDuration"));
         PM_Message(client, "Flash duration: %.1f seconds", flashDuration);
 
-        // TODO: this should be customizable (able to disable and change the threshold)
-        if (flashDuration < GetCookieFloat(client, g_FlashEffectiveThresholdCookie, FLASH_EFFECTIVE_THRESHOLD)) {
+        if (flashDuration < GetCookieFloat(client, g_FlashEffectiveThresholdCookie, FLASH_EFFECTIVE_THRESHOLD_DEFAULT)) {
             PM_Message(client, "Ineffective flash");
             CreateTimer(1.0, Timer_FakeGrenadeBack, GetClientSerial(client));
         } else {
-            CreateTimer(3.2, Timer_FakeGrenadeBack, GetClientSerial(client));
+            CreateTimer(flashDuration, Timer_FakeGrenadeBack, GetClientSerial(client));
         }
     }
 }

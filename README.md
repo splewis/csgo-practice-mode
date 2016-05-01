@@ -25,7 +25,7 @@ You must have [SourceMod](http://www.sourcemod.net/downloads.php) and [MetaMod:S
 - Displays a menu with toggle settings to set practice cvars defined in [addons/sourcemod/configs/practicemode.cfg](configs/practicemode.cfg)
 - Maintains your grenade history on the current map so you can use ``.back`` and ``.forward`` to see all spots you threw grenades from in the current session
 
-#### Commands
+### Commands
 See [the wiki command overview](https://github.com/splewis/csgo-practice-mode/wiki/Overview-of-Commands).
 
 ### ConVars
