@@ -903,35 +903,20 @@ public void OnClientSayCommand_Post(int client, const char[] command, const char
         if (StrEqual(chatCommand, ".setup"))
             GivePracticeMenu(client);
         else if (StrEqual(chatCommand, ".help"))
-            PrintHelpInfo(client);
+            ShowHelpInfo(client);
     }
 }
 
-public void PrintHelpInfo(int client) {
-    HelpMessage(client, "{LIGHT_GREEN}.setup {NORMAL}to change/view practicemode settings");
-    if (g_AllowNoclipCvar.IntValue != 0)
-        HelpMessage(client, "{LIGHT_GREEN}.noclip {NORMAL}to enter/exit noclip mode");
-    HelpMessage(client, "{LIGHT_GREEN}.last {NORMAL}to go to your last grenade position");
-    HelpMessage(client, "{LIGHT_GREEN}.back {NORMAL}to go to backward in grenade position history");
-    HelpMessage(client, "{LIGHT_GREEN}.forward {NORMAL}to go forward in grenade position history");
-    HelpMessage(client, "{LIGHT_GREEN}.save <name> {NORMAL}to save a grenade position");
-    HelpMessage(client, "{LIGHT_GREEN}.nades [player] {NORMAL}to view all saved grenades");
-    HelpMessage(client, "{LIGHT_GREEN}.cat <name> {NORMAL}to add a grenade category");
-    HelpMessage(client, "{LIGHT_GREEN}.desc <description> {NORMAL}to add a nade description");
-    HelpMessage(client, "{LIGHT_GREEN}.delete {NORMAL}to delete your current grenade position");
-    HelpMessage(client, "{LIGHT_GREEN}.goto [player] <id> {NORMAL}to go to a grenadeid");
-    HelpMessage(client, "{LIGHT_GREEN}.flash {NORMAL}to save a position for flashbang testing");
-    HelpMessage(client, "{LIGHT_GREEN}.stopflash {NORMAL}to stop flashbang testing");
-    HelpMessage(client, "{LIGHT_GREEN}.timer {NORMAL}to time duration of a run");
+public void ShowHelpInfo(int client) {
+    ShowMOTDPanel(client,
+        "Practicemode Help",
+        "http://csgo.splewis.net/redirect_practicemode_help",
+        MOTDPANEL_TYPE_URL);
+    QueryClientConVar(client, "cl_disablehtmlmotd", CheckMOTDAllowed, client);
 }
 
-static void HelpMessage(int client, const char[] str) {
-    PM_Message(client, str);
-
-    if (client != 0) {
-        char consoleStr[128];
-        strcopy(consoleStr, sizeof(consoleStr), str);
-        Colorize(consoleStr, sizeof(consoleStr), true);
-        PrintToConsole(client, consoleStr);
+public void CheckMOTDAllowed(QueryCookie cookie, int client, ConVarQueryResult result, const char[] cvarName, const char[] cvarValue) {
+    if (!StrEqual(cvarValue, "0")) {
+        PrintToChat(client, "You must have \x04cl_disablehtmlmotd 0 \x01to use that command.");
     }
 }

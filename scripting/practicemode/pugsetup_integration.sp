@@ -48,6 +48,6 @@ public void PugSetup_OnHelpCommand(int client, ArrayList replyMessages, int maxM
 
     if (g_InPracticeMode) {
         block = true;
-        PrintHelpInfo(client);
+        ShowHelpInfo(client);
     }
 }
