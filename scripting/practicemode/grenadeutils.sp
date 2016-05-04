@@ -211,6 +211,10 @@ public void AddGrenadeCategory(int client, int index, const char[] category) {
     char categoryString[GRENADE_CATEGORY_LENGTH];
     GetGrenadeData(client, index, "categories", categoryString, sizeof(categoryString));
 
+    if (StrContains(categoryString, category, false) >= 0) {
+        return;
+    }
+
     StrCat(categoryString, sizeof(categoryString), category);
     StrCat(categoryString, sizeof(categoryString), ";");
     SetGrenadeData(client, index, "categories", categoryString);
