@@ -212,6 +212,7 @@ public void OnPluginStart() {
     RegConsoleCmd("sm_deletegrenade", Command_DeleteGrenade);
     RegConsoleCmd("sm_categories", Command_Categories);
     RegConsoleCmd("sm_addcategory", Command_AddCategory);
+    RegConsoleCmd("sm_addcategories", Command_AddCategories);
     RegConsoleCmd("sm_removecategory", Command_RemoveCategory);
     RegConsoleCmd("sm_clearcategories", Command_ClearGrenadeCategories);
     PM_AddChatAlias(".nades", "sm_grenades");
@@ -227,6 +228,7 @@ public void OnPluginStart() {
     PM_AddChatAlias(".cats", "sm_categories");
     PM_AddChatAlias(".addcategory", "sm_addcategory");
     PM_AddChatAlias(".addcat", "sm_addcategory");
+    PM_AddChatAlias(".addcats", "sm_addcategories");
     PM_AddChatAlias(".removecategory", "sm_removecategory");
     PM_AddChatAlias(".removecat", "sm_removecategory");
     PM_AddChatAlias(".clearcats", "sm_clearcategories");

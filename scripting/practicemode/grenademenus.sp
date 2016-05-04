@@ -257,7 +257,7 @@ public Action _AddCategoryToMenu_Helper(const char[] ownerName,
     Menu menu = view_as<Menu>(p.ReadCell());
     p.ReadString(cat, sizeof(cat));
 
-    if (categories.FindString(cat) >= 0) {
+    if (FindStringInList(categories, GRENADE_CATEGORY_LENGTH, cat, false) >= 0) {
         AddGrenadeToMenu(menu, ownerAuth, ownerName, grenadeId, name, true);
     }
 }
@@ -285,7 +285,7 @@ public Action _CountCategoryNades_Helper(const char[] ownerName,
     char cat[64];
     p.ReadString(cat, sizeof(cat));
 
-    if (categories.FindString(cat) >= 0) {
+    if (FindStringInList(categories, GRENADE_CATEGORY_LENGTH, cat, false) >= 0) {
         count++;
         ResetPack(p, true);
         p.WriteCell(count);

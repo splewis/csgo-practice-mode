@@ -98,6 +98,18 @@ stock int FindStringInArray2(const char[][] array, int len, const char[] string,
     return -1;
 }
 
+stock int FindStringInList(ArrayList list, int len, const char[] string, bool caseSensitive=true) {
+    char[] buffer = new char[len];
+    for (int i = 0; i < list.Length; i++) {
+        list.GetString(i, buffer, len);
+        if (StrEqual(string, buffer, caseSensitive)) {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
 stock void GetCleanMapName(char[] buffer, int size) {
     char mapName[PLATFORM_MAX_PATH];
     GetCurrentMap(mapName, sizeof(mapName));

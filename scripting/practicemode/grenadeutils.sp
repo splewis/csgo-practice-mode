@@ -239,6 +239,27 @@ public bool FindGrenadeTarget(const char[] nameInput, char[] name, int nameLen, 
     }
 }
 
+public bool FindMatchingCategory(const char[] catinput, char[] output, int length) {
+    char[] lastMatching = new char[length];
+    int matchingCount = 0;
+
+    for (int i = 0; i < g_KnownNadeCategories.Length; i++) {
+        char cat[GRENADE_CATEGORY_LENGTH];
+        g_KnownNadeCategories.GetString(i, cat, sizeof(cat));
+        if (StrContains(cat, catinput, false) >= 0) {
+            strcopy(lastMatching, length, cat);
+            matchingCount++;
+        }
+    }
+
+    if (matchingCount == 1) {
+        strcopy(output, length, lastMatching);
+        return true;
+    } else {
+        return false;
+    }
+}
+
 public bool FindGrenadeByName(const char[] auth, const char[] lookupName, char grenadeId[GRENADE_ID_LENGTH]) {
     char name[GRENADE_NAME_LENGTH];
     if (g_GrenadeLocationsKv.JumpToKey(auth)) {
@@ -294,7 +315,7 @@ public Action _FindGrenadeCategories_Helper(const char[] ownerName,
 }
 
 public void CheckNewCategory(const char[] cat) {
-    if (!StrEqual(cat, "") && g_KnownNadeCategories.FindString(cat) == -1) {
+    if (!StrEqual(cat, "") && FindStringInList(g_KnownNadeCategories, GRENADE_CATEGORY_LENGTH, cat, false) == -1) {
         g_KnownNadeCategories.PushString(cat);
     }
 }
@@ -335,14 +356,6 @@ public Action TranslateGrenadeHelper(const char[] ownerName,
     origin[0] += dx;
     origin[1] += dy;
     origin[2] += dz;
-}
-
-public void NormalizeCategory(char[] category) {
-    if (strlen(category) == 1) {
-        UpperString(category);
-    }  else {
-        LowerString(category);
-    }
 }
 
 public int FindNextGrenadeId(int client, int currentId) {
