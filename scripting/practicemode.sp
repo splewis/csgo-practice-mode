@@ -215,6 +215,7 @@ public void OnPluginStart() {
     RegConsoleCmd("sm_addcategories", Command_AddCategories);
     RegConsoleCmd("sm_removecategory", Command_RemoveCategory);
     RegConsoleCmd("sm_clearcategories", Command_ClearGrenadeCategories);
+    RegConsoleCmd("sm_copygrenade", Command_CopyGrenade);
     PM_AddChatAlias(".nades", "sm_grenades");
     PM_AddChatAlias(".grenades", "sm_grenades");
     PM_AddChatAlias(".addnade", "sm_savegrenade");
@@ -232,6 +233,7 @@ public void OnPluginStart() {
     PM_AddChatAlias(".removecategory", "sm_removecategory");
     PM_AddChatAlias(".removecat", "sm_removecategory");
     PM_AddChatAlias(".clearcats", "sm_clearcategories");
+    PM_AddChatAlias(".copy", "sm_copygrenade");
 
     // New Plugin cvars
     g_AutostartCvar = CreateConVar("sm_practicemode_autostart", "0", "Whether the plugin is automatically started on mapstart");
@@ -307,8 +309,8 @@ public Action Event_CvarChanged(Event event, const char[] name, bool dontBroadca
 }
 
 public void OnClientConnected(int client) {
-    g_GrenadeHistoryIndex[client] = -1;
     g_CurrentSavedGrenadeId[client] = -1;
+    g_GrenadeHistoryIndex[client] = -1;
     ClearArray(g_GrenadeHistoryPositions[client]);
     ClearArray(g_GrenadeHistoryAngles[client]);
     g_TestingFlash[client] = false;

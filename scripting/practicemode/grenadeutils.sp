@@ -99,7 +99,10 @@ public bool TeleportToSavedGrenadePosition(int client, const char[] targetAuth, 
     return success;
 }
 
-public int SaveGrenadeToKv(int client, const float origin[3], const float angles[3], const char[] name) {
+stock int SaveGrenadeToKv(int client,
+    const float origin[3], const float angles[3],
+    const char[] name, const char[] description="",
+    const char[] categoryString="") {
     g_UpdatedGrenadeKv = true;
     char auth[AUTH_LENGTH];
     char clientName[MAX_NAME_LENGTH];
@@ -117,6 +120,8 @@ public int SaveGrenadeToKv(int client, const float origin[3], const float angles
     g_GrenadeLocationsKv.SetString("name", name);
     g_GrenadeLocationsKv.SetVector("origin", origin);
     g_GrenadeLocationsKv.SetVector("angles", angles);
+    g_GrenadeLocationsKv.SetString("description", description);
+    g_GrenadeLocationsKv.SetString("categories", categoryString);
 
     g_GrenadeLocationsKv.GoBack();
     g_GrenadeLocationsKv.GoBack();
@@ -168,15 +173,11 @@ public bool FindTargetInGrenadesKvByName(const char[] inputName, char[] name, in
     return false;
 }
 
-public void SetGrenadeData(int client, int index, const char[] key, const char[] value) {
+public void SetGrenadeData(const char[] auth, const char[] id, const char[] key, const char[] value) {
     g_UpdatedGrenadeKv = true;
-    char auth[AUTH_LENGTH];
-    GetClientAuthId(client, AUTH_METHOD, auth, sizeof(auth));
-    char nadeId[GRENADE_ID_LENGTH];
-    IntToString(index, nadeId, sizeof(nadeId));
 
     if (g_GrenadeLocationsKv.JumpToKey(auth)) {
-        if (g_GrenadeLocationsKv.JumpToKey(nadeId)) {
+        if (g_GrenadeLocationsKv.JumpToKey(id)) {
             g_GrenadeLocationsKv.SetString(key, value);
             g_GrenadeLocationsKv.GoBack();
         }
@@ -184,14 +185,9 @@ public void SetGrenadeData(int client, int index, const char[] key, const char[]
     }
 }
 
-public void GetGrenadeData(int client, int index, const char[] key, char[] value, int valueLength) {
-    char auth[AUTH_LENGTH];
-    GetClientAuthId(client, AUTH_METHOD, auth, sizeof(auth));
-    char nadeId[GRENADE_ID_LENGTH];
-    IntToString(index, nadeId, sizeof(nadeId));
-
+public void GetGrenadeData(const char[] auth, const char[] id, const char[] key, char[] value, int valueLength) {
     if (g_GrenadeLocationsKv.JumpToKey(auth)) {
-        if (g_GrenadeLocationsKv.JumpToKey(nadeId)) {
+        if (g_GrenadeLocationsKv.JumpToKey(id)) {
             g_GrenadeLocationsKv.GetString(key, value, valueLength);
             g_GrenadeLocationsKv.GoBack();
         }
@@ -199,17 +195,33 @@ public void GetGrenadeData(int client, int index, const char[] key, char[] value
     }
 }
 
+public void SetClientGrenadeData(int client, int index, const char[] key, const char[] value) {
+    char auth[AUTH_LENGTH];
+    GetClientAuthId(client, AUTH_METHOD, auth, sizeof(auth));
+    char nadeId[GRENADE_ID_LENGTH];
+    IntToString(index, nadeId, sizeof(nadeId));
+    SetGrenadeData(auth, nadeId, key, value);
+}
+
+public void GetClientGrenadeData(int client, int index, const char[] key, char[] value, int valueLength) {
+    char auth[AUTH_LENGTH];
+    GetClientAuthId(client, AUTH_METHOD, auth, sizeof(auth));
+    char nadeId[GRENADE_ID_LENGTH];
+    IntToString(index, nadeId, sizeof(nadeId));
+    GetGrenadeData(auth, nadeId, key, value, valueLength);
+}
+
 public void UpdateGrenadeName(int client, int index, const char[] name) {
-    SetGrenadeData(client, index, "name", name);
+    SetClientGrenadeData(client, index, "name", name);
 }
 
 public void UpdateGrenadeDescription(int client, int index, const char[] description) {
-    SetGrenadeData(client, index, "description", description);
+    SetClientGrenadeData(client, index, "description", description);
 }
 
 public void AddGrenadeCategory(int client, int index, const char[] category) {
     char categoryString[GRENADE_CATEGORY_LENGTH];
-    GetGrenadeData(client, index, "categories", categoryString, sizeof(categoryString));
+    GetClientGrenadeData(client, index, "categories", categoryString, sizeof(categoryString));
 
     if (StrContains(categoryString, category, false) >= 0) {
         return;
@@ -217,20 +229,20 @@ public void AddGrenadeCategory(int client, int index, const char[] category) {
 
     StrCat(categoryString, sizeof(categoryString), category);
     StrCat(categoryString, sizeof(categoryString), ";");
-    SetGrenadeData(client, index, "categories", categoryString);
+    SetClientGrenadeData(client, index, "categories", categoryString);
 
     CheckNewCategory(category);
 }
 
 public bool RemoveGrenadeCategory(int client, int index, const char[] category) {
     char categoryString[GRENADE_CATEGORY_LENGTH];
-    GetGrenadeData(client, index, "categories", categoryString, sizeof(categoryString));
+    GetClientGrenadeData(client, index, "categories", categoryString, sizeof(categoryString));
 
     char removeString[GRENADE_CATEGORY_LENGTH];
     Format(removeString, sizeof(removeString), "%s;", category);
 
     int numreplaced = ReplaceString(categoryString, sizeof(categoryString), removeString, "");
-    SetGrenadeData(client, index, "categories", categoryString);
+    SetClientGrenadeData(client, index, "categories", categoryString);
     return numreplaced > 0;
 }
 
@@ -384,4 +396,32 @@ public int FindNextGrenadeId(int client, int currentId) {
     }
 
     return ret;
+}
+
+public int CopyGrenade(const char[] ownerAuth, const char[] nadeId, int client) {
+    float origin[3];
+    float angles[3];
+    char grenadeName[GRENADE_NAME_LENGTH];
+    char description[GRENADE_DESCRIPTION_LENGTH];
+    char categoryString[GRENADE_CATEGORY_LENGTH];
+    bool success = false;
+
+    if (g_GrenadeLocationsKv.JumpToKey(ownerAuth)) {
+        if (g_GrenadeLocationsKv.JumpToKey(nadeId)) {
+            success = true;
+            g_GrenadeLocationsKv.GetVector("origin", origin);
+            g_GrenadeLocationsKv.GetVector("angles", angles);
+            g_GrenadeLocationsKv.GetString("name", grenadeName, sizeof(grenadeName));
+            g_GrenadeLocationsKv.GetString("description", description, sizeof(description));
+            g_GrenadeLocationsKv.GetString("categories", categoryString, sizeof(categoryString));
+            g_GrenadeLocationsKv.GoBack();
+        }
+        g_GrenadeLocationsKv.GoBack();
+    }
+
+    if (success) {
+        return SaveGrenadeToKv(client, origin, angles, grenadeName, description, categoryString);
+    } else {
+        return -1;
+    }
 }

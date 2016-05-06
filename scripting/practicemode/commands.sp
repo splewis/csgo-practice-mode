@@ -393,7 +393,7 @@ public Action Command_ClearGrenadeCategories(int client, int args) {
         return Plugin_Handled;
     }
 
-    SetGrenadeData(client, nadeId, "categories", "");
+    SetClientGrenadeData(client, nadeId, "categories", "");
     PM_Message(client, "Cleared grenade categories for id %d.", nadeId);
 
     return Plugin_Handled;
@@ -463,4 +463,31 @@ public Action Timer_DisplayClientTimer(Handle timer, int serial) {
         }
     }
     return Plugin_Stop;
+}
+
+public Action Command_CopyGrenade(int client, int args) {
+    if (!IsPlayer(client) || args != 2) {
+        PM_Message(client, "Usage: .copy <name> <id>");
+        return Plugin_Handled;
+    }
+
+    char name[MAX_NAME_LENGTH];
+    char id[GRENADE_ID_LENGTH];
+    GetCmdArg(1, name, sizeof(name));
+    GetCmdArg(2, id, sizeof(id));
+
+    char targetName[MAX_NAME_LENGTH];
+    char targetAuth[AUTH_LENGTH];
+    if (FindGrenadeTarget(name, targetName, sizeof(targetName), targetAuth, sizeof(targetAuth))) {
+        int newid = CopyGrenade(targetAuth, id, client);
+        if (newid != -1) {
+            PM_Message(client, "Copied nade to new id %d", newid);
+        } else {
+            PM_Message(client, "Could not find grenade %s from %s", newid, name);
+        }
+    } else {
+        PM_Message(client, "Could not find user %s", name);
+    }
+
+    return Plugin_Handled;
 }
