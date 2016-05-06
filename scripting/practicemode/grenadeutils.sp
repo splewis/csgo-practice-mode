@@ -338,6 +338,7 @@ public Action _FindGrenadeCategories_Helper(const char[] ownerName,
 public void CheckNewCategory(const char[] cat) {
     if (!StrEqual(cat, "") && FindStringInList(g_KnownNadeCategories, GRENADE_CATEGORY_LENGTH, cat, false) == -1) {
         g_KnownNadeCategories.PushString(cat);
+        SortADTArray(g_KnownNadeCategories, Sort_Ascending, Sort_String);
     }
 }
 
