@@ -262,6 +262,11 @@ public bool FindMatchingCategory(const char[] catinput, char[] output, int lengt
     for (int i = 0; i < g_KnownNadeCategories.Length; i++) {
         char cat[GRENADE_CATEGORY_LENGTH];
         g_KnownNadeCategories.GetString(i, cat, sizeof(cat));
+        if (StrEqual(cat, catinput, false)) {
+            strcopy(output, length, cat);
+            return true;
+        }
+
         if (StrContains(cat, catinput, false) >= 0) {
             strcopy(lastMatching, length, cat);
             matchingCount++;
