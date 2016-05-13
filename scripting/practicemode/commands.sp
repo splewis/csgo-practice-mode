@@ -387,6 +387,15 @@ public Action Command_RemoveCategory(int client, int args) {
     return Plugin_Handled;
 }
 
+public Action Command_DeleteCategory(int client, int args) {
+    char category[GRENADE_CATEGORY_LENGTH];
+    GetCmdArgString(category, sizeof(category));
+
+    DeleteGrenadeCategory(client, category);
+    PM_Message(client, "Removed grenade category.");
+    return Plugin_Handled;
+}
+
 public Action Command_ClearGrenadeCategories(int client, int args) {
     int nadeId = g_CurrentSavedGrenadeId[client];
     if (nadeId < 0 || !g_InPracticeMode) {

@@ -113,7 +113,6 @@ stock void GiveGrenadesMenu(int client, bool categoriesOnly=false) {
         char info[256];
         Format(info, sizeof(info), "cat %s", cat);
         char display[256];
-        // TODO: add number saved in the category like the player display has.
         Format(display, sizeof(display), "Category: %s (%d saved)", cat, count);
 
         if (count > 0)

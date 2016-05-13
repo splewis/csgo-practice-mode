@@ -214,6 +214,7 @@ public void OnPluginStart() {
     RegConsoleCmd("sm_addcategory", Command_AddCategory);
     RegConsoleCmd("sm_addcategories", Command_AddCategories);
     RegConsoleCmd("sm_removecategory", Command_RemoveCategory);
+    RegConsoleCmd("sm_deletecategory", Command_DeleteCategory);
     RegConsoleCmd("sm_clearcategories", Command_ClearGrenadeCategories);
     RegConsoleCmd("sm_copygrenade", Command_CopyGrenade);
     PM_AddChatAlias(".nades", "sm_grenades");
@@ -232,6 +233,7 @@ public void OnPluginStart() {
     PM_AddChatAlias(".addcats", "sm_addcategories");
     PM_AddChatAlias(".removecategory", "sm_removecategory");
     PM_AddChatAlias(".removecat", "sm_removecategory");
+    PM_AddChatAlias(".deletecat", "sm_deletecategory");
     PM_AddChatAlias(".clearcats", "sm_clearcategories");
     PM_AddChatAlias(".copy", "sm_copygrenade");
 

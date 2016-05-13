@@ -246,6 +246,28 @@ public bool RemoveGrenadeCategory(int client, int index, const char[] category) 
     return numreplaced > 0;
 }
 
+public void DeleteGrenadeCategory(int client, const char[] category) {
+    char auth[AUTH_LENGTH];
+    GetClientAuthId(client, AUTH_METHOD, auth, sizeof(auth));
+    ArrayList ids = new ArrayList();
+
+    if (g_GrenadeLocationsKv.JumpToKey(auth)) {
+        if (g_GrenadeLocationsKv.GotoFirstSubKey()) {
+            do {
+                char grenadeId[GRENADE_ID_LENGTH];
+                g_GrenadeLocationsKv.GetSectionName(grenadeId, sizeof(grenadeId));
+                ids.Push(StringToInt(grenadeId));
+            } while (g_GrenadeLocationsKv.GotoNextKey());
+            g_GrenadeLocationsKv.GoBack();
+        }
+        g_GrenadeLocationsKv.GoBack();
+    }
+
+    for (int i = 0; i < ids.Length; i++) {
+        RemoveGrenadeCategory(client, ids.Get(i), category);
+    }
+}
+
 public bool FindGrenadeTarget(const char[] nameInput, char[] name, int nameLen, char[] auth, int authLen) {
     int target = AttemptFindTarget(nameInput);
     if (IsPlayer(target) && GetClientAuthId(target, AUTH_METHOD, auth, authLen) && GetClientName(target, name, nameLen)) {
