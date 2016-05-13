@@ -241,7 +241,7 @@ public bool RemoveGrenadeCategory(int client, int index, const char[] category) 
     char removeString[GRENADE_CATEGORY_LENGTH];
     Format(removeString, sizeof(removeString), "%s;", category);
 
-    int numreplaced = ReplaceString(categoryString, sizeof(categoryString), removeString, "");
+    int numreplaced = ReplaceString(categoryString, sizeof(categoryString), removeString, "", false);
     SetClientGrenadeData(client, index, "categories", categoryString);
     return numreplaced > 0;
 }
