@@ -856,7 +856,11 @@ public void GetFlashInfo(int serial) {
             PM_Message(client, "Ineffective flash");
             CreateTimer(1.0, Timer_FakeGrenadeBack, GetClientSerial(client));
         } else {
-            CreateTimer(flashDuration, Timer_FakeGrenadeBack, GetClientSerial(client));
+            float delay = flashDuration - 1.0;
+            if (delay <= 0.0)
+                delay = 0.1;
+
+            CreateTimer(delay, Timer_FakeGrenadeBack, GetClientSerial(client));
         }
     }
 }
