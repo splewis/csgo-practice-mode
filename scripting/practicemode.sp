@@ -97,6 +97,7 @@ float g_LastTimeCommand[MAXPLAYERS+1];
 // Data storing spawn priorities.
 ArrayList g_CTSpawns = null;
 ArrayList g_TSpawns = null;
+KeyValues g_NamedSpawnsKv = null;
 
 #define SHOW_AIRTIME_DEFAULT true
 Handle g_ShowGrenadeAirtimeCookie = INVALID_HANDLE;
@@ -173,15 +174,19 @@ public void OnPluginStart() {
     // Grenade history commands
     RegConsoleCmd("sm_grenadeback", Command_GrenadeBack);
     RegConsoleCmd("sm_grenadeforward", Command_GrenadeForward);
+    RegConsoleCmd("sm_lastgrenade", Command_LastGrenade);
+    RegConsoleCmd("sm_nextgrenade", Command_NextGrenade);
     RegConsoleCmd("sm_clearnades", Command_ClearNades);
-    RegConsoleCmd("sm_gotogrenade", Command_GotoNade);
+
+    // Spawn commands
     RegConsoleCmd("sm_gotospawn", Command_GotoSpawn);
     RegConsoleCmd("sm_worstspawn", Command_GotoWorstSpawn);
+    RegConsoleCmd("sm_namespawn", Command_SaveSpawn);
+
+    // Other commands
     RegConsoleCmd("sm_testflash", Command_TestFlash);
     RegConsoleCmd("sm_stopflash", Command_StopFlash);
-    RegConsoleCmd("sm_lastgrenade", Command_LastGrenade);
     RegConsoleCmd("sm_time", Command_Time);
-    RegConsoleCmd("sm_nextgrenade", Command_NextGrenade);
 
     PM_AddChatAlias(".back", "sm_grenadeback");
     PM_AddChatAlias(".last", "sm_lastgrenade");
@@ -194,6 +199,7 @@ public void OnPluginStart() {
     PM_AddChatAlias(".spawn", "sm_gotospawn");
     PM_AddChatAlias(".bestspawn", "sm_gotospawn");
     PM_AddChatAlias(".worstspawn", "sm_worstspawn");
+    PM_AddChatAlias(".namespawn", "sm_namespawn");
 
     PM_AddChatAlias(".flash", "sm_testflash");
     PM_AddChatAlias(".testflash", "sm_testflash");
@@ -205,6 +211,7 @@ public void OnPluginStart() {
     PM_AddChatAlias(".time", "sm_time");
 
     // Saved grenade location commands
+    RegConsoleCmd("sm_gotogrenade", Command_GotoNade);
     RegConsoleCmd("sm_grenades", Command_Grenades);
     RegConsoleCmd("sm_renamegrenade", Command_RenameGrenade);
     RegConsoleCmd("sm_savegrenade", Command_SaveGrenade);
@@ -336,7 +343,8 @@ public void OnMapStart() {
     char dir[PLATFORM_MAX_PATH];
     BuildPath(Path_SM, dir, sizeof(dir), "data/practicemode_grenades");
     if (!DirExists(dir)) {
-        CreateDirectory(dir, 511);
+        if (!CreateDirectory(dir, 511))
+            LogError("Failed to create directory %s", dir);
     }
 
     char map[PLATFORM_MAX_PATH];
@@ -358,7 +366,7 @@ public void OnMapStart() {
     }
 
     FindGrenadeCategories();
-    FindMapSpawns();
+    Spawns_MapStart();
 }
 
 public void OnConfigsExecuted() {
@@ -401,6 +409,7 @@ public void OnMapEnd() {
     if (g_InPracticeMode)
         ExitPracticeMode();
 
+    Spawns_MapEnd();
     delete g_GrenadeLocationsKv;
 }
 

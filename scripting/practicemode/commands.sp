@@ -240,6 +240,25 @@ public Action Command_SaveGrenade(int client, int args) {
     return Plugin_Handled;
 }
 
+public Action Command_SaveSpawn(int client, int args) {
+    if (!g_InPracticeMode) {
+        return Plugin_Handled;
+    }
+
+    char arg[64];
+    if (args >= 1 && GetCmdArg(1, arg, sizeof(arg))) {
+        int team = GetClientTeam(client);
+        SaveNamedSpawn(client, team, arg);
+        PM_Message(client, "Saved spawn \"%s\"", arg);
+        TeleportToNamedSpawn(client, team, arg);
+        SetEntityMoveType(client, MOVETYPE_WALK);
+    } else {
+        PM_Message(client, "Usage: .namespawn <name>");
+    }
+
+    return Plugin_Handled;
+}
+
 public Action Command_GotoSpawn(int client, int args) {
     if (!g_InPracticeMode) {
         return Plugin_Handled;
@@ -255,8 +274,23 @@ public Action Command_GotoSpawn(int client, int args) {
 
         char arg[32];
         int spawnIndex = -1;
+        // Note: the spawn_number argumment in .spawn <spawn_number> is 1-indexed for users.
         if (args >= 1 && GetCmdArg(1, arg, sizeof(arg))) {
-            spawnIndex = StringToInt(arg) - 1; // One-indexed for users.
+            // If 0, then we use the arg as the user setting or going to a named location
+            int argInt = StringToInt(arg);
+            if (argInt == 0 && !StrEqual(arg, "0")) {
+                int team = GetClientTeam(client);
+                if (DoesNamedSpawnExist(team, arg)) {
+                    TeleportToNamedSpawn(client, team, arg);
+                    PM_Message(client, "Moved to spawn \"%s\"", arg);
+                } else {
+                    PM_Message(client, "There is no spawn for \"%s\", use .namespawn <name> to add a name for your nearest spawn point", arg);
+                }
+                return Plugin_Handled;
+
+            } else {
+                spawnIndex = argInt - 1;
+            }
         } else {
             spawnIndex = FindNearestSpawnIndex(client, spawnList);
         }
