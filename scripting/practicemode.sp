@@ -332,27 +332,24 @@ public void OnMapStart() {
     g_BeamSprite = PrecacheModel("materials/sprites/laserbeam.vmt");
     g_KnownNadeCategories.Clear();
 
-    // Init map-based saved grenade spots.
+    EnforceDirectoryExists("data/practicemode");
+    EnforceDirectoryExists("data/practicemode/grenades");
+    EnforceDirectoryExists("data/practicemode/spawns");
 
     // This supports backwards compatability for grenades saved in the old location
-    // configs/pugsetup/practicemode_grenades. The data is transferred to the new
+    // data/practicemode_grenades. The data is transferred to the new
     // location if they are read from the legacy location.
     char legacyDir[PLATFORM_MAX_PATH];
-    BuildPath(Path_SM, legacyDir, sizeof(legacyDir), "configs/pugsetup/practicemode_grenades");
-
-    char dir[PLATFORM_MAX_PATH];
-    BuildPath(Path_SM, dir, sizeof(dir), "data/practicemode_grenades");
-    if (!DirExists(dir)) {
-        if (!CreateDirectory(dir, 511))
-            LogError("Failed to create directory %s", dir);
-    }
+    BuildPath(Path_SM, legacyDir, sizeof(legacyDir), "data/practicemode_grenades");
 
     char map[PLATFORM_MAX_PATH];
     GetCleanMapName(map, sizeof(map));
 
     char legacyFile[PLATFORM_MAX_PATH];
     Format(legacyFile, sizeof(legacyFile), "%s/%s.cfg", legacyDir, map);
-    Format(g_GrenadeLocationsFile, sizeof(g_GrenadeLocationsFile), "%s/%s.cfg", dir, map);
+
+    BuildPath(Path_SM, g_GrenadeLocationsFile, sizeof(g_GrenadeLocationsFile),
+        "data/practicemode/grenades/%s.cfg", map);
 
     if (!FileExists(g_GrenadeLocationsFile) && FileExists(legacyFile)) {
         LogMessage("Moving legacy grenade data from %s to %s", legacyFile, g_GrenadeLocationsFile);

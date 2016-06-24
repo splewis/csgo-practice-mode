@@ -20,7 +20,7 @@ You must have [SourceMod](http://www.sourcemod.net/downloads.php) and [MetaMod:S
 ## Features
 - Draws working grenade trajectories if ``sv_grenade_trajectory`` is on (since it doesn't work on dedicated servers)
 - Adds new cvars to give extra practice settings (infinite money, noclip without needing sv_cheats enabled)
-- Can save users' grenade locations/eye-angles with a name and description for them (grenade data is saved to a file on the server in the ``addons/sourcemod/data/practicemode_grenades`` directory)
+- Can save users' grenade locations/eye-angles with a name and description for them (grenade data is saved to a file on the server in the ``addons/sourcemod/data/practicemode/grenades`` directory)
 - Users can goto any players' saved grenades to learn or revisit them
 - Displays a menu with toggle settings to set practice cvars defined in [addons/sourcemod/configs/practicemode.cfg](configs/practicemode.cfg)
 - Maintains your grenade history on the current map so you can use ``.back`` and ``.forward`` to see all spots you threw grenades from in the current session

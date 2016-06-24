@@ -3,7 +3,7 @@
 
 #tryinclude "manual_version.sp"
 #if !defined PLUGIN_VERSION
-#define PLUGIN_VERSION "1.0.4-dev"
+#define PLUGIN_VERSION "1.1.0-dev"
 #endif
 
 static char _colorNames[][] = {"{NORMAL}", "{DARK_RED}", "{PINK}", "{GREEN}", "{YELLOW}", "{LIGHT_GREEN}", "{LIGHT_RED}", "{GRAY}", "{ORANGE}", "{LIGHT_BLUE}", "{DARK_BLUE}", "{PURPLE}"};
@@ -234,4 +234,16 @@ stock float GetCookieFloat(int client, Handle cookie, float defaultValue=0.0) {
     }
 
     return StringToFloat(buffer);
+}
+
+public bool EnforceDirectoryExists(const char[] smPath) {
+    char dir[PLATFORM_MAX_PATH+1];
+    BuildPath(Path_SM, dir, sizeof(dir), smPath);
+    if (!DirExists(dir)) {
+        if (!CreateDirectory(dir, 511)) {
+            LogError("Failed to create directory %s", dir);
+            return false;
+        }
+    }
+    return true;
 }
