@@ -37,8 +37,9 @@ ArrayList g_ChatAliasesCommands;
 
 // Plugin cvars
 ConVar g_AutostartCvar;
-ConVar g_MaxHistorySizeCvar;
 ConVar g_MaxGrenadesSavedCvar;
+ConVar g_MaxHistorySizeCvar;
+ConVar g_PracModeCanBeStartedCvar;
 
 // Infinite money data
 ConVar g_InfiniteMoneyCvar;
@@ -165,9 +166,10 @@ public void OnPluginStart() {
         g_GrenadeHistoryAngles[i] = new ArrayList(3);
     }
 
+    RegAdminCmd("sm_prac", Command_LaunchPracticeMode, ADMFLAG_CHANGEMAP, "Launches practice mode");
     RegAdminCmd("sm_launchpractice", Command_LaunchPracticeMode, ADMFLAG_CHANGEMAP, "Launches practice mode");
     RegAdminCmd("sm_practice", Command_LaunchPracticeMode, ADMFLAG_CHANGEMAP, "Launches practice mode");
-    RegAdminCmd("sm_prac", Command_LaunchPracticeMode, ADMFLAG_CHANGEMAP, "Launches practice mode");
+
     RegAdminCmd("sm_exitpractice", Command_ExitPracticeMode, ADMFLAG_CHANGEMAP, "Exits practice mode");
     RegAdminCmd("sm_translategrenades", Command_TranslateGrenades, ADMFLAG_CHANGEMAP, "Translates all grenades on this map");
 
@@ -248,6 +250,7 @@ public void OnPluginStart() {
     g_AutostartCvar = CreateConVar("sm_practicemode_autostart", "0", "Whether the plugin is automatically started on mapstart");
     g_MaxHistorySizeCvar = CreateConVar("sm_practicemode_max_grenade_history_size", "1000", "Maximum number of grenades throws saved in history per-client");
     g_MaxGrenadesSavedCvar = CreateConVar("sm_practicemode_max_grenades_saved", "256", "Maximum number of grenades saved per-map per-client");
+    g_PracModeCanBeStartedCvar = CreateConVar("sm_practicemode_can_be_started", "1", "Whether practicemode may be started");
     AutoExecConfig(true, "practicemode");
 
     // New cvars we don't want saved in the autoexec'd file
@@ -916,10 +919,15 @@ public void OnClientSayCommand_Post(int client, const char[] command, const char
     }
 
     if (!g_PugsetupLoaded) {
-        if (StrEqual(chatCommand, ".setup"))
-            GivePracticeMenu(client);
-        else if (StrEqual(chatCommand, ".help"))
+        if (StrEqual(chatCommand, ".setup")) {
+            if (CanStartPracticeMode(client)) {
+                GivePracticeMenu(client);
+            } else {
+                PM_Message(client, "You cannot use .setup right now.");
+            }
+        } else if (StrEqual(chatCommand, ".help")) {
             ShowHelpInfo(client);
+        }
     }
 }
 
@@ -935,4 +943,11 @@ public void CheckMOTDAllowed(QueryCookie cookie, int client, ConVarQueryResult r
     if (!StrEqual(cvarValue, "0")) {
         PrintToChat(client, "You must have \x04cl_disablehtmlmotd 0 \x01to use that command.");
     }
+}
+
+bool CanStartPracticeMode(int client) {
+    if (g_PracModeCanBeStartedCvar.IntValue == 0) {
+        return false;
+    }
+    return CheckCommandAccess(client, "sm_prac", ADMFLAG_CHANGEMAP);
 }

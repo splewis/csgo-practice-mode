@@ -1,4 +1,9 @@
 public Action Command_LaunchPracticeMode(int client, int args) {
+    if (!CanStartPracticeMode(client)) {
+        PM_Message(client, "You cannot start practice mode right now.");
+        return Plugin_Handled;
+    }
+
     if (!g_InPracticeMode) {
         if (g_PugsetupLoaded && PugSetup_GetGameState() >= GameState_Warmup) {
             return Plugin_Continue;
