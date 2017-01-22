@@ -41,3 +41,4 @@ You can edit these in the file ``cfg/sourcemod/practicemode.cfg``, which is auto
 - ``sm_infinite_money``
 - ``sm_allow_noclip``
 - ``sm_grenade_trajectory_use_player_color``
+- ``sm_practicemode_can_be_started``
