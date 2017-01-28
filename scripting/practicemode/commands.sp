@@ -354,6 +354,7 @@ public Action Command_TestFlash(int client, int args) {
 
     g_TestingFlash[client] = true;
     PM_Message(client, "Saved your position. Throw a flashbang and you will be teleported back here to see the flashbang's effect.");
+    PM_Message(client, "Use {GREEN}.stopflash {NORMAL}when you are done testing.");
     GetClientAbsOrigin(client, g_TestingFlashOrigins[client]);
     GetClientEyeAngles(client, g_TestingFlashAngles[client]);
     return Plugin_Handled;
