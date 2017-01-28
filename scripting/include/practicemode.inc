@@ -1,13 +1,13 @@
 #if defined _practicemode_included
-  #endinput
+#endinput
 #endif
 #define _practicemode_included
 
 // #include "pugsetup.inc"
 
-#define OPTION_NAME_LENGTH 128 // max length of a setting name/id
-#define CVAR_NAME_LENGTH 64 // max length of a cvar
-#define CVAR_VALUE_LENGTH 128 // max length of a cvar value
+#define OPTION_NAME_LENGTH 128  // max length of a setting name/id
+#define CVAR_NAME_LENGTH 64     // max length of a cvar
+#define CVAR_VALUE_LENGTH 128   // max length of a cvar value
 
 /**
  * Called when practice mode is enabled.
@@ -29,12 +29,14 @@ forward void PM_OnSettingsRead();
  *
  * @return Plugin_Handled or a higher action to block the save.
  */
-forward Action PM_OnGrenadeSaved(int client, const float origin[3], const float angle[3], const char[] name);
+forward Action PM_OnGrenadeSaved(int client, const float origin[3], const float angle[3],
+                                 const char[] name);
 
 /**
  * Called when a practice mode setting is changed.
  */
-forward void PM_OnSettingChanged(int settingNumber, const char[] settingId, const char[] displayName, bool enabled);
+forward void PM_OnSettingChanged(int settingNumber, const char[] settingId,
+                                 const char[] displayName, bool enabled);
 
 /**
  * Starts practice mode, returning if it was started.
@@ -48,12 +50,13 @@ native bool PM_ExitPracticeMode();
 
 /**
  * Adds a new setting to practice mode.
- * @note The practicemode plugin will take over ownership of the enabledCvars and enabledValues arrays.
+ * @note The practicemode plugin will take over ownership of the enabledCvars and enabledValues
+ * arrays.
  * @return the settingNumber value for the new setting.
  */
-native int PM_AddSetting(const char[] settingId, const char[] name,
-                         ArrayList enabledCvars, ArrayList enabledValues,
-                         bool defaultEnabled=false, bool changeable=true);
+native int PM_AddSetting(const char[] settingId, const char[] name, ArrayList enabledCvars,
+                         ArrayList enabledValues, bool defaultEnabled = false,
+                         bool changeable = true);
 
 /**
  * Returns if practice mode is enabled.
@@ -72,8 +75,7 @@ native void PM_MessageToAll(const char[] format, any:...);
 native void PM_AddChatAlias(const char[] alias, const char[] command);
 
 public SharedPlugin __pl_practicemode = {
-    name = "practicemode",
-    file = "practicemode.smx",
+    name = "practicemode", file = "practicemode.smx",
 #if defined REQUIRE_PLUGIN
     required = 1,
 #else
@@ -83,13 +85,13 @@ public SharedPlugin __pl_practicemode = {
 
 #if !defined REQUIRE_PLUGIN
 public __pl_practicemode_SetNTVOptional() {
-    MarkNativeAsOptional("PM_StartPracticeMode");
-    MarkNativeAsOptional("PM_ExitPracticeMode");
-    MarkNativeAsOptional("PM_AddSetting");
-    MarkNativeAsOptional("PM_IsPracticeModeEnabled");
-    MarkNativeAsOptional("PM_IsSettingEnabled");
-    MarkNativeAsOptional("PM_Message");
-    MarkNativeAsOptional("PM_MessageToAll");
-    MarkNativeAsOptional("PM_AddChatAlias");
+  MarkNativeAsOptional("PM_StartPracticeMode");
+  MarkNativeAsOptional("PM_ExitPracticeMode");
+  MarkNativeAsOptional("PM_AddSetting");
+  MarkNativeAsOptional("PM_IsPracticeModeEnabled");
+  MarkNativeAsOptional("PM_IsSettingEnabled");
+  MarkNativeAsOptional("PM_Message");
+  MarkNativeAsOptional("PM_MessageToAll");
+  MarkNativeAsOptional("PM_AddChatAlias");
 }
 #endif
