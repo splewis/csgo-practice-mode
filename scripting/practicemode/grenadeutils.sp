@@ -195,6 +195,18 @@ public void GetGrenadeData(const char[] auth, const char[] id, const char[] key,
     }
 }
 
+public void SetGrenadeVectors(const char[] auth, const char[] id, const float[3] origin, const float[3] angles) {
+    g_UpdatedGrenadeKv = true;
+    if (g_GrenadeLocationsKv.JumpToKey(auth)) {
+        if (g_GrenadeLocationsKv.JumpToKey(id)) {
+            g_GrenadeLocationsKv.SetVector("origin", origin);
+            g_GrenadeLocationsKv.SetVector("angles", angles);
+            g_GrenadeLocationsKv.GoBack();
+        }
+        g_GrenadeLocationsKv.GoBack();
+    }
+}
+
 public void SetClientGrenadeData(int client, int index, const char[] key, const char[] value) {
     char auth[AUTH_LENGTH];
     GetClientAuthId(client, AUTH_METHOD, auth, sizeof(auth));
@@ -209,6 +221,14 @@ public void GetClientGrenadeData(int client, int index, const char[] key, char[]
     char nadeId[GRENADE_ID_LENGTH];
     IntToString(index, nadeId, sizeof(nadeId));
     GetGrenadeData(auth, nadeId, key, value, valueLength);
+}
+
+public void SetClientGrenadeVectors(int client, int index, const float[3] origin, const float[3] angles) {
+    char auth[AUTH_LENGTH];
+    GetClientAuthId(client, AUTH_METHOD, auth, sizeof(auth));
+    char nadeId[GRENADE_ID_LENGTH];
+    IntToString(index, nadeId, sizeof(nadeId));
+    SetGrenadeVectors(auth, nadeId, origin, angles);
 }
 
 public void UpdateGrenadeName(int client, int index, const char[] name) {

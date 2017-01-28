@@ -64,7 +64,7 @@ ConVar g_GrenadeSpecTimeCvar;
 #define AUTH_LENGTH 64
 #define AUTH_METHOD AuthId_Steam2
 char g_GrenadeLocationsFile[PLATFORM_MAX_PATH];
-KeyValues g_GrenadeLocationsKv;
+KeyValues g_GrenadeLocationsKv; // Inside any global function, we expect this to be at the root level.
 int g_CurrentSavedGrenadeId[MAXPLAYERS+1];
 bool g_UpdatedGrenadeKv = false; // whether there has been any changed the kv structure this map
 
@@ -217,6 +217,7 @@ public void OnPluginStart() {
     RegConsoleCmd("sm_grenades", Command_Grenades);
     RegConsoleCmd("sm_renamegrenade", Command_RenameGrenade);
     RegConsoleCmd("sm_savegrenade", Command_SaveGrenade);
+    RegConsoleCmd("sm_movegrenade", Command_MoveGrenade);
     RegConsoleCmd("sm_adddescription", Command_GrenadeDescription);
     RegConsoleCmd("sm_deletegrenade", Command_DeleteGrenade);
     RegConsoleCmd("sm_categories", Command_Categories);
@@ -231,6 +232,9 @@ public void OnPluginStart() {
     PM_AddChatAlias(".addnade", "sm_savegrenade");
     PM_AddChatAlias(".savenade", "sm_savegrenade");
     PM_AddChatAlias(".save", "sm_savegrenade");
+    PM_AddChatAlias(".resave", "sm_movegrenade");
+    PM_AddChatAlias(".update", "sm_movegrenade");
+    PM_AddChatAlias(".move", "sm_movegrenade");
     PM_AddChatAlias(".desc", "sm_adddescription");
     PM_AddChatAlias(".rename", "sm_renamegrenade");
     PM_AddChatAlias(".delete", "sm_deletegrenade");
