@@ -572,6 +572,10 @@ public Action Timer_DisplayClientTimer(Handle timer, int serial) {
 }
 
 public Action Command_CopyGrenade(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
   if (!IsPlayer(client) || args != 2) {
     PM_Message(client, "Usage: .copy <name> <id>");
     return Plugin_Handled;
@@ -595,5 +599,42 @@ public Action Command_CopyGrenade(int client, int args) {
     PM_Message(client, "Could not find user %s", name);
   }
 
+  return Plugin_Handled;
+}
+
+public Action Command_Respawn(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  g_SavedRespawnActive[client] = true;
+  GetClientAbsOrigin(client, g_SavedRespawnOrigin[client]);
+  GetClientEyeAngles(client, g_SavedRespawnAngles[client]);
+  PM_Message(
+      client,
+      "Saved respawn point. When you die will you respawn here, use .stoprespawn to cancel.");
+  return Plugin_Handled;
+}
+
+public Action Command_StopRespawn(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  g_SavedRespawnActive[client] = false;
+  PM_Message(client, "Cancelled respawning at your saved position.");
+  return Plugin_Handled;
+}
+
+public Action Command_StopAll(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+  if (g_SavedRespawnActive[client]) {
+    Command_StopRespawn(client, 0);
+  }
+  if (g_TestingFlash[client]) {
+    Command_StopFlash(client, 0);
+  }
   return Plugin_Handled;
 }

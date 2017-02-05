@@ -79,6 +79,11 @@ bool g_TestingFlash[MAXPLAYERS + 1];
 float g_TestingFlashOrigins[MAXPLAYERS + 1][3];
 float g_TestingFlashAngles[MAXPLAYERS + 1][3];
 
+// Respawn values set by clients in the current session
+bool g_SavedRespawnActive[MAXPLAYERS + 1];
+float g_SavedRespawnOrigin[MAXPLAYERS + 1][3];
+float g_SavedRespawnAngles[MAXPLAYERS + 1][3];
+
 ArrayList g_KnownNadeCategories = null;
 
 // These must match the values used by cl_color.
@@ -235,6 +240,9 @@ public void OnPluginStart() {
   RegConsoleCmd("sm_deletecategory", Command_DeleteCategory);
   RegConsoleCmd("sm_clearcategories", Command_ClearGrenadeCategories);
   RegConsoleCmd("sm_copygrenade", Command_CopyGrenade);
+  RegConsoleCmd("sm_respawn", Command_Respawn);
+  RegConsoleCmd("sm_stoprespawn", Command_Respawn);
+  RegConsoleCmd("sm_stopall", Command_StopAll);
   PM_AddChatAlias(".nades", "sm_grenades");
   PM_AddChatAlias(".grenades", "sm_grenades");
   PM_AddChatAlias(".addnade", "sm_savegrenade");
@@ -257,6 +265,9 @@ public void OnPluginStart() {
   PM_AddChatAlias(".deletecat", "sm_deletecategory");
   PM_AddChatAlias(".clearcats", "sm_clearcategories");
   PM_AddChatAlias(".copy", "sm_copygrenade");
+  PM_AddChatAlias(".respawn", "sm_respawn");
+  PM_AddChatAlias(".stoprespawn", "sm_stoprespawn");
+  PM_AddChatAlias(".stop", "sm_stopall");
 
   // New Plugin cvars
   g_AutostartCvar = CreateConVar("sm_practicemode_autostart", "0",
@@ -318,6 +329,7 @@ public void OnPluginStart() {
   RemoveCvarFlag(g_GrenadeTrajectoryCvar, FCVAR_CHEAT);
 
   HookEvent("server_cvar", Event_CvarChanged, EventHookMode_Pre);
+  HookEvent("player_spawn", Event_PlayerSpawn);
 
   g_PugsetupLoaded = LibraryExists("pugsetup");
 
@@ -348,6 +360,18 @@ public Action Event_CvarChanged(Event event, const char[] name, bool dontBroadca
   return Plugin_Continue;
 }
 
+public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast) {
+  if (!g_InPracticeMode) {
+    return Plugin_Continue;
+  }
+
+  int client = GetClientOfUserId(event.GetInt("userid"));
+  if (IsPlayer(client) && g_SavedRespawnActive[client]) {
+    TeleportEntity(client, g_SavedRespawnOrigin[client], g_SavedRespawnAngles[client], NULL_VECTOR);
+  }
+  return Plugin_Continue;
+}
+
 public void OnClientConnected(int client) {
   g_CurrentSavedGrenadeId[client] = -1;
   g_GrenadeHistoryIndex[client] = -1;
@@ -356,6 +380,7 @@ public void OnClientConnected(int client) {
   g_TestingFlash[client] = false;
   g_RunningTimeCommand[client] = false;
   g_RunningLiveTimeCommand[client] = false;
+  g_SavedRespawnActive[client] = false;
 }
 
 public void OnMapStart() {
@@ -729,15 +754,6 @@ public void ExitPracticeMode() {
 
   ServerCommand("exec sourcemod/practicemode_end.cfg");
   PM_MessageToAll("Practice mode is now disabled.");
-}
-
-public void SetCvar(const char[] name, int value) {
-  Handle cvar = FindConVar(name);
-  if (cvar == INVALID_HANDLE) {
-    LogError("cvar \"%s\" could not be found", name);
-  } else {
-    SetConVarInt(cvar, value);
-  }
 }
 
 public Action Timer_GivePlayersMoney(Handle timer) {

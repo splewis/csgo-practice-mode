@@ -43,6 +43,15 @@ stock void Colorize(char[] msg, int size, bool stripColor = false) {
   }
 }
 
+public void SetCvar(const char[] name, int value) {
+  Handle cvar = FindConVar(name);
+  if (cvar == INVALID_HANDLE) {
+    LogError("cvar \"%s\" could not be found", name);
+  } else {
+    SetConVarInt(cvar, value);
+  }
+}
+
 stock void SetConVarStringSafe(const char[] name, const char[] value) {
   Handle cvar = FindConVar(name);
   if (cvar == INVALID_HANDLE) {
