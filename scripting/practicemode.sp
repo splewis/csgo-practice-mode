@@ -1,3 +1,5 @@
+#define UPDATE_URL "http://dl.whiffcity.com/plugins/practicemode/practicemode.txt"
+
 #include <clientprefs>
 #include <cstrike>
 #include <sdkhooks>
@@ -6,6 +8,7 @@
 
 #undef REQUIRE_PLUGIN
 #include <pugsetup>
+#include <updater>
 
 #include "include/practicemode.inc"
 #include "include/restorecvars.inc"
@@ -344,6 +347,9 @@ public void OnPluginEnd() {
 
 public void OnLibraryAdded(const char[] name) {
   g_PugsetupLoaded = LibraryExists("pugsetup");
+  if (LibraryExists("updater")) {
+    Updater_AddPlugin(UPDATE_URL);
+  }
 }
 
 public void OnLibraryRemoved(const char[] name) {
