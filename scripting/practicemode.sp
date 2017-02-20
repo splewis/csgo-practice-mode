@@ -30,6 +30,8 @@ ArrayList g_BinaryOptionEnabled;
 ArrayList g_BinaryOptionChangeable;
 ArrayList g_BinaryOptionEnabledCvars;
 ArrayList g_BinaryOptionEnabledValues;
+ArrayList g_BinaryOptionDisabledCvars;
+ArrayList g_BinaryOptionDisabledValues;
 ArrayList g_BinaryOptionCvarRestore;
 
 /** Chat aliases loaded **/
@@ -164,6 +166,8 @@ public void OnPluginStart() {
   g_BinaryOptionChangeable = new ArrayList();
   g_BinaryOptionEnabledCvars = new ArrayList();
   g_BinaryOptionEnabledValues = new ArrayList();
+  g_BinaryOptionDisabledCvars = new ArrayList();
+  g_BinaryOptionDisabledValues = new ArrayList();
   g_BinaryOptionCvarRestore = new ArrayList();
   ReadPracticeSettings();
 
@@ -621,6 +625,8 @@ public void ReadPracticeSettings() {
   ClearArray(g_BinaryOptionChangeable);
   ClearNestedArray(g_BinaryOptionEnabledCvars);
   ClearNestedArray(g_BinaryOptionEnabledValues);
+  ClearNestedArray(g_BinaryOptionDisabledCvars);
+  ClearNestedArray(g_BinaryOptionDisabledValues);
   ClearArray(g_BinaryOptionCvarRestore);
 
   char filePath[PLATFORM_MAX_PATH];
@@ -650,26 +656,23 @@ public void ReadPracticeSettings() {
 
         bool changeable = (kv.GetNum("changeable", 1) != 0);
 
-        char cvarName[CVAR_NAME_LENGTH];
-        char cvarValue[CVAR_VALUE_LENGTH];
-
         // read the enabled cvar list
         ArrayList enabledCvars = new ArrayList(CVAR_NAME_LENGTH);
         ArrayList enabledValues = new ArrayList(CVAR_VALUE_LENGTH);
         if (kv.JumpToKey("enabled")) {
-          if (kv.GotoFirstSubKey(false)) {
-            do {
-              kv.GetSectionName(cvarName, sizeof(cvarName));
-              enabledCvars.PushString(cvarName);
-              kv.GetString(NULL_STRING, cvarValue, sizeof(cvarValue));
-              enabledValues.PushString(cvarValue);
-            } while (kv.GotoNextKey(false));
-            kv.GoBack();
-          }
+          ReadCvarKv(kv, enabledCvars, enabledValues);
           kv.GoBack();
         }
 
-        PM_AddSetting(id, name, enabledCvars, enabledValues, enabled, changeable);
+        ArrayList disabledCvars = new ArrayList(CVAR_NAME_LENGTH);
+        ArrayList disabledValues = new ArrayList(CVAR_VALUE_LENGTH);
+        if (kv.JumpToKey("disabled")) {
+          ReadCvarKv(kv, disabledCvars, disabledValues);
+          kv.GoBack();
+        }
+
+        PM_AddSetting(id, name, enabledCvars, enabledValues, enabled, changeable, disabledCvars,
+                      disabledValues);
 
       } while (kv.GotoNextKey());
     }
@@ -700,21 +703,22 @@ stock void ChangeSetting(int index, bool enabled, bool print = true) {
     ArrayList cvars = g_BinaryOptionEnabledCvars.Get(index);
     ArrayList values = g_BinaryOptionEnabledValues.Get(index);
     g_BinaryOptionCvarRestore.Set(index, SaveCvars(cvars));
-
-    char cvar[CVAR_NAME_LENGTH];
-    char value[CVAR_VALUE_LENGTH];
-
-    for (int i = 0; i < cvars.Length; i++) {
-      cvars.GetString(i, cvar, sizeof(cvar));
-      values.GetString(i, value, sizeof(value));
-      ServerCommand("%s %s", cvar, value);
-    }
-
+    ExecuteCvarLists(cvars, values);
   } else {
-    Handle cvarRestore = g_BinaryOptionCvarRestore.Get(index);
-    if (cvarRestore != INVALID_HANDLE) {
-      RestoreCvars(cvarRestore, true);
-      g_BinaryOptionCvarRestore.Set(index, INVALID_HANDLE);
+    ArrayList cvars = g_BinaryOptionDisabledCvars.Get(index);
+    ArrayList values = g_BinaryOptionDisabledValues.Get(index);
+
+    if (cvars != null && cvars.Length > 0 && values != null && values.Length == cvars.Length) {
+      // If there are are disabled cvars explicity set.
+      ExecuteCvarLists(cvars, values);
+    } else {
+      // If there are no "disabled" cvars explicity set, we'll just restore to the cvar
+      // values before the option was enabled.
+      Handle cvarRestore = g_BinaryOptionCvarRestore.Get(index);
+      if (cvarRestore != INVALID_HANDLE) {
+        RestoreCvars(cvarRestore, true);
+        g_BinaryOptionCvarRestore.Set(index, INVALID_HANDLE);
+      }
     }
   }
 
@@ -728,8 +732,9 @@ stock void ChangeSetting(int index, bool enabled, bool print = true) {
     GetEnabledString(enabledString, sizeof(enabledString), enabled);
 
     // don't display empty names
-    if (!StrEqual(name, ""))
+    if (!StrEqual(name, "")) {
       PM_MessageToAll("%s is now %s.", name, enabledString);
+    }
   }
 
   Call_StartForward(g_OnPracticeModeSettingChanged);
@@ -746,6 +751,13 @@ public void ExitPracticeMode() {
 
   for (int i = 0; i < g_BinaryOptionNames.Length; i++) {
     ChangeSetting(i, false, false);
+
+    // Restore the cvar values if they haven't already been.
+    Handle cvarRestore = g_BinaryOptionCvarRestore.Get(i);
+    if (cvarRestore != INVALID_HANDLE) {
+      RestoreCvars(cvarRestore, true);
+      g_BinaryOptionCvarRestore.Set(i, INVALID_HANDLE);
+    }
   }
 
   g_InPracticeMode = false;

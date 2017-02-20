@@ -253,3 +253,27 @@ public bool EnforceDirectoryExists(const char[] smPath) {
   }
   return true;
 }
+
+stock void ExecuteCvarLists(ArrayList cvars, ArrayList values) {
+  char cvar[CVAR_NAME_LENGTH];
+  char value[CVAR_VALUE_LENGTH];
+  for (int i = 0; i < cvars.Length; i++) {
+    cvars.GetString(i, cvar, sizeof(cvar));
+    values.GetString(i, value, sizeof(value));
+    ServerCommand("%s %s", cvar, value);
+  }
+}
+
+stock void ReadCvarKv(KeyValues kv, ArrayList cvars, ArrayList values) {
+  char cvarName[CVAR_NAME_LENGTH];
+  char cvarValue[CVAR_VALUE_LENGTH];
+  if (kv.GotoFirstSubKey(false)) {
+    do {
+      kv.GetSectionName(cvarName, sizeof(cvarName));
+      cvars.PushString(cvarName);
+      kv.GetString(NULL_STRING, cvarValue, sizeof(cvarValue));
+      values.PushString(cvarValue);
+    } while (kv.GotoNextKey(false));
+    kv.GoBack();
+  }
+}

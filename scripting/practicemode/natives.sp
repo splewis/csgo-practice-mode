@@ -45,6 +45,12 @@ public int Native_AddSetting(Handle plugin, int numParams) {
   ArrayList enabledValues = view_as<ArrayList>(GetNativeCell(4));
   bool enabled = GetNativeCell(5);
   bool changeable = GetNativeCell(6);
+  ArrayList disabledCvars = null;
+  ArrayList disabledValues = null;
+  if (numParams >= 8) {
+    disabledCvars = view_as<ArrayList>(GetNativeCell(7));
+    disabledValues = view_as<ArrayList>(GetNativeCell(8));
+  }
 
   if (enabledCvars.Length != enabledValues.Length) {
     ThrowNativeError(SP_ERROR_PARAM, "Cvar name list size (%d) mismatch with cvar value list (%d)",
@@ -58,6 +64,8 @@ public int Native_AddSetting(Handle plugin, int numParams) {
   g_BinaryOptionEnabledCvars.Push(enabledCvars);
   g_BinaryOptionEnabledValues.Push(enabledValues);
   g_BinaryOptionCvarRestore.Push(INVALID_HANDLE);
+  g_BinaryOptionDisabledCvars.Push(disabledCvars);
+  g_BinaryOptionDisabledValues.Push(disabledValues);
 
   return g_BinaryOptionIds.Length - 1;
 }

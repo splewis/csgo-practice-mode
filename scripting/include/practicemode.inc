@@ -56,7 +56,8 @@ native bool PM_ExitPracticeMode();
  */
 native int PM_AddSetting(const char[] settingId, const char[] name, ArrayList enabledCvars,
                          ArrayList enabledValues, bool defaultEnabled = false,
-                         bool changeable = true);
+                         bool changeable = true, ArrayList disabledCvars = null,
+                         ArrayList disabeldValues = null);
 
 /**
  * Returns if practice mode is enabled.

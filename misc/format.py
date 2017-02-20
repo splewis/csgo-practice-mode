@@ -14,7 +14,6 @@ replacements = {
 def main():
     root_path, _ = os.path.split(os.path.dirname(os.path.realpath(__file__)))
     scripting_path = os.path.join(root_path, 'scripting')
-    print(root_path, scripting_path)
     files = []
     for (dirpath, dirnames, filenames) in os.walk(scripting_path):
         for f in filenames:
