@@ -1,4 +1,4 @@
-#define UPDATE_URL "http://dl.whiffcity.com/plugins/practicemode/practicemode.txt"
+#define UPDATE_URL "https://dl.whiffcity.com/plugins/practicemode/practicemode.txt"
 
 #include <clientprefs>
 #include <cstrike>
