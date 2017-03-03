@@ -787,8 +787,7 @@ public Action Timer_GivePlayersMoney(Handle timer) {
 }
 
 public void OnEntityCreated(int entity, const char[] className) {
-  if (g_GrenadeTrajectoryCvar.IntValue == 0 || g_PatchGrenadeTrajectoryCvar.IntValue == 0 ||
-      !IsValidEntity(entity) || !IsGrenadeProjectile(className)) {
+  if (!IsValidEntity(entity)) {
     return;
   }
 
