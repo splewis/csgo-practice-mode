@@ -653,7 +653,7 @@ public Action Command_FastForward(int client, int args) {
   }
 
   // Smokes last around 18 seconds.
-  ServerCommand("host_timescale 20");
+  SetCvar("host_timescale", 20);
   CreateTimer(20.0, Timer_ResetTimescale);
 
   return Plugin_Handled;
@@ -665,7 +665,7 @@ public Action Timer_ResetTimescale(Handle timer) {
     return Plugin_Handled;
   }
 
-  ServerCommand("host_timescale 1");
+  SetCvar("host_timescale", 1);
 
   for (int i = 1; i <= MaxClients; i++) {
     if (IsPlayer(i)) {
