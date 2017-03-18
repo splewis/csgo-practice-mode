@@ -209,6 +209,7 @@ public void OnPluginStart() {
   RegConsoleCmd("sm_testflash", Command_TestFlash);
   RegConsoleCmd("sm_stopflash", Command_StopFlash);
   RegConsoleCmd("sm_time", Command_Time);
+  RegConsoleCmd("sm_fastforward", Command_FastForward);
 
   PM_AddChatAlias(".back", "sm_grenadeback");
   PM_AddChatAlias(".last", "sm_lastgrenade");
@@ -231,6 +232,10 @@ public void OnPluginStart() {
 
   PM_AddChatAlias(".timer", "sm_time");
   PM_AddChatAlias(".time", "sm_time");
+
+  PM_AddChatAlias(".fastforward", "sm_fastforward");
+  PM_AddChatAlias(".fast", "sm_fastforward");
+  PM_AddChatAlias(".ff", "sm_fastforward");
 
   // Saved grenade location commands
   RegConsoleCmd("sm_gotogrenade", Command_GotoNade);

@@ -638,3 +638,39 @@ public Action Command_StopAll(int client, int args) {
   }
   return Plugin_Handled;
 }
+
+
+public Action Command_FastForward(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  // Freeze clients so its not really confusing.
+  for (int i = 1; i <= MaxClients; i++) {
+    if (IsPlayer(i)) {
+      SetEntityMoveType(i, MOVETYPE_NONE);
+    }
+  }
+
+  // Smokes last around 18 seconds.
+  ServerCommand("host_timescale 20");
+  CreateTimer(20.0, Timer_ResetTimescale);
+
+  return Plugin_Handled;
+}
+
+
+public Action Timer_ResetTimescale(Handle timer) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  ServerCommand("host_timescale 1");
+
+  for (int i = 1; i <= MaxClients; i++) {
+    if (IsPlayer(i)) {
+      SetEntityMoveType(i, MOVETYPE_WALK);
+    }
+  }
+  return Plugin_Handled;
+}
