@@ -659,7 +659,6 @@ public Action Command_FastForward(int client, int args) {
   return Plugin_Handled;
 }
 
-
 public Action Timer_ResetTimescale(Handle timer) {
   if (!g_InPracticeMode) {
     return Plugin_Handled;

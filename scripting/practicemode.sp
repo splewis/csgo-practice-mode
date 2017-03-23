@@ -79,7 +79,8 @@ int g_GrenadeHistoryIndex[MAXPLAYERS + 1];
 ArrayList g_GrenadeHistoryPositions[MAXPLAYERS + 1];
 ArrayList g_GrenadeHistoryAngles[MAXPLAYERS + 1];
 
-float g_LastGrenadeThrowTime[MAXPLAYERS + 1];
+ArrayList g_ClientGrenadeThrowTimes[MAXPLAYERS + 1];  // ArrayList of <int:entity, float:throw time>
+                                                      // pairs of live grenades
 bool g_TestingFlash[MAXPLAYERS + 1];
 float g_TestingFlashOrigins[MAXPLAYERS + 1][3];
 float g_TestingFlashAngles[MAXPLAYERS + 1][3];
@@ -182,6 +183,7 @@ public void OnPluginStart() {
   for (int i = 0; i <= MAXPLAYERS; i++) {
     g_GrenadeHistoryPositions[i] = new ArrayList(3);
     g_GrenadeHistoryAngles[i] = new ArrayList(3);
+    g_ClientGrenadeThrowTimes[i] = new ArrayList(2);
   }
 
   RegAdminCmd("sm_prac", Command_LaunchPracticeMode, ADMFLAG_CHANGEMAP, "Launches practice mode");
@@ -812,8 +814,9 @@ public int OnEntitySpawned(int entity) {
   if (IsGrenadeProjectile(className)) {
     // Get the cl_color value for the client that threw this grenade.
     int client = GetEntPropEnt(entity, Prop_Data, "m_hOwnerEntity");
-    if (IsPlayer(client)) {
-      g_LastGrenadeThrowTime[client] = GetEngineTime();
+    if (IsPlayer(client) && g_InPracticeMode) {
+      int index = g_ClientGrenadeThrowTimes[client].Push(entity);
+      g_ClientGrenadeThrowTimes[client].Set(index, view_as<int>(GetEngineTime()), 1);
     }
 
     if (IsValidEntity(entity)) {
@@ -916,9 +919,16 @@ public Action Event_MoltovDetonate(Event event, const char[] name, bool dontBroa
 public void GrenadeDetonateTimerHelper(Event event, const char[] grenadeName) {
   int userid = event.GetInt("userid");
   int client = GetClientOfUserId(userid);
+  int entity = event.GetInt("entityid");
   if (IsPlayer(client) && GetCookieBool(client, g_ShowGrenadeAirtimeCookie, SHOW_AIRTIME_DEFAULT)) {
-    float dt = GetEngineTime() - g_LastGrenadeThrowTime[client];
-    PM_Message(client, "Airtime of %s: %.1f seconds", grenadeName, dt);
+    for (int i = 0; i < g_ClientGrenadeThrowTimes[client].Length; i++) {
+      if (g_ClientGrenadeThrowTimes[client].Get(i, 0) == entity) {
+        float dt = GetEngineTime() - view_as<float>(g_ClientGrenadeThrowTimes[client].Get(i, 1));
+        PM_Message(client, "Airtime of %s: %.1f seconds", grenadeName, dt);
+        g_ClientGrenadeThrowTimes[client].Erase(i);
+        break;
+      }
+    }
   }
 }
 
