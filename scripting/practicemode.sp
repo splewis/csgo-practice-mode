@@ -106,6 +106,8 @@ bool g_RunningTimeCommand[MAXPLAYERS + 1];
 bool g_RunningLiveTimeCommand[MAXPLAYERS + 1];
 float g_LastTimeCommand[MAXPLAYERS + 1];
 
+MoveType g_PreFastForwardMoveTypes[MAXPLAYERS + 1];
+
 // Data storing spawn priorities.
 ArrayList g_CTSpawns = null;
 ArrayList g_TSpawns = null;

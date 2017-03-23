@@ -639,7 +639,6 @@ public Action Command_StopAll(int client, int args) {
   return Plugin_Handled;
 }
 
-
 public Action Command_FastForward(int client, int args) {
   if (!g_InPracticeMode) {
     return Plugin_Handled;
@@ -648,6 +647,7 @@ public Action Command_FastForward(int client, int args) {
   // Freeze clients so its not really confusing.
   for (int i = 1; i <= MaxClients; i++) {
     if (IsPlayer(i)) {
+      g_PreFastForwardMoveTypes[i] = GetEntityMoveType(i);
       SetEntityMoveType(i, MOVETYPE_NONE);
     }
   }
@@ -669,7 +669,7 @@ public Action Timer_ResetTimescale(Handle timer) {
 
   for (int i = 1; i <= MaxClients; i++) {
     if (IsPlayer(i)) {
-      SetEntityMoveType(i, MOVETYPE_WALK);
+      SetEntityMoveType(i, g_PreFastForwardMoveTypes[i]);
     }
   }
   return Plugin_Handled;
