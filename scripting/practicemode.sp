@@ -396,6 +396,7 @@ public void OnClientConnected(int client) {
   g_GrenadeHistoryIndex[client] = -1;
   ClearArray(g_GrenadeHistoryPositions[client]);
   ClearArray(g_GrenadeHistoryAngles[client]);
+  ClearArray(g_ClientGrenadeThrowTimes[client]);
   g_TestingFlash[client] = false;
   g_RunningTimeCommand[client] = false;
   g_RunningLiveTimeCommand[client] = false;
