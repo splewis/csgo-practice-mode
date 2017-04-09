@@ -176,8 +176,6 @@ public void OnPluginStart() {
 
   // Setup stuff for grenade history
   HookEvent("weapon_fire", Event_WeaponFired);
-  HookEvent("flashbang_detonate", Event_FlashDetonate);
-  HookEvent("molotov_detonate", Event_MoltovDetonate);
   HookEvent("smokegrenade_detonate", Event_SmokeDetonate);
 
   for (int i = 0; i <= MAXPLAYERS; i++) {
@@ -815,7 +813,7 @@ public int OnEntitySpawned(int entity) {
   if (IsGrenadeProjectile(className)) {
     // Get the cl_color value for the client that threw this grenade.
     int client = GetEntPropEnt(entity, Prop_Data, "m_hOwnerEntity");
-    if (IsPlayer(client) && g_InPracticeMode) {
+    if (IsPlayer(client) && g_InPracticeMode && StrEqual(className, "smokegrenade_projectile")) {
       int index = g_ClientGrenadeThrowTimes[client].Push(entity);
       g_ClientGrenadeThrowTimes[client].Set(index, view_as<int>(GetEngineTime()), 1);
     }
@@ -910,44 +908,23 @@ public Action Event_SmokeDetonate(Event event, const char[] name, bool dontBroad
   GrenadeDetonateTimerHelper(event, "smoke grenade");
 }
 
-public Action Event_MoltovDetonate(Event event, const char[] name, bool dontBroadcast) {
-  if (!g_InPracticeMode) {
-    return;
-  }
-  GrenadeDetonateTimerHelper(event, "molotov grenade");
-}
-
 public void GrenadeDetonateTimerHelper(Event event, const char[] grenadeName) {
   int userid = event.GetInt("userid");
   int client = GetClientOfUserId(userid);
   int entity = event.GetInt("entityid");
-  if (IsPlayer(client) && GetCookieBool(client, g_ShowGrenadeAirtimeCookie, SHOW_AIRTIME_DEFAULT)) {
+
+  if (IsPlayer(client)) {
     for (int i = 0; i < g_ClientGrenadeThrowTimes[client].Length; i++) {
       if (g_ClientGrenadeThrowTimes[client].Get(i, 0) == entity) {
         float dt = GetEngineTime() - view_as<float>(g_ClientGrenadeThrowTimes[client].Get(i, 1));
-        PM_Message(client, "Airtime of %s: %.1f seconds", grenadeName, dt);
         g_ClientGrenadeThrowTimes[client].Erase(i);
+        if (GetCookieBool(client, g_ShowGrenadeAirtimeCookie, SHOW_AIRTIME_DEFAULT)) {
+          PM_Message(client, "Airtime of %s: %.1f seconds", grenadeName, dt);
+        }
         break;
       }
     }
   }
-}
-
-public Action Event_FlashDetonate(Event event, const char[] name, bool dontBroadcast) {
-  if (!g_InPracticeMode) {
-    return;
-  }
-
-  int userid = event.GetInt("userid");
-  int client = GetClientOfUserId(userid);
-
-  if (IsPlayer(client) && g_TestingFlash[client]) {
-    // Get the impact of the flash next frame, since doing it in
-    // this frame doesn't work.
-    RequestFrame(GetFlashInfo, GetClientSerial(client));
-  }
-
-  GrenadeDetonateTimerHelper(event, "flash grenade");
 }
 
 public void GetFlashInfo(int serial) {
