@@ -176,6 +176,7 @@ public void OnPluginStart() {
 
   // Setup stuff for grenade history
   HookEvent("weapon_fire", Event_WeaponFired);
+  HookEvent("flashbang_detonate", Event_FlashDetonate);
   HookEvent("smokegrenade_detonate", Event_SmokeDetonate);
 
   for (int i = 0; i <= MAXPLAYERS; i++) {
@@ -924,6 +925,20 @@ public void GrenadeDetonateTimerHelper(Event event, const char[] grenadeName) {
         break;
       }
     }
+  }
+}
+
+public Action Event_FlashDetonate(Event event, const char[] name, bool dontBroadcast) {
+  if (!g_InPracticeMode) {
+    return;
+  }
+
+  int userid = event.GetInt("userid");
+  int client = GetClientOfUserId(userid);
+  if (IsPlayer(client) && g_TestingFlash[client]) {
+    // Get the impact of the flash next frame, since doing it in
+    // this frame doesn't work.
+    RequestFrame(GetFlashInfo, GetClientSerial(client));
   }
 }
 
