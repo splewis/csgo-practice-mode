@@ -639,6 +639,19 @@ public Action Command_StopAll(int client, int args) {
   return Plugin_Handled;
 }
 
+public Action Command_Boost(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  float origin[3];
+  GetClientAbsOrigin(client, origin);
+  origin[2] += PLAYER_HEIGHT;
+  SetEntityMoveType(client, MOVETYPE_NOCLIP);
+  TeleportEntity(client, origin, NULL_VECTOR, NULL_VECTOR);
+  return Plugin_Handled;
+}
+
 public Action Command_FastForward(int client, int args) {
   if (!g_InPracticeMode) {
     return Plugin_Handled;

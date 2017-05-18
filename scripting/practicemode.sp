@@ -92,6 +92,8 @@ float g_SavedRespawnAngles[MAXPLAYERS + 1][3];
 
 ArrayList g_KnownNadeCategories = null;
 
+#define PLAYER_HEIGHT 72.0
+
 // These must match the values used by cl_color.
 enum ClientColor {
   ClientColor_Yellow = 0,
@@ -212,6 +214,7 @@ public void OnPluginStart() {
   RegConsoleCmd("sm_testflash", Command_TestFlash);
   RegConsoleCmd("sm_stopflash", Command_StopFlash);
   RegConsoleCmd("sm_time", Command_Time);
+  RegConsoleCmd("sm_boost", Command_Boost);
   RegConsoleCmd("sm_fastforward", Command_FastForward);
 
   PM_AddChatAlias(".back", "sm_grenadeback");
@@ -235,6 +238,7 @@ public void OnPluginStart() {
 
   PM_AddChatAlias(".timer", "sm_time");
   PM_AddChatAlias(".time", "sm_time");
+  PM_AddChatAlias(".boost", "sm_boost");
 
   PM_AddChatAlias(".fastforward", "sm_fastforward");
   PM_AddChatAlias(".fast", "sm_fastforward");
