@@ -532,11 +532,34 @@ public Action Command_Time(int client, int args) {
 
   if (!g_RunningTimeCommand[client]) {
     // Start command.
-    PM_Message(client, "When you start moving a timer will run until you stop.");
+    PM_Message(client, "When you start moving a timer will run until you stop moving.");
     g_RunningTimeCommand[client] = true;
     g_RunningLiveTimeCommand[client] = false;
+    g_TimerType[client] = TimerType_Movement;
   } else {
     // Early stop command.
+    g_RunningTimeCommand[client] = false;
+    g_RunningLiveTimeCommand[client] = false;
+    StopClientTimer(client);
+  }
+
+  return Plugin_Handled;
+}
+
+public Action Command_Time2(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  if (!g_RunningTimeCommand[client]) {
+    // Start command.
+    PM_Message(client, "Type .timer2 to stop the timer again.");
+    g_RunningTimeCommand[client] = true;
+    g_RunningLiveTimeCommand[client] = false;
+    g_TimerType[client] = TimerType_Manual;
+    StartClientTimer(client);
+  } else {
+    // Stop command.
     g_RunningTimeCommand[client] = false;
     g_RunningLiveTimeCommand[client] = false;
     StopClientTimer(client);

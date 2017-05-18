@@ -105,8 +105,14 @@ enum ClientColor {
 
 int g_LastNoclipCommand[MAXPLAYERS + 1];
 
+enum TimerType {
+  TimerType_Movement = 0,
+  TimerType_Manual = 1,
+}
+
 bool g_RunningTimeCommand[MAXPLAYERS + 1];
 bool g_RunningLiveTimeCommand[MAXPLAYERS + 1];
+TimerType g_TimerType[MAXPLAYERS + 1];
 float g_LastTimeCommand[MAXPLAYERS + 1];
 
 MoveType g_PreFastForwardMoveTypes[MAXPLAYERS + 1];
@@ -214,6 +220,7 @@ public void OnPluginStart() {
   RegConsoleCmd("sm_testflash", Command_TestFlash);
   RegConsoleCmd("sm_stopflash", Command_StopFlash);
   RegConsoleCmd("sm_time", Command_Time);
+  RegConsoleCmd("sm_time2", Command_Time2);
   RegConsoleCmd("sm_boost", Command_Boost);
   RegConsoleCmd("sm_fastforward", Command_FastForward);
 
@@ -238,6 +245,7 @@ public void OnPluginStart() {
 
   PM_AddChatAlias(".timer", "sm_time");
   PM_AddChatAlias(".time", "sm_time");
+  PM_AddChatAlias(".timer2", "sm_time2");
   PM_AddChatAlias(".boost", "sm_boost");
 
   PM_AddChatAlias(".fastforward", "sm_fastforward");
@@ -552,24 +560,27 @@ public void GetColor(ClientColor c, int array[4]) {
 public Action OnPlayerRunCmd(int client, int& buttons, int& impulse, float vel[3], float angles[3],
                       int& weapon, int& subtype, int& cmdnum, int& tickcount, int& seed,
                       int mouse[2]) {
-  if (!IsPlayer(client))
+  if (!IsPlayer(client)) {
     return Plugin_Continue;
+  }
 
   if (g_InPracticeMode) {
     bool moving = MovingButtons(buttons);
 
-    if (g_RunningTimeCommand[client] && !g_RunningLiveTimeCommand[client]) {  // if using autotimer
-      if (moving) {
-        g_RunningLiveTimeCommand[client] = true;
-        StartClientTimer(client);
-      }
-    }
-
-    if (g_RunningTimeCommand[client] && g_RunningLiveTimeCommand[client]) {
-      if (!moving && GetEntityFlags(client) & FL_ONGROUND) {
-        g_RunningTimeCommand[client] = false;
-        g_RunningLiveTimeCommand[client] = false;
-        StopClientTimer(client);
+    if (g_RunningTimeCommand[client] && g_TimerType[client] == TimerType_Movement) {
+      if (g_RunningLiveTimeCommand[client]) {
+        // The movement timer is already running; stop it.
+        if (!moving && GetEntityFlags(client) & FL_ONGROUND) {
+          g_RunningTimeCommand[client] = false;
+          g_RunningLiveTimeCommand[client] = false;
+          StopClientTimer(client);
+        }
+      } else {
+        //  We're pending a movement timer start.
+        if (moving) {
+          g_RunningLiveTimeCommand[client] = true;
+          StartClientTimer(client);
+        }
       }
     }
   }
