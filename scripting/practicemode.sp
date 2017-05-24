@@ -5,6 +5,7 @@
 #include <sdkhooks>
 #include <sdktools>
 #include <sourcemod>
+#include <smlib>
 
 #undef REQUIRE_PLUGIN
 #include <pugsetup>
@@ -92,7 +93,14 @@ float g_SavedRespawnAngles[MAXPLAYERS + 1][3];
 
 ArrayList g_KnownNadeCategories = null;
 
+int g_BotOwned[MAXPLAYERS + 1];
+bool g_IsPMBot[MAXPLAYERS + 1];
+float g_BotSpawnOrigin[MAXPLAYERS + 1][3];
+float g_BotSpawnAngles[MAXPLAYERS + 1][3];
+char g_BotSpawnWeapon[MAXPLAYERS + 1][64];
+
 #define PLAYER_HEIGHT 72.0
+#define CLASS_LENGTH 64
 
 // These must match the values used by cl_color.
 enum ClientColor {
@@ -138,6 +146,7 @@ Handle g_OnPracticeModeEnabled = INVALID_HANDLE;
 Handle g_OnPracticeModeSettingChanged = INVALID_HANDLE;
 Handle g_OnPracticeModeSettingsRead = INVALID_HANDLE;
 
+#include "practicemode/bots.sp"
 #include "practicemode/commands.sp"
 #include "practicemode/grenadeiterators.sp"
 #include "practicemode/grenademenus.sp"
@@ -221,8 +230,13 @@ public void OnPluginStart() {
   RegConsoleCmd("sm_stopflash", Command_StopFlash);
   RegConsoleCmd("sm_time", Command_Time);
   RegConsoleCmd("sm_time2", Command_Time2);
-  RegConsoleCmd("sm_boost", Command_Boost);
   RegConsoleCmd("sm_fastforward", Command_FastForward);
+
+  // Bot commands
+  RegConsoleCmd("sm_bot", Command_Bot);
+  RegConsoleCmd("sm_botplace", Command_BotPlace);
+  RegConsoleCmd("sm_boost", Command_Boost);
+  RegConsoleCmd("sm_removebot", Command_RemoveBot);
 
   PM_AddChatAlias(".back", "sm_grenadeback");
   PM_AddChatAlias(".last", "sm_lastgrenade");
@@ -247,6 +261,14 @@ public void OnPluginStart() {
   PM_AddChatAlias(".time", "sm_time");
   PM_AddChatAlias(".timer2", "sm_time2");
   PM_AddChatAlias(".boost", "sm_boost");
+
+  PM_AddChatAlias(".bot", "sm_bot");
+  PM_AddChatAlias(".botplace", "sm_botplace");
+  PM_AddChatAlias(".bot2", "sm_botplace");
+  PM_AddChatAlias(".removebot", "sm_removebot");
+  PM_AddChatAlias(".kickbot", "sm_removebot");
+  PM_AddChatAlias(".clearbot", "sm_removebot");
+  PM_AddChatAlias(".nobot", "sm_removebot");
 
   PM_AddChatAlias(".fastforward", "sm_fastforward");
   PM_AddChatAlias(".fast", "sm_fastforward");
@@ -399,6 +421,9 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
   if (IsPlayer(client) && g_SavedRespawnActive[client]) {
     TeleportEntity(client, g_SavedRespawnOrigin[client], g_SavedRespawnAngles[client], NULL_VECTOR);
   }
+  if (IsPMBot(client)) {
+    GiveBotParams(client);
+  }
   return Plugin_Continue;
 }
 
@@ -484,6 +509,12 @@ public void OnClientDisconnect(int client) {
     g_GrenadeLocationsKv.ExportToFile(g_GrenadeLocationsFile);
     g_UpdatedGrenadeKv = false;
   }
+
+  if (g_InPracticeMode) {
+    KickClientBot(client);
+  }
+
+  g_IsPMBot[client] = false;
 }
 
 public void OnMapEnd() {
@@ -773,6 +804,13 @@ public void ExitPracticeMode() {
   Call_StartForward(g_OnPracticeModeDisabled);
   Call_Finish();
 
+  for (int i = 1; i <= MaxClients; i++) {
+    if (IsClientInGame(i) && IsFakeClient(i) && g_IsPMBot[i]) {
+      KickClient(i);
+      g_IsPMBot[i] = false;
+    }
+  }
+
   for (int i = 0; i < g_BinaryOptionNames.Length; i++) {
     ChangeSetting(i, false, false);
 
@@ -823,7 +861,7 @@ public int OnEntitySpawned(int entity) {
     return;
   }
 
-  char className[64];
+  char className[CLASS_LENGTH];
   GetEdictClassname(entity, className, sizeof(className));
 
   if (IsGrenadeProjectile(className)) {
@@ -898,7 +936,7 @@ public Action Event_WeaponFired(Event event, const char[] name, bool dontBroadca
 
   int userid = event.GetInt("userid");
   int client = GetClientOfUserId(userid);
-  char weapon[64];
+  char weapon[CLASS_LENGTH];
   event.GetString("weapon", weapon, sizeof(weapon));
 
   if (IsGrenadeWeapon(weapon) && IsPlayer(client)) {
