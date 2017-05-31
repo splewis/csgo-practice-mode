@@ -98,6 +98,7 @@ bool g_IsPMBot[MAXPLAYERS + 1];
 float g_BotSpawnOrigin[MAXPLAYERS + 1][3];
 float g_BotSpawnAngles[MAXPLAYERS + 1][3];
 char g_BotSpawnWeapon[MAXPLAYERS + 1][64];
+bool g_BotCrouching[MAXPLAYERS + 1];
 
 #define PLAYER_HEIGHT 72.0
 #define CLASS_LENGTH 64
@@ -234,8 +235,10 @@ public void OnPluginStart() {
 
   // Bot commands
   RegConsoleCmd("sm_bot", Command_Bot);
+  RegConsoleCmd("sm_crouchbot", Command_CrouchBot);
   RegConsoleCmd("sm_botplace", Command_BotPlace);
   RegConsoleCmd("sm_boost", Command_Boost);
+  RegConsoleCmd("sm_crouchboost", Command_CrouchBoost);
   RegConsoleCmd("sm_removebot", Command_RemoveBot);
 
   PM_AddChatAlias(".back", "sm_grenadeback");
@@ -260,11 +263,16 @@ public void OnPluginStart() {
   PM_AddChatAlias(".timer", "sm_time");
   PM_AddChatAlias(".time", "sm_time");
   PM_AddChatAlias(".timer2", "sm_time2");
-  PM_AddChatAlias(".boost", "sm_boost");
 
   PM_AddChatAlias(".bot", "sm_bot");
+  PM_AddChatAlias(".crouchbot", "sm_crouchbot");
+  PM_AddChatAlias(".cbot", "sm_crouchbot");
   PM_AddChatAlias(".botplace", "sm_botplace");
   PM_AddChatAlias(".bot2", "sm_botplace");
+  PM_AddChatAlias(".boost", "sm_boost");
+  PM_AddChatAlias(".crouchboost", "sm_crouchboost");
+  PM_AddChatAlias(".cboost", "sm_crouchboost");
+
   PM_AddChatAlias(".removebot", "sm_removebot");
   PM_AddChatAlias(".kickbot", "sm_removebot");
   PM_AddChatAlias(".clearbot", "sm_removebot");
@@ -591,27 +599,37 @@ public void GetColor(ClientColor c, int array[4]) {
 public Action OnPlayerRunCmd(int client, int& buttons, int& impulse, float vel[3], float angles[3],
                       int& weapon, int& subtype, int& cmdnum, int& tickcount, int& seed,
                       int mouse[2]) {
+  if (!g_InPracticeMode) {
+    return Plugin_Continue;
+  }
+
+  if (IsPMBot(client)) {
+    if (g_BotCrouching[client]) {
+      buttons |= IN_DUCK;
+    } else {
+      buttons &= ~IN_DUCK;
+    }
+    return Plugin_Continue;
+  }
+
   if (!IsPlayer(client)) {
     return Plugin_Continue;
   }
 
-  if (g_InPracticeMode) {
-    bool moving = MovingButtons(buttons);
-
-    if (g_RunningTimeCommand[client] && g_TimerType[client] == TimerType_Movement) {
-      if (g_RunningLiveTimeCommand[client]) {
-        // The movement timer is already running; stop it.
-        if (!moving && GetEntityFlags(client) & FL_ONGROUND) {
-          g_RunningTimeCommand[client] = false;
-          g_RunningLiveTimeCommand[client] = false;
-          StopClientTimer(client);
-        }
-      } else {
-        //  We're pending a movement timer start.
-        if (moving) {
-          g_RunningLiveTimeCommand[client] = true;
-          StartClientTimer(client);
-        }
+  bool moving = MovingButtons(buttons);
+  if (g_RunningTimeCommand[client] && g_TimerType[client] == TimerType_Movement) {
+    if (g_RunningLiveTimeCommand[client]) {
+      // The movement timer is already running; stop it.
+      if (!moving && GetEntityFlags(client) & FL_ONGROUND) {
+        g_RunningTimeCommand[client] = false;
+        g_RunningLiveTimeCommand[client] = false;
+        StopClientTimer(client);
+      }
+    } else {
+      //  We're pending a movement timer start.
+      if (moving) {
+        g_RunningLiveTimeCommand[client] = true;
+        StartClientTimer(client);
       }
     }
   }
