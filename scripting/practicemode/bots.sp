@@ -137,7 +137,7 @@ public Action Command_Boost(int client, int args) {
   GetClientWeapon(client, g_BotSpawnWeapon[bot], CLASS_LENGTH);
   GiveBotParams(bot);
 
-  origin[2] += PLAYER_HEIGHT;
+  origin[2] += PLAYER_HEIGHT + 4.0;
   TeleportEntity(client, origin, NULL_VECTOR, NULL_VECTOR);
   return Plugin_Handled;
 }
@@ -160,7 +160,7 @@ public Action Command_CrouchBoost(int client, int args) {
   GetClientWeapon(client, g_BotSpawnWeapon[bot], CLASS_LENGTH);
   GiveBotParams(bot);
 
-  origin[2] += PLAYER_HEIGHT;
+  origin[2] += PLAYER_HEIGHT + 4.0;
   TeleportEntity(client, origin, NULL_VECTOR, NULL_VECTOR);
   return Plugin_Handled;
 }
