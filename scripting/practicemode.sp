@@ -1084,7 +1084,11 @@ public void OnClientSayCommand_Post(int client, const char[] command, const char
       if (CanStartPracticeMode(client)) {
         GivePracticeMenu(client);
       } else {
-        PM_Message(client, "You cannot use .setup right now.");
+        if (!CheckCommandAccess(client, "sm_prac", ADMFLAG_CHANGEMAP)) {
+          PM_Message(client, "You don't have permission to start practicemode.");
+        } else {
+          PM_Message(client, "You cannot use .setup right now.");
+        }
       }
     } else if (StrEqual(chatCommand, ".help")) {
       ShowHelpInfo(client);
