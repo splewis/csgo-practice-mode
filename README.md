@@ -21,7 +21,7 @@ Extract the files in the release archive to the ``csgo`` server directory.
 
 You must have [SourceMod](http://www.sourcemod.net/downloads.php) and [MetaMod:Source](http://www.sourcemm.net/downloads) installed to use this plugin.
 
-Make sure to [add yourself as a sourcemod admin](https://github.com/splewis/csgo-practice-mode/wiki/Restricting-command-access#adding-admins-in-sourcemod) as well. You will need this to start practicemode via the ``.setup`` command.
+Make sure to [add yourself as a sourcemod admin](https://github.com/splewis/csgo-practice-mode/wiki/Command-access#adding-admins-in-sourcemod) as well. You will need this to start practicemode via the ``.setup`` command. You could also [remove the admin requirement](https://github.com/splewis/csgo-practice-mode/wiki/Command-access#launching-practicemode) for launching practicemode.
 
 ## Features
 - Draws working grenade trajectories if ``sv_grenade_trajectory`` is on (since it doesn't work on dedicated servers)
