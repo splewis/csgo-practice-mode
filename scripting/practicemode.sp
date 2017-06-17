@@ -387,6 +387,7 @@ public void OnPluginStart() {
 
   HookEvent("server_cvar", Event_CvarChanged, EventHookMode_Pre);
   HookEvent("player_spawn", Event_PlayerSpawn);
+  HookEvent("player_hurt", Event_DamageDealtEvent, EventHookMode_Pre);
 
   g_PugsetupLoaded = LibraryExists("pugsetup");
 

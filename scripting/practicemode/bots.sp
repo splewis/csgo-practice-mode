@@ -179,3 +179,20 @@ public Action Command_RemoveBot(int client, int args) {
   KickClientBot(client);
   return Plugin_Handled;
 }
+
+public Action Event_DamageDealtEvent(Event event, const char[] name, bool dontBroadcast) {
+  if (!g_InPracticeMode) {
+    return Plugin_Continue;
+  }
+
+  int attacker = GetClientOfUserId(event.GetInt("attacker"));
+  int victim = GetClientOfUserId(event.GetInt("userid"));
+
+  if (IsPMBot(victim) && IsPlayer(attacker)) {
+    int damage = event.GetInt("dmg_health");
+    int postDamageHealth = event.GetInt("health");
+    PM_Message(attacker, "---> %d damage to BOT %N (%d health)", damage, victim, postDamageHealth);
+  }
+
+  return Plugin_Continue;
+}
