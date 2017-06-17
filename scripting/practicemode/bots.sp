@@ -49,6 +49,8 @@ void GiveBotParams(int bot) {
   Client_RemoveAllWeapons(bot);
   GivePlayerItem(bot, g_BotSpawnWeapon[bot]);
   TeleportEntity(bot, g_BotSpawnOrigin[bot], g_BotSpawnAngles[bot], NULL_VECTOR);
+  Client_SetArmor(bot, 100);
+  SetEntData(bot, FindSendPropInfo("CCSPlayer", "m_bHasHelmet"), true);
 }
 
 // Commands.
