@@ -191,7 +191,7 @@ public Action Event_DamageDealtEvent(Event event, const char[] name, bool dontBr
   if (IsPMBot(victim) && IsPlayer(attacker)) {
     int damage = event.GetInt("dmg_health");
     int postDamageHealth = event.GetInt("health");
-    PM_Message(attacker, "---> %d damage to BOT %N (%d health)", damage, victim, postDamageHealth);
+    PM_Message(attacker, "---> %d damage to BOT %N(%d health)", damage, victim, postDamageHealth);
   }
 
   return Plugin_Continue;
