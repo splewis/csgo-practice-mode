@@ -1,18 +1,24 @@
-stock int CreateBot(int client, bool forceCrouch=false) {
-  int bot = GetClientBot(client);
-  if (bot <= 0) {
-    char name[64];
-    GetClientName(client, name, sizeof(name));
-    StrCat(name, sizeof(name), " ");
-    bot = CreateFakeClient(name);
-    g_BotOwned[client] = bot;
-    g_IsPMBot[bot] = true;
-    PM_Message(client, "Created bot, use .nobot to remove it.");
+stock int CreateBot(int client, bool forceCrouch = false) {
+
+  int numBots = g_ClientBots[client].Length;
+  char name[64];
+  GetClientName(client, name, sizeof(name));
+  StrCat(name, sizeof(name), " ");
+  if (numBots >= 1) {
+    char buf[16];
+    Format(buf, sizeof(buf), "%d ", numBots + 1);
+    StrCat(name, sizeof(name), buf);
   }
+
+  int bot = CreateFakeClient(name);
   if (bot <= 0) {
     PM_Message(client, "Failed to create bot :(");
     return -1;
   }
+
+  g_ClientBots[client].Push(bot);
+  g_IsPMBot[bot] = true;
+  PM_Message(client, "Created bot, use .nobot to remove it.");
 
   int botTeam = GetClientTeam(client) == CS_TEAM_CT ? CS_TEAM_T : CS_TEAM_CT;
   ChangeClientTeam(bot, botTeam);
@@ -28,21 +34,45 @@ bool IsPMBot(int client) {
   return client > 0 && g_IsPMBot[client] && IsClientInGame(client) && IsFakeClient(client);
 }
 
-public int GetClientBot(int client) {
-  int bot = g_BotOwned[client];
+// index=-1 implies the last bot added.
+stock int GetClientBot(int client, int index = -1) {
+  if (index == -1) {
+    int len = g_ClientBots[client].Length;
+    if (len == 0) {
+      return -1;
+    } else {
+      return g_ClientBots[client].Get(len - 1);
+    }
+  }
+
+  if (g_ClientBots[client].Length <= index) {
+    return -1;
+  }
+
+  int bot = g_ClientBots[client].Get(index);
   if (IsPMBot(bot)) {
     return bot;
   }
   return -1;
 }
 
-void KickClientBot(int client) {
-  int bot = GetClientBot(client);
+stock void KickClientBot(int client, int index = -1) {
+  int bot = GetClientBot(client, index);
   if (bot > 0) {
     KickClient(bot);
-    g_BotOwned[client] = -1;
     g_IsPMBot[bot] = false;
+    FindAndErase(g_ClientBots[client], bot);
   }
+}
+
+public void KickAllClientBots(int client) {
+  for (int i = 0; i < g_ClientBots[client].Length; i++) {
+    int bot = g_ClientBots[client].Get(i);
+    if (IsPMBot(bot)) {
+      KickClient(bot);
+    }
+  }
+  g_ClientBots[client].Clear();
 }
 
 void GiveBotParams(int bot) {
@@ -55,6 +85,7 @@ void GiveBotParams(int bot) {
 
 // Commands.
 
+// TODO: Add # arg to edit an existing bot index
 public Action Command_Bot(int client, int args) {
   if (!g_InPracticeMode) {
     return Plugin_Handled;
@@ -74,6 +105,26 @@ public Action Command_Bot(int client, int args) {
   return Plugin_Handled;
 }
 
+public Action Command_MoveBot(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  int bot = GetClientBot(client);
+  if (bot <= 0) {
+    return Plugin_Handled;
+  }
+
+  GetClientAbsOrigin(client, g_BotSpawnOrigin[bot]);
+  GetClientEyeAngles(client, g_BotSpawnAngles[bot]);
+  GetClientWeapon(client, g_BotSpawnWeapon[bot], CLASS_LENGTH);
+  GiveBotParams(bot);
+
+  SetEntityMoveType(client, MOVETYPE_NOCLIP);
+  return Plugin_Handled;
+}
+
+// TODO: Add # arg to edit an existing bot index
 public Action Command_CrouchBot(int client, int args) {
   if (!g_InPracticeMode) {
     return Plugin_Handled;
@@ -93,6 +144,7 @@ public Action Command_CrouchBot(int client, int args) {
   return Plugin_Handled;
 }
 
+// TODO: Add # arg to edit an existing bot index
 public Action Command_BotPlace(int client, int args) {
   // Based on Franc1sco's bot_spawner plugin:
   // https://github.com/Franc1sco/BotSpawner/blob/master/bot_spawner.sp
@@ -171,12 +223,22 @@ public bool RayDontHitSelf(int entity, int contentsMask, any data) {
   return entity != data;
 }
 
+// TODO: Add # arg to remove an existing bot index
 public Action Command_RemoveBot(int client, int args) {
   if (!g_InPracticeMode) {
     return Plugin_Handled;
   }
 
   KickClientBot(client);
+  return Plugin_Handled;
+}
+
+public Action Command_RemoveBots(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  KickAllClientBots(client);
   return Plugin_Handled;
 }
 

@@ -4,8 +4,8 @@
 #include <cstrike>
 #include <sdkhooks>
 #include <sdktools>
-#include <sourcemod>
 #include <smlib>
+#include <sourcemod>
 
 #undef REQUIRE_PLUGIN
 #include <pugsetup>
@@ -93,7 +93,8 @@ float g_SavedRespawnAngles[MAXPLAYERS + 1][3];
 
 ArrayList g_KnownNadeCategories = null;
 
-int g_BotOwned[MAXPLAYERS + 1];
+ArrayList g_ClientBots[MAXPLAYERS + 1];  // Bots owned by each client.
+// int g_BotOwned[MAXPLAYERS + 1];
 bool g_IsPMBot[MAXPLAYERS + 1];
 float g_BotSpawnOrigin[MAXPLAYERS + 1][3];
 float g_BotSpawnAngles[MAXPLAYERS + 1][3];
@@ -201,6 +202,7 @@ public void OnPluginStart() {
     g_GrenadeHistoryPositions[i] = new ArrayList(3);
     g_GrenadeHistoryAngles[i] = new ArrayList(3);
     g_ClientGrenadeThrowTimes[i] = new ArrayList(2);
+    g_ClientBots[i] = new ArrayList();
   }
 
   RegAdminCmd("sm_prac", Command_LaunchPracticeMode, ADMFLAG_CHANGEMAP, "Launches practice mode");
@@ -235,11 +237,13 @@ public void OnPluginStart() {
 
   // Bot commands
   RegConsoleCmd("sm_bot", Command_Bot);
+  RegConsoleCmd("sm_movebot", Command_MoveBot);
   RegConsoleCmd("sm_crouchbot", Command_CrouchBot);
   RegConsoleCmd("sm_botplace", Command_BotPlace);
   RegConsoleCmd("sm_boost", Command_Boost);
   RegConsoleCmd("sm_crouchboost", Command_CrouchBoost);
   RegConsoleCmd("sm_removebot", Command_RemoveBot);
+  RegConsoleCmd("sm_removebots", Command_RemoveBots);
 
   PM_AddChatAlias(".back", "sm_grenadeback");
   PM_AddChatAlias(".last", "sm_lastgrenade");
@@ -265,6 +269,8 @@ public void OnPluginStart() {
   PM_AddChatAlias(".timer2", "sm_time2");
 
   PM_AddChatAlias(".bot", "sm_bot");
+  PM_AddChatAlias(".addbot", "sm_bot");
+  PM_AddChatAlias(".movebot", "sm_movebot");
   PM_AddChatAlias(".crouchbot", "sm_crouchbot");
   PM_AddChatAlias(".cbot", "sm_crouchbot");
   PM_AddChatAlias(".botplace", "sm_botplace");
@@ -276,6 +282,7 @@ public void OnPluginStart() {
   PM_AddChatAlias(".removebot", "sm_removebot");
   PM_AddChatAlias(".kickbot", "sm_removebot");
   PM_AddChatAlias(".clearbot", "sm_removebot");
+  PM_AddChatAlias(".clearbots", "sm_removebots");
   PM_AddChatAlias(".nobot", "sm_removebot");
 
   PM_AddChatAlias(".fastforward", "sm_fastforward");
@@ -520,7 +527,7 @@ public void OnClientDisconnect(int client) {
   }
 
   if (g_InPracticeMode) {
-    KickClientBot(client);
+    KickAllClientBots(client);
   }
 
   g_IsPMBot[client] = false;

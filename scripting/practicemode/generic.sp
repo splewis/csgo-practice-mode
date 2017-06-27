@@ -83,6 +83,18 @@ stock void ClearNestedArray(ArrayList array) {
   ClearArray(array);
 }
 
+stock int FindAndErase(ArrayList array, int value) {
+  int count = 0;
+  for (int i = 0; i < array.Length; i++) {
+    if (array.Get(i) == value) {
+      array.Erase(i);
+      i--;
+      count++;
+    }
+  }
+  return count;
+}
+
 stock void GetEnabledString(char[] buffer, int length, bool variable, int client = LANG_SERVER) {
   if (variable)
     Format(buffer, length, "enabled");
