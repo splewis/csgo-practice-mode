@@ -282,8 +282,11 @@ public void OnPluginStart() {
   PM_AddChatAlias(".removebot", "sm_removebot");
   PM_AddChatAlias(".kickbot", "sm_removebot");
   PM_AddChatAlias(".clearbot", "sm_removebot");
-  PM_AddChatAlias(".clearbots", "sm_removebots");
   PM_AddChatAlias(".nobot", "sm_removebot");
+
+  PM_AddChatAlias(".kickbots", "sm_removebots");
+  PM_AddChatAlias(".clearbots", "sm_removebots");
+  PM_AddChatAlias(".nobots", "sm_removebots");
 
   PM_AddChatAlias(".fastforward", "sm_fastforward");
   PM_AddChatAlias(".fast", "sm_fastforward");
