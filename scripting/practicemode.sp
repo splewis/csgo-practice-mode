@@ -370,10 +370,10 @@ public void OnPluginStart() {
 
   // set default colors to green
   for (int i = 0; i <= MAXPLAYERS; i++) {
-    g_ClientColors[0][0] = 0;
-    g_ClientColors[0][1] = 255;
-    g_ClientColors[0][2] = 0;
-    g_ClientColors[0][3] = 255;
+    g_ClientColors[i][0] = 0;
+    g_ClientColors[i][1] = 255;
+    g_ClientColors[i][2] = 0;
+    g_ClientColors[i][3] = 255;
   }
 
   g_CTSpawns = new ArrayList();
