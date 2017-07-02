@@ -151,6 +151,33 @@ public int GrenadeMenu_Handler(Menu menu, MenuAction action, int param1, int par
   }
 }
 
+int SortIdArrayByName(int index1, int index2, Handle array, Handle hndl) {
+  // This code is totally pointless, but is harmless and there's no way to supress the warning
+  // for hndl being unused. :/
+  if (hndl != INVALID_HANDLE) {
+    delete hndl;
+  }
+
+  char id1[GRENADE_ID_LENGTH];
+  char id2[GRENADE_ID_LENGTH];
+  GetArrayString(array, index1, id1, sizeof(id1));
+  GetArrayString(array, index2, id2, sizeof(id2));
+
+  char name1[GRENADE_DESCRIPTION_LENGTH];
+  char name2[GRENADE_DESCRIPTION_LENGTH];
+
+  if (TryJumpToId(id1)) {
+    g_GrenadeLocationsKv.GetString("name", name1, sizeof(name1));
+    g_GrenadeLocationsKv.Rewind();
+  }
+  if (TryJumpToId(id2)) {
+    g_GrenadeLocationsKv.GetString("name", name2, sizeof(name2));
+    g_GrenadeLocationsKv.Rewind();
+  }
+
+  return strcmp(name1, name2);
+}
+
 stock void GiveGrenadesForPlayer(int client, const char[] ownerName, const char[] ownerAuth,
                                  int menuPosition = 0) {
   Menu menu = new Menu(GrenadeHandler_GrenadeSelection);
@@ -158,15 +185,36 @@ stock void GiveGrenadesForPlayer(int client, const char[] ownerName, const char[
   menu.ExitButton = true;
   menu.ExitBackButton = true;
 
+  // Adds all the nades from this user.
+  ArrayList ids = new ArrayList(GRENADE_ID_LENGTH);
   if (g_GrenadeLocationsKv.JumpToKey(ownerAuth)) {
     if (g_GrenadeLocationsKv.GotoFirstSubKey()) {
       do {
-        AddKvGrenadeToMenu(menu, g_GrenadeLocationsKv, ownerAuth, ownerAuth);
+        char strId[GRENADE_ID_LENGTH];
+        g_GrenadeLocationsKv.GetSectionName(strId, sizeof(strId));
+        ids.PushString(strId);
       } while (g_GrenadeLocationsKv.GotoNextKey());
       g_GrenadeLocationsKv.GoBack();
     }
     g_GrenadeLocationsKv.GoBack();
   }
+
+  // Alphabetize the ids by name, if desired.
+  if (g_AlphabetizeNadeMenusCvar.IntValue != 0) {
+    SortADTArrayCustom(ids, SortIdArrayByName);
+  }
+
+  // Add the grenades to the menu.
+  for (int i = 0; i < ids.Length; i++) {
+    char id[GRENADE_ID_LENGTH];
+    ids.GetString(i, id, sizeof(id));
+    if (TryJumpToId(id)) {
+      AddKvGrenadeToMenu(menu, g_GrenadeLocationsKv, ownerAuth, ownerAuth);
+      g_GrenadeLocationsKv.Rewind();
+    }
+  }
+
+  delete ids;
 
   if (menu.ItemCount == 0) {
     PM_Message(client, "No grenades found.");

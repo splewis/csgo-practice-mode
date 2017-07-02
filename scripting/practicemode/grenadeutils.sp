@@ -55,6 +55,17 @@ public bool FindId(const char[] idStr, char[] auth, int authLen) {
   return false;
 }
 
+public bool TryJumpToId(const char[] idStr) {
+  char auth[AUTH_LENGTH];
+  if (FindId(idStr, auth, sizeof(auth))) {
+    g_GrenadeLocationsKv.JumpToKey(auth, true);
+    g_GrenadeLocationsKv.JumpToKey(idStr, true);
+    return true;
+  }
+
+  return false;
+}
+
 public bool TeleportToSavedGrenadePosition(int client, const char[] targetAuth, const char[] id) {
   float origin[3];
   float angles[3];

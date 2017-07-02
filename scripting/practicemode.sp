@@ -46,6 +46,7 @@ ConVar g_AutostartCvar;
 ConVar g_MaxGrenadesSavedCvar;
 ConVar g_MaxHistorySizeCvar;
 ConVar g_PracModeCanBeStartedCvar;
+ConVar g_AlphabetizeNadeMenusCvar;
 
 // Infinite money data
 ConVar g_InfiniteMoneyCvar;
@@ -347,6 +348,8 @@ public void OnPluginStart() {
                                         "Maximum number of grenades saved per-map per-client");
   g_PracModeCanBeStartedCvar =
       CreateConVar("sm_practicemode_can_be_started", "1", "Whether practicemode may be started");
+  g_AlphabetizeNadeMenusCvar = CreateConVar("sm_practicemode_alphabetize_nades", "0",
+                                            "Whether menus of grenades are alphabetized by name.");
   AutoExecConfig(true, "practicemode");
 
   // New cvars we don't want saved in the autoexec'd file
