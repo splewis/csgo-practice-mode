@@ -175,7 +175,7 @@ int SortIdArrayByName(int index1, int index2, Handle array, Handle hndl) {
     g_GrenadeLocationsKv.Rewind();
   }
 
-  return strcmp(name1, name2);
+  return strcmp(name1, name2, false);
 }
 
 stock void GiveGrenadesForPlayer(int client, const char[] ownerName, const char[] ownerAuth,
