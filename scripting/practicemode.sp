@@ -74,6 +74,7 @@ KeyValues
     g_GrenadeLocationsKv;  // Inside any global function, we expect this to be at the root level.
 int g_CurrentSavedGrenadeId[MAXPLAYERS + 1];
 bool g_UpdatedGrenadeKv = false;  // whether there has been any changed the kv structure this map
+int g_NextID = 0;
 
 // Grenade history data
 int g_GrenadeHistoryIndex[MAXPLAYERS + 1];
@@ -493,6 +494,8 @@ public void OnMapStart() {
     g_UpdatedGrenadeKv = false;
   }
 
+  MaybeCorrectGrenadeIds();
+
   FindGrenadeCategories();
   Spawns_MapStart();
 }
@@ -523,11 +526,7 @@ public void OnConfigsExecuted() {
 }
 
 public void OnClientDisconnect(int client) {
-  // always update the grenades file so user's saved grenades are never lost
-  if (g_UpdatedGrenadeKv) {
-    g_GrenadeLocationsKv.ExportToFile(g_GrenadeLocationsFile);
-    g_UpdatedGrenadeKv = false;
-  }
+  MaybeWriteNewGrenadeData();
 
   if (g_InPracticeMode) {
     KickAllClientBots(client);
@@ -537,16 +536,22 @@ public void OnClientDisconnect(int client) {
 }
 
 public void OnMapEnd() {
-  if (g_UpdatedGrenadeKv) {
-    g_GrenadeLocationsKv.ExportToFile(g_GrenadeLocationsFile);
-    g_UpdatedGrenadeKv = false;
-  }
+  MaybeWriteNewGrenadeData();
 
-  if (g_InPracticeMode)
+  if (g_InPracticeMode) {
     ExitPracticeMode();
+  }
 
   Spawns_MapEnd();
   delete g_GrenadeLocationsKv;
+}
+
+static void MaybeWriteNewGrenadeData() {
+  if (g_UpdatedGrenadeKv) {
+    g_GrenadeLocationsKv.Rewind();
+    g_GrenadeLocationsKv.ExportToFile(g_GrenadeLocationsFile);
+    g_UpdatedGrenadeKv = false;
+  }
 }
 
 public void OnClientSettingsChanged(int client) {

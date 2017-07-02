@@ -30,6 +30,31 @@ stock void TeleportToGrenadeHistoryPosition(int client, int index,
   SetEntityMoveType(client, moveType);
 }
 
+public bool FindId(const char[] idStr, char[] auth, int authLen) {
+  if (g_GrenadeLocationsKv.GotoFirstSubKey()) {
+    do {
+      g_GrenadeLocationsKv.GetSectionName(auth, authLen);
+
+      // Inner iteration by grenades for a user.
+      if (g_GrenadeLocationsKv.GotoFirstSubKey()) {
+        do {
+          char currentId[GRENADE_ID_LENGTH];
+          g_GrenadeLocationsKv.GetSectionName(currentId, sizeof(currentId));
+          if (StrEqual(idStr, currentId)) {
+            g_GrenadeLocationsKv.Rewind();
+            return true;
+          }
+        } while (g_GrenadeLocationsKv.GotoNextKey());
+        g_GrenadeLocationsKv.GoBack();
+      }
+
+    } while (g_GrenadeLocationsKv.GotoNextKey());
+    g_GrenadeLocationsKv.GoBack();
+  }
+
+  return false;
+}
+
 public bool TeleportToSavedGrenadePosition(int client, const char[] targetAuth, const char[] id) {
   float origin[3];
   float angles[3];
@@ -97,17 +122,16 @@ stock int SaveGrenadeToKv(int client, const float origin[3], const float angles[
                           const char[] name, const char[] description = "",
                           const char[] categoryString = "") {
   g_UpdatedGrenadeKv = true;
+  char idStr[GRENADE_ID_LENGTH];
+  IntToString(g_NextID, idStr, sizeof(idStr));
+
   char auth[AUTH_LENGTH];
   char clientName[MAX_NAME_LENGTH];
   GetClientAuthId(client, AUTH_METHOD, auth, sizeof(auth));
   GetClientName(client, clientName, sizeof(clientName));
   g_GrenadeLocationsKv.JumpToKey(auth, true);
   g_GrenadeLocationsKv.SetString("name", clientName);
-  int nadeId = g_GrenadeLocationsKv.GetNum("nextid", 1);
-  g_GrenadeLocationsKv.SetNum("nextid", nadeId + 1);
 
-  char idStr[GRENADE_ID_LENGTH];
-  IntToString(nadeId, idStr, sizeof(idStr));
   g_GrenadeLocationsKv.JumpToKey(idStr, true);
 
   g_GrenadeLocationsKv.SetString("name", name);
@@ -118,7 +142,8 @@ stock int SaveGrenadeToKv(int client, const float origin[3], const float angles[
 
   g_GrenadeLocationsKv.GoBack();
   g_GrenadeLocationsKv.GoBack();
-  return nadeId;
+  g_NextID++;
+  return g_NextID - 1;
 }
 
 public bool DeleteGrenadeFromKv(int client, const char[] nadeIdStr) {
@@ -137,6 +162,15 @@ public bool DeleteGrenadeFromKv(int client, const char[] nadeIdStr) {
     g_GrenadeLocationsKv.GoBack();
     PM_Message(client, "Deleted grenade id %s, \"%s\".", nadeIdStr, name);
   }
+
+  // If the grenade deleted has the highest grenadeId, reset nextid to it so that
+  // we don't waste spots in the greandeId-space.
+  if (deleted) {
+    if (StringToInt(nadeIdStr) + 1 == g_NextID) {
+      g_NextID--;
+    }
+  }
+
   return deleted;
 }
 
@@ -466,4 +500,91 @@ public int CopyGrenade(const char[] ownerAuth, const char[] nadeId, int client) 
   } else {
     return -1;
   }
+}
+
+// Normalizes grenade ids so they are unique across all users.
+// Grenades ids previously always started at 0 for each client, this translates the ids so
+// that they start at 0 globally (for all users). This translation is done for to guarantee
+// that uniqueness, and has to stay for backwards compatibility.
+static KeyValues g_NewKv;
+
+static ArrayList g_AllIds;
+static bool g_RepeatIdSeen;
+
+public void MaybeCorrectGrenadeIds() {
+  // Determine if we need to do this first. Iterate over all grenades and store the ids as an int.
+  // If we see a repeat, then we need to do the correction.
+  g_AllIds = new ArrayList();
+  g_RepeatIdSeen = false;
+  IterateGrenades(IsCorrectionNeededHelper);
+
+  // But first... let's make sure the nextid field is always right.
+  SortADTArray(g_AllIds, Sort_Ascending, Sort_Integer);
+  int biggestID = 0;
+  if (g_AllIds.Length > 0) {
+    biggestID = g_AllIds.Get(g_AllIds.Length - 1);
+  }
+  g_NextID = biggestID + 1;
+
+  delete g_AllIds;
+
+  if (!g_RepeatIdSeen) {
+    CorrectGrenadeIds();
+  }
+}
+
+public Action IsCorrectionNeededHelper(const char[] ownerName, const char[] ownerAuth, const char[] name,
+                                const char[] description, ArrayList categories,
+                                const char[] grenadeId, float origin[3], float angles[3],
+                                any data) {
+  int id = StringToInt(grenadeId);
+  if (g_AllIds.FindValue(id) >= 0) {
+    g_RepeatIdSeen = true;
+  }
+  g_AllIds.Push(id);
+}
+
+public void CorrectGrenadeIds() {
+  // We'll do the correction; use a temp kv structure to copy data over using new ids and
+  // swap it into the existing g_GrenadeLocationsKv structure.
+  LogMessage("Updating grenadeIds since duplicates were found...");
+  g_NewKv = new KeyValues("Grenades");
+  g_NextID = 1;
+  IterateGrenades(CorrectGrenadeIdsHelper);
+  g_UpdatedGrenadeKv = true;
+
+  // Move the temp g_NewKv to replace data in g_GrenadeLocationsKv.
+  delete g_GrenadeLocationsKv;
+  g_GrenadeLocationsKv = g_NewKv;
+  g_NewKv = null;
+  g_UpdatedGrenadeKv = true;
+}
+
+public Action CorrectGrenadeIdsHelper(const char[] ownerName, const char[] ownerAuth, const char[] name,
+                               const char[] description, ArrayList categories,
+                               const char[] grenadeId, float origin[3], float angles[3], any data) {
+  char newId[64];
+  IntToString(g_NextID, newId, sizeof(newId));
+  g_NextID++;
+
+  char categoryString[GRENADE_CATEGORY_LENGTH];
+  for (int i = 0; i < i < categories.Length; i++) {
+    char tempCat[GRENADE_CATEGORY_LENGTH];
+    categories.GetString(i, tempCat, sizeof(tempCat));
+    StrCat(categoryString, sizeof(categoryString), tempCat);
+    StrCat(categoryString, sizeof(categoryString), ";");
+  }
+
+  if (g_NewKv.JumpToKey(ownerAuth, true)) {
+    g_NewKv.SetString("name", ownerName);
+    if (g_NewKv.JumpToKey(newId, true)) {
+      g_NewKv.SetString("name", name);
+      g_NewKv.SetVector("origin", origin);
+      g_NewKv.SetVector("angles", angles);
+      g_NewKv.SetString("description", description);
+      g_NewKv.SetString("categories", categoryString);
+      g_NewKv.GoBack();
+    }
+  }
+  g_NewKv.Rewind();
 }

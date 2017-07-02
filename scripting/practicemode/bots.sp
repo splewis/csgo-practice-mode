@@ -1,5 +1,4 @@
 stock int CreateBot(int client, bool forceCrouch = false) {
-
   int numBots = g_ClientBots[client].Length;
   char name[64];
   GetClientName(client, name, sizeof(name));

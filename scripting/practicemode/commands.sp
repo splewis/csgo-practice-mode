@@ -113,31 +113,17 @@ public Action Command_GotoNade(int client, int args) {
     return Plugin_Handled;
   }
 
-  char arg1[32];
-  char arg2[32];
-  char name[MAX_NAME_LENGTH];
+  char arg1[GRENADE_ID_LENGTH];
   char auth[AUTH_LENGTH];
 
-  if (args >= 2 && GetCmdArg(1, arg1, sizeof(arg1)) && GetCmdArg(2, arg2, sizeof(arg2))) {
-    if (!FindGrenadeTarget(arg1, name, sizeof(name), auth, sizeof(auth))) {
-      PM_Message(client, "Player not found.");
-      return Plugin_Handled;
-    }
-    if (!TeleportToSavedGrenadePosition(client, auth, arg2)) {
-      PM_Message(client, "Grenade id %s not found.", arg2);
-      return Plugin_Handled;
-    }
-
-  } else if (args >= 1 && GetCmdArg(1, arg1, sizeof(arg1))) {
-    GetClientName(client, name, sizeof(name));
-    GetClientAuthId(client, AUTH_METHOD, auth, sizeof(auth));
-    if (!TeleportToSavedGrenadePosition(client, auth, arg1)) {
+  if (args >= 1 && GetCmdArg(1, arg1, sizeof(arg1))) {
+    if (!FindId(arg1, auth, sizeof(auth)) || !TeleportToSavedGrenadePosition(client, auth, arg1)) {
       PM_Message(client, "Grenade id %s not found.", arg1);
       return Plugin_Handled;
     }
 
   } else {
-    PM_Message(client, "Usage: .goto [player] <grenadeid>");
+    PM_Message(client, "Usage: .goto <grenadeid>");
   }
 
   return Plugin_Handled;
