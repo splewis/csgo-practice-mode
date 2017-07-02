@@ -217,6 +217,8 @@ public void OnPluginStart() {
               "Exits practice mode");
   RegAdminCmd("sm_translategrenades", Command_TranslateGrenades, ADMFLAG_CHANGEMAP,
               "Translates all grenades on this map");
+  RegAdminCmd("sm_fixgrenades", Command_FixGrenades, ADMFLAG_CHANGEMAP,
+              "Reset grenade ids so they are consecutive and start at 1.");
 
   // Grenade history commands
   RegConsoleCmd("sm_grenadeback", Command_GrenadeBack);

@@ -579,7 +579,7 @@ public Action CorrectGrenadeIdsHelper(const char[] ownerName, const char[] owner
   g_NextID++;
 
   char categoryString[GRENADE_CATEGORY_LENGTH];
-  for (int i = 0; i < i < categories.Length; i++) {
+  for (int i = 0; i < categories.Length; i++) {
     char tempCat[GRENADE_CATEGORY_LENGTH];
     categories.GetString(i, tempCat, sizeof(tempCat));
     StrCat(categoryString, sizeof(categoryString), tempCat);

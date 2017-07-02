@@ -491,6 +491,10 @@ public Action Command_ClearGrenadeCategories(int client, int args) {
 }
 
 public Action Command_TranslateGrenades(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
   if (args != 3) {
     ReplyToCommand(client, "Usage: sm_translategrenades <dx> <dy> <dz>");
     return Plugin_Handled;
@@ -508,6 +512,17 @@ public Action Command_TranslateGrenades(int client, int args) {
 
   TranslateGrenades(dx, dy, dz);
 
+  return Plugin_Handled;
+}
+
+public Action Command_FixGrenades(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  CorrectGrenadeIds();
+  g_UpdatedGrenadeKv = true;
+  ReplyToCommand(client, "Fixed grenade data.");
   return Plugin_Handled;
 }
 
