@@ -139,6 +139,11 @@ public Action Command_Grenades(int client, int args) {
   char name[MAX_NAME_LENGTH];
 
   if (args >= 1 && GetCmdArgString(arg, sizeof(arg))) {
+    if (StrEqual(arg, "all", false)) {
+      GiveAllGrenades(client);
+      return Plugin_Handled;
+    }
+
     // Get a lower case version of the arg for a category search.
     char matchingCategory[GRENADE_CATEGORY_LENGTH];
     FindMatchingCategory(arg, matchingCategory, sizeof(matchingCategory));
@@ -153,7 +158,8 @@ public Action Command_Grenades(int client, int args) {
     }
 
   } else {
-    GiveGrenadesMenu(client);
+    bool categoriesOnly = (g_SharedAllNadesCvar.IntValue == 0);
+    GiveGrenadesMenu(client, categoriesOnly);
   }
 
   return Plugin_Handled;
@@ -165,14 +171,19 @@ public Action Command_GrenadeDescription(int client, int args) {
   }
 
   int nadeId = g_CurrentSavedGrenadeId[client];
-  if (nadeId < 0 || !g_InPracticeMode) {
+  if (nadeId < 0) {
+    return Plugin_Handled;
+  }
+
+  if (!CanEditGrenade(client, nadeId)) {
+    PM_Message(client, "You aren't the owner of this grenade.");
     return Plugin_Handled;
   }
 
   char description[GRENADE_DESCRIPTION_LENGTH];
   GetCmdArgString(description, sizeof(description));
 
-  UpdateGrenadeDescription(client, nadeId, description);
+  UpdateGrenadeDescription(nadeId, description);
   PM_Message(client, "Added grenade description.");
   return Plugin_Handled;
 }
@@ -183,14 +194,19 @@ public Action Command_RenameGrenade(int client, int args) {
   }
 
   int nadeId = g_CurrentSavedGrenadeId[client];
-  if (nadeId < 0 || !g_InPracticeMode) {
+  if (nadeId < 0) {
+    return Plugin_Handled;
+  }
+
+  if (!CanEditGrenade(client, nadeId)) {
+    PM_Message(client, "You aren't the owner of this grenade.");
     return Plugin_Handled;
   }
 
   char name[GRENADE_NAME_LENGTH];
   GetCmdArgString(name, sizeof(name));
 
-  UpdateGrenadeName(client, nadeId, name);
+  UpdateGrenadeName(nadeId, name);
   PM_Message(client, "Updated grenade name.");
   return Plugin_Handled;
 }
@@ -207,7 +223,13 @@ public Action Command_DeleteGrenade(int client, int args) {
     IntToString(g_CurrentSavedGrenadeId[client], grenadeIdStr, sizeof(grenadeIdStr));
   }
 
-  DeleteGrenadeFromKv(client, grenadeIdStr);
+  if (!CanEditGrenade(client, StringToInt(grenadeIdStr))) {
+    PM_Message(client, "You aren't the owner of this grenade.");
+    return Plugin_Handled;
+  }
+
+  DeleteGrenadeFromKv(grenadeIdStr);
+  PM_Message(client, "Deleted grenade id %s", grenadeIdStr);
   return Plugin_Handled;
 }
 
@@ -274,11 +296,16 @@ public Action Command_MoveGrenade(int client, int args) {
     return Plugin_Handled;
   }
 
+  if (!CanEditGrenade(client, nadeId)) {
+    PM_Message(client, "You aren't the owner of this grenade.");
+    return Plugin_Handled;
+  }
+
   float origin[3];
   float angles[3];
   GetClientAbsOrigin(client, origin);
   GetClientEyeAngles(client, angles);
-  SetClientGrenadeVectors(client, nadeId, origin, angles);
+  SetClientGrenadeVectors(nadeId, origin, angles);
   PM_Message(client, "Updated grenade position.");
   return Plugin_Handled;
 }
@@ -427,9 +454,14 @@ public Action Command_AddCategory(int client, int args) {
     return Plugin_Handled;
   }
 
+  if (!CanEditGrenade(client, nadeId)) {
+    PM_Message(client, "You aren't the owner of this grenade.");
+    return Plugin_Handled;
+  }
+
   char category[GRENADE_CATEGORY_LENGTH];
   GetCmdArgString(category, sizeof(category));
-  AddGrenadeCategory(client, nadeId, category);
+  AddGrenadeCategory(nadeId, category);
 
   PM_Message(client, "Added grenade category.");
   return Plugin_Handled;
@@ -441,11 +473,15 @@ public Action Command_AddCategories(int client, int args) {
     return Plugin_Handled;
   }
 
-  char category[GRENADE_CATEGORY_LENGTH];
+  if (!CanEditGrenade(client, nadeId)) {
+    PM_Message(client, "You aren't the owner of this grenade.");
+    return Plugin_Handled;
+  }
 
+  char category[GRENADE_CATEGORY_LENGTH];
   for (int i = 1; i <= args; i++) {
     GetCmdArg(i, category, sizeof(category));
-    AddGrenadeCategory(client, nadeId, category);
+    AddGrenadeCategory(nadeId, category);
   }
 
   PM_Message(client, "Added grenade category.");
@@ -458,10 +494,15 @@ public Action Command_RemoveCategory(int client, int args) {
     return Plugin_Handled;
   }
 
+  if (!CanEditGrenade(client, nadeId)) {
+    PM_Message(client, "You aren't the owner of this grenade.");
+    return Plugin_Handled;
+  }
+
   char category[GRENADE_CATEGORY_LENGTH];
   GetCmdArgString(category, sizeof(category));
 
-  if (RemoveGrenadeCategory(client, nadeId, category))
+  if (RemoveGrenadeCategory(nadeId, category))
     PM_Message(client, "Removed grenade category.");
   else
     PM_Message(client, "Category not found.");
@@ -484,7 +525,12 @@ public Action Command_ClearGrenadeCategories(int client, int args) {
     return Plugin_Handled;
   }
 
-  SetClientGrenadeData(client, nadeId, "categories", "");
+  if (!CanEditGrenade(client, nadeId)) {
+    PM_Message(client, "You aren't the owner of this grenade.");
+    return Plugin_Handled;
+  }
+
+  SetClientGrenadeData(nadeId, "categories", "");
   PM_Message(client, "Cleared grenade categories for id %d.", nadeId);
 
   return Plugin_Handled;
@@ -600,27 +646,23 @@ public Action Command_CopyGrenade(int client, int args) {
     return Plugin_Handled;
   }
 
-  if (!IsPlayer(client) || args != 2) {
-    PM_Message(client, "Usage: .copy <name> <id>");
+  if (!IsPlayer(client) || args != 1) {
+    PM_Message(client, "Usage: .copy <id>");
     return Plugin_Handled;
   }
 
   char name[MAX_NAME_LENGTH];
   char id[GRENADE_ID_LENGTH];
-  GetCmdArg(1, name, sizeof(name));
-  GetCmdArg(2, id, sizeof(id));
+  GetCmdArg(1, id, sizeof(id));
 
-  char targetName[MAX_NAME_LENGTH];
   char targetAuth[AUTH_LENGTH];
-  if (FindGrenadeTarget(name, targetName, sizeof(targetName), targetAuth, sizeof(targetAuth))) {
+  if (FindId(id, targetAuth, sizeof(targetAuth))) {
     int newid = CopyGrenade(targetAuth, id, client);
     if (newid != -1) {
       PM_Message(client, "Copied nade to new id %d", newid);
     } else {
       PM_Message(client, "Could not find grenade %s from %s", newid, name);
     }
-  } else {
-    PM_Message(client, "Could not find user %s", name);
   }
 
   return Plugin_Handled;

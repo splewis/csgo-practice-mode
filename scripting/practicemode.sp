@@ -42,11 +42,12 @@ ArrayList g_ChatAliases;
 ArrayList g_ChatAliasesCommands;
 
 // Plugin cvars
+ConVar g_AlphabetizeNadeMenusCvar;
 ConVar g_AutostartCvar;
 ConVar g_MaxGrenadesSavedCvar;
 ConVar g_MaxHistorySizeCvar;
 ConVar g_PracModeCanBeStartedCvar;
-ConVar g_AlphabetizeNadeMenusCvar;
+ConVar g_SharedAllNadesCvar;
 
 // Infinite money data
 ConVar g_InfiniteMoneyCvar;
@@ -150,9 +151,10 @@ Handle g_OnPracticeModeEnabled = INVALID_HANDLE;
 Handle g_OnPracticeModeSettingChanged = INVALID_HANDLE;
 Handle g_OnPracticeModeSettingsRead = INVALID_HANDLE;
 
+#include "practicemode/grenadeiterators.sp"
+
 #include "practicemode/bots.sp"
 #include "practicemode/commands.sp"
-#include "practicemode/grenadeiterators.sp"
 #include "practicemode/grenademenus.sp"
 #include "practicemode/grenadeutils.sp"
 #include "practicemode/natives.sp"
@@ -341,6 +343,8 @@ public void OnPluginStart() {
   PM_AddChatAlias(".stop", "sm_stopall");
 
   // New Plugin cvars
+  g_AlphabetizeNadeMenusCvar = CreateConVar("sm_practicemode_alphabetize_nades", "0",
+                                            "Whether menus of grenades are alphabetized by name.");
   g_AutostartCvar = CreateConVar("sm_practicemode_autostart", "0",
                                  "Whether the plugin is automatically started on mapstart");
   g_MaxHistorySizeCvar =
@@ -350,8 +354,9 @@ public void OnPluginStart() {
                                         "Maximum number of grenades saved per-map per-client");
   g_PracModeCanBeStartedCvar =
       CreateConVar("sm_practicemode_can_be_started", "1", "Whether practicemode may be started");
-  g_AlphabetizeNadeMenusCvar = CreateConVar("sm_practicemode_alphabetize_nades", "0",
-                                            "Whether menus of grenades are alphabetized by name.");
+  g_SharedAllNadesCvar = CreateConVar(
+      "sm_practicemode_share_all_nades", "0",
+      "When set to 1, grenades aren't per-user; they are shared amongst all users that have grenade access. Grenades are not displayed by user, but displayed in 1 grouping. Anyone on the server can edit other users' grenades.");
   AutoExecConfig(true, "practicemode");
 
   // New cvars we don't want saved in the autoexec'd file
