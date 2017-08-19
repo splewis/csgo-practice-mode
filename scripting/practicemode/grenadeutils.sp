@@ -13,7 +13,8 @@ public bool IsGrenadeProjectile(const char[] className) {
 
 public bool IsGrenadeWeapon(const char[] weapon) {
   static char grenades[][] = {
-      "incgrenade", "molotov", "hegrenade", "decoy", "flashbang", "smokegrenade",
+      "weapon_incgrenade", "weapon_molotov",   "weapon_hegrenade",
+      "weapon_decoy",      "weapon_flashbang", "weapon_smokegrenade",
   };
 
   return FindStringInArray2(grenades, sizeof(grenades), weapon) >= 0;
