@@ -75,6 +75,16 @@ public void KickAllClientBots(int client) {
 }
 
 void GiveBotParams(int bot) {
+  // If we were giving a knife, let's give them a gun. We don't want to accidently try to give a
+  // knife our beloved bot doesn't own on the steam market!
+  if (StrContains(g_BotSpawnWeapon[bot], "knife")) {
+    if (GetClientTeam(bot) == CS_TEAM_CT) {
+      g_BotSpawnWeapon[bot] = "weapon_m4a1";
+    } else {
+      g_BotSpawnWeapon[bot] = "weapon_ak47";
+    }
+  }
+
   Client_RemoveAllWeapons(bot);
   GivePlayerItem(bot, g_BotSpawnWeapon[bot]);
   TeleportEntity(bot, g_BotSpawnOrigin[bot], g_BotSpawnAngles[bot], NULL_VECTOR);
