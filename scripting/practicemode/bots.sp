@@ -78,8 +78,8 @@ void GiveBotParams(int bot) {
   // If we were giving a knife, let's give them a gun. We don't want to accidently try to give a
   // knife our beloved bot doesn't own on the steam market!
   // The bayonet knife is appearently called weapon_bayonet as well :(
-  if (StrContains(g_BotSpawnWeapon[bot], "knife", false) ||
-      StrContains(g_BotSpawnWeapon[bot], "bayonet", false)) {
+  if (StrContains(g_BotSpawnWeapon[bot], "knife", false) >= 0 ||
+      StrContains(g_BotSpawnWeapon[bot], "bayonet", false) >= 0) {
     if (GetClientTeam(bot) == CS_TEAM_CT) {
       g_BotSpawnWeapon[bot] = "weapon_m4a1";
     } else {
