@@ -130,6 +130,25 @@ float g_LastTimeCommand[MAXPLAYERS + 1];
 
 MoveType g_PreFastForwardMoveTypes[MAXPLAYERS + 1];
 
+enum GrenadeMenuType {
+  GrenadeMenuType_PlayersAndCategories = 0,
+  GrenadeMenuType_Categories = 1,
+  GrenadeMenuType_OnePlayer = 2,
+  GrenadeMenuType_OneCategory = 3,  // Note: empty category "" = all nades.
+};
+
+// All the data we need to call GiveGrenadeMenu for a client to reopen the .nades menu
+// where they left off. The first set are for the 'top' menus where you select a player or category.
+// The second set are for the lower level menus of selecting a single grenade from a
+// player/category menu.
+GrenadeMenuType g_ClientLastTopMenuType[MAXPLAYERS + 1];
+int g_ClientLastTopMenuPos[MAXPLAYERS + 1];
+char g_ClientLastTopMenuData[MAXPLAYERS + 1][AUTH_LENGTH];
+
+GrenadeMenuType g_ClientLastMenuType[MAXPLAYERS + 1];
+int g_ClientLastMenuPos[MAXPLAYERS + 1];
+char g_ClientLastMenuData[MAXPLAYERS + 1][AUTH_LENGTH];
+
 // Data storing spawn priorities.
 ArrayList g_CTSpawns = null;
 ArrayList g_TSpawns = null;
@@ -143,6 +162,9 @@ Handle g_FlashEffectiveThresholdCookie = INVALID_HANDLE;
 
 #define TEST_FLASH_TELEPORT_DELAY_DEFAULT 0.3
 Handle g_TestFlashTeleportDelayCookie = INVALID_HANDLE;
+
+#define LEAVE_NADE_MENU_OPEN_SELECT_DEFAULT false
+Handle g_LeaveNadeMenuOpenCookie = INVALID_HANDLE;
 
 // Forwards
 Handle g_OnGrenadeSaved = INVALID_HANDLE;
@@ -401,6 +423,9 @@ public void OnPluginStart() {
   g_TestFlashTeleportDelayCookie = RegClientCookie(
       "practicemode_testflash_delay",
       "Seconds (as a float) waited before teleporting after throwing a flash using .flash",
+      CookieAccess_Public);
+  g_LeaveNadeMenuOpenCookie = RegClientCookie(
+      "practicemode_leave_menu_open", "Whether to leave the .nades menu open after slecting a nade",
       CookieAccess_Public);
 
   // Remove cheats so sv_cheats isn't required for this:

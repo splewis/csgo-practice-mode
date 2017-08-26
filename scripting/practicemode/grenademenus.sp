@@ -67,28 +67,60 @@ public int PracticeMenuHandler(Menu menu, MenuAction action, int param1, int par
   return 0;
 }
 
-stock void GiveGrenadesMenu(int client, bool categoriesOnly = false) {
-  // If we're in shared nade mode and there aren't any categories, go straight to giving all nades.
-  if (!categoriesOnly && g_KnownNadeCategories.Length == 0 && g_SharedAllNadesCvar.IntValue != 0) {
-    GiveAllGrenades(client);
+stock void GiveGrenadeMenu(int client, GrenadeMenuType type, int position = 0,
+                           const char[] data = "") {
+  g_ClientLastMenuType[client] = type;
+  strcopy(g_ClientLastMenuData[client], AUTH_LENGTH, data);
+
+  if (type == GrenadeMenuType_PlayersAndCategories || type == GrenadeMenuType_Categories) {
+    g_ClientLastTopMenuType[client] = type;
+    strcopy(g_ClientLastTopMenuData[client], AUTH_LENGTH, data);
+  }
+
+  Menu menu;
+  int count = 0;
+  if (type == GrenadeMenuType_PlayersAndCategories) {
+    menu = new Menu(Grenade_PlayerAndCategoryHandler);
+    menu.SetTitle("Select a player/category:");
+    menu.AddItem("all", "All nades");
+    count = AddPlayersToMenu(menu) + AddCategoriesToMenu(menu);
+
+  } else if (type == GrenadeMenuType_Categories) {
+    menu = new Menu(Grenade_PlayerAndCategoryHandler);
+    menu.SetTitle("Select a category:");
+    count = AddCategoriesToMenu(menu);
+
+  } else if (type == GrenadeMenuType_OnePlayer) {
+    menu = new Menu(Grenade_NadeHandler);
+    char name[MAX_NAME_LENGTH];
+    FindTargetNameByAuth(data, name, sizeof(name));
+    menu.SetTitle("Grenades for %s:", name);
+    count = AddOnePlayerToMenu(menu, data);
+
+  } else if (type == GrenadeMenuType_OneCategory) {
+    menu = new Menu(Grenade_NadeHandler);
+    menu.SetTitle("Category: %s", data);
+    count = AddOneCategoryToMenu(menu, data);
+
+  } else {
+    LogError("Unknown grenade menu type = %d", type);
     return;
   }
 
-  Menu menu = new Menu(GrenadeMenu_Handler);
+  if (count == 0) {
+    PM_Message(client, "No grenades found.");
+    delete menu;
+    return;
+  }
+
   menu.ExitButton = true;
+  menu.ExitBackButton = true;
+  menu.DisplayAt(client, position, MENU_TIME_FOREVER);
+}
 
-  if (!categoriesOnly) {
-    menu.SetTitle("Select a category:");
-  } else {
-    menu.SetTitle("Select a player/category:");
-  }
-
-  // Add "all" nades.
-  if (!categoriesOnly) {
-    menu.AddItem("all", "All nades");
-  }
-
-  if (categoriesOnly && g_GrenadeLocationsKv.GotoFirstSubKey()) {
+static int AddPlayersToMenu(Menu menu) {
+  int count = 0;
+  if (g_GrenadeLocationsKv.GotoFirstSubKey()) {
     do {
       int nadeCount = 0;
       if (g_GrenadeLocationsKv.GotoFirstSubKey()) {
@@ -110,48 +142,137 @@ stock void GiveGrenadesMenu(int client, bool categoriesOnly = false) {
       Format(display, sizeof(display), "%s (%d saved)", name, nadeCount);
 
       if (nadeCount > 0) {
+        count++;
         menu.AddItem(info, display);
       }
 
     } while (g_GrenadeLocationsKv.GotoNextKey());
     g_GrenadeLocationsKv.GoBack();
   }
+  return count;
+}
+
+static int AddCategoriesToMenu(Menu menu) {
+  int numCategories = 0;
 
   for (int i = 0; i < g_KnownNadeCategories.Length; i++) {
     char cat[64];
     g_KnownNadeCategories.GetString(i, cat, sizeof(cat));
-    int count = CountCategoryNades(cat);
+    int categoryCount = CountCategoryNades(cat);
 
     char info[256];
     Format(info, sizeof(info), "cat %s", cat);
     char display[256];
-    Format(display, sizeof(display), "Category: %s (%d saved)", cat, count);
+    Format(display, sizeof(display), "Category: %s (%d saved)", cat, categoryCount);
 
-    if (count > 0) {
+    if (categoryCount > 0) {
+      numCategories++;
       menu.AddItem(info, display);
     }
   }
-
-  if (menu.ItemCount == 0) {
-    if (categoriesOnly) {
-      PM_Message(client, "No categories have been set yet.");
-    } else {
-      PM_Message(client, "No players have grenade positions saved.");
-    }
-    delete menu;
-  } else {
-    menu.Display(client, MENU_TIME_FOREVER);
-  }
+  return numCategories;
 }
 
-public int GrenadeMenu_Handler(Menu menu, MenuAction action, int param1, int param2) {
+static int AddOnePlayerToMenu(Menu menu, const char[] auth) {
+  int count = 0;
+  char name[MAX_NAME_LENGTH];
+  ArrayList ids = new ArrayList(GRENADE_ID_LENGTH);
+  if (g_GrenadeLocationsKv.JumpToKey(auth)) {
+    g_GrenadeLocationsKv.GetString("name", name, sizeof(name));
+    if (g_GrenadeLocationsKv.GotoFirstSubKey()) {
+      do {
+        char strId[GRENADE_ID_LENGTH];
+        g_GrenadeLocationsKv.GetSectionName(strId, sizeof(strId));
+        ids.PushString(strId);
+      } while (g_GrenadeLocationsKv.GotoNextKey());
+      g_GrenadeLocationsKv.GoBack();
+    }
+    g_GrenadeLocationsKv.GoBack();
+  }
+
+  // Alphabetize the ids by name, if desired.
+  if (g_AlphabetizeNadeMenusCvar.IntValue != 0) {
+    SortADTArrayCustom(ids, SortIdArrayByName);
+  }
+
+  // Add the grenades to the menu.
+  for (int i = 0; i < ids.Length; i++) {
+    char id[GRENADE_ID_LENGTH];
+    ids.GetString(i, id, sizeof(id));
+    if (TryJumpToId(id)) {
+      count++;
+      // TODO: do we need the owner name here?
+      AddKvGrenadeToMenu(menu, g_GrenadeLocationsKv, auth, name);
+      g_GrenadeLocationsKv.Rewind();
+    }
+  }
+
+  delete ids;
+  return count;
+}
+
+// Adds all grenades matching |category| to the menu.
+// There is special handling for a category "" that matches all grenades.
+static int AddOneCategoryToMenu(Menu menu, const char[] category) {
+  int count = 0;
+
+  bool allNades = StrEqual(category, "") || StrEqual(category, "all", false);
+  ArrayList ids = new ArrayList(GRENADE_ID_LENGTH);
+
+  if (g_GrenadeLocationsKv.GotoFirstSubKey()) {
+    do {
+      if (g_GrenadeLocationsKv.GotoFirstSubKey()) {
+        do {
+          char strId[GRENADE_ID_LENGTH];
+          g_GrenadeLocationsKv.GetSectionName(strId, sizeof(strId));
+          char categoryString[GRENADE_CATEGORY_LENGTH];
+          g_GrenadeLocationsKv.GetString("categories", categoryString, sizeof(categoryString));
+          ArrayList cats = new ArrayList(GRENADE_CATEGORY_LENGTH);
+          AddCategoriesToList(categoryString, cats);
+          if (allNades || FindStringInList(cats, GRENADE_CATEGORY_LENGTH, category, false) >= 0) {
+            ids.PushString(strId);
+          }
+          delete cats;
+        } while (g_GrenadeLocationsKv.GotoNextKey());
+        g_GrenadeLocationsKv.GoBack();
+      }
+    } while (g_GrenadeLocationsKv.GotoNextKey());
+    g_GrenadeLocationsKv.GoBack();
+  }
+
+  // Alphabetize the ids by name, if desired.
+  if (g_AlphabetizeNadeMenusCvar.IntValue != 0) {
+    SortADTArrayCustom(ids, SortIdArrayByName);
+  }
+
+  // Add the grenades to the menu.
+  for (int i = 0; i < ids.Length; i++) {
+    char id[GRENADE_ID_LENGTH];
+    ids.GetString(i, id, sizeof(id));
+    char ownerName[MAX_NAME_LENGTH];
+    char ownerAuth[AUTH_LENGTH];
+    if (TryJumpToOwnerId(id, ownerAuth, sizeof(ownerAuth), ownerName, sizeof(ownerName))) {
+      count++;
+      AddKvGrenadeToMenu(menu, g_GrenadeLocationsKv, ownerAuth, ownerName);
+      g_GrenadeLocationsKv.Rewind();
+    }
+  }
+
+  delete ids;
+  return count++;
+}
+
+// Handlers for the grenades menu.
+
+public int Grenade_PlayerAndCategoryHandler(Menu menu, MenuAction action, int param1, int param2) {
   if (action == MenuAction_Select && g_InPracticeMode) {
     int client = param1;
+    g_ClientLastTopMenuPos[client] = GetMenuSelectionPosition();
     char buffer[MAX_NAME_LENGTH + AUTH_LENGTH + 1];
     menu.GetItem(param2, buffer, sizeof(buffer));
 
     if (StrEqual(buffer, "all")) {
-      GiveAllGrenades(client);
+      GiveGrenadeMenu(client, GrenadeMenuType_OneCategory, 0, "");
       return;
     }
 
@@ -161,10 +282,28 @@ public int GrenadeMenu_Handler(Menu menu, MenuAction action, int param1, int par
     SplitOnSpace(buffer, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
     if (StrEqual(arg1, "cat")) {
-      GiveCategoryGrenades(client, arg2);
+      GiveGrenadeMenu(client, GrenadeMenuType_OneCategory, 0, arg2);
     } else {
-      GiveGrenadesForPlayer(client, arg2, arg1);
+      GiveGrenadeMenu(client, GrenadeMenuType_OnePlayer, 0, arg1);
     }
+  } else if (action == MenuAction_End) {
+    delete menu;
+  }
+}
+
+public int Grenade_NadeHandler(Menu menu, MenuAction action, int param1, int param2) {
+  if (action == MenuAction_Select && g_InPracticeMode) {
+    int client = param1;
+    g_ClientLastMenuPos[client] = GetMenuSelectionPosition();
+    HandleGrenadeSelected(client, menu, param2);
+    if (GetCookieBool(client, g_LeaveNadeMenuOpenCookie, LEAVE_NADE_MENU_OPEN_SELECT_DEFAULT)) {
+      GiveGrenadeMenu(client, g_ClientLastMenuType[client], g_ClientLastMenuPos[client],
+                      g_ClientLastMenuData[client]);
+    }
+  } else if (action == MenuAction_Cancel && param2 == MenuCancel_ExitBack) {
+    int client = param1;
+    GiveGrenadeMenu(client, g_ClientLastTopMenuType[client], g_ClientLastTopMenuPos[client],
+                    g_ClientLastTopMenuData[client]);
   } else if (action == MenuAction_End) {
     delete menu;
   }
@@ -195,99 +334,6 @@ int SortIdArrayByName(int index1, int index2, Handle array, Handle hndl) {
   }
 
   return strcmp(name1, name2, false);
-}
-
-stock void GiveGrenadesForPlayer(int client, const char[] ownerName, const char[] ownerAuth,
-                                 int menuPosition = 0) {
-  Menu menu = new Menu(GrenadeHandler_GrenadeSelection);
-  menu.SetTitle("Grenades for %s", ownerName);
-  menu.ExitButton = true;
-  menu.ExitBackButton = true;
-
-  // Adds all the nades from this user.
-  ArrayList ids = new ArrayList(GRENADE_ID_LENGTH);
-  if (g_GrenadeLocationsKv.JumpToKey(ownerAuth)) {
-    if (g_GrenadeLocationsKv.GotoFirstSubKey()) {
-      do {
-        char strId[GRENADE_ID_LENGTH];
-        g_GrenadeLocationsKv.GetSectionName(strId, sizeof(strId));
-        ids.PushString(strId);
-      } while (g_GrenadeLocationsKv.GotoNextKey());
-      g_GrenadeLocationsKv.GoBack();
-    }
-    g_GrenadeLocationsKv.GoBack();
-  }
-
-  // Alphabetize the ids by name, if desired.
-  if (g_AlphabetizeNadeMenusCvar.IntValue != 0) {
-    SortADTArrayCustom(ids, SortIdArrayByName);
-  }
-
-  // Add the grenades to the menu.
-  for (int i = 0; i < ids.Length; i++) {
-    char id[GRENADE_ID_LENGTH];
-    ids.GetString(i, id, sizeof(id));
-    if (TryJumpToId(id)) {
-      AddKvGrenadeToMenu(menu, g_GrenadeLocationsKv, ownerAuth, ownerAuth);
-      g_GrenadeLocationsKv.Rewind();
-    }
-  }
-
-  delete ids;
-
-  if (menu.ItemCount == 0) {
-    PM_Message(client, "No grenades found.");
-    delete menu;
-  } else {
-    menu.DisplayAt(client, menuPosition, MENU_TIME_FOREVER);
-  }
-}
-
-stock void GiveCategoryGrenades(int client, const char[] category, int menuPosition = 0) {
-  Menu menu = new Menu(GrenadeHandler_GrenadeSelection);
-  menu.SetTitle("Category: %s", category);
-  menu.ExitButton = true;
-  menu.ExitBackButton = true;
-  AddCategoryToMenu(menu, category);
-  menu.DisplayAt(client, menuPosition, MENU_TIME_FOREVER);
-}
-
-public int GrenadeHandler_GrenadeSelection(Menu menu, MenuAction action, int param1, int param2) {
-  if (action == MenuAction_Select && g_InPracticeMode) {
-    int client = param1;
-    HandleGrenadeSelected(client, menu, param2);
-  } else if (action == MenuAction_Cancel && param2 == MenuCancel_ExitBack) {
-    int client = param1;
-    GiveGrenadesMenu(client);
-  } else if (action == MenuAction_End) {
-    delete menu;
-  }
-}
-
-stock void GiveAllGrenades(int client, int menuPosition = 0) {
-  Menu menu = new Menu(GiveAllGrenades_GrenadeSelection);
-  menu.SetTitle("All nades");
-  menu.ExitButton = true;
-  menu.ExitBackButton = true;
-  AddCategoryToMenu(menu, "");
-  if (menu.ItemCount == 0) {
-    PM_Message(client, "No grenades saved yet. Add some via the .save command!");
-    delete menu;
-  } else {
-    menu.DisplayAt(client, menuPosition, MENU_TIME_FOREVER);
-  }
-}
-
-public int GiveAllGrenades_GrenadeSelection(Menu menu, MenuAction action, int param1, int param2) {
-  if (action == MenuAction_Select && g_InPracticeMode) {
-    int client = param1;
-    HandleGrenadeSelected(client, menu, param2);
-  } else if (action == MenuAction_Cancel && param2 == MenuCancel_ExitBack) {
-    int client = param1;
-    GiveGrenadesMenu(client);
-  } else if (action == MenuAction_End) {
-    delete menu;
-  }
 }
 
 stock void AddGrenadeToMenu(Menu menu, const char[] ownerAuth, const char[] ownerName,
@@ -328,53 +374,6 @@ public void HandleGrenadeSelected(int client, Menu menu, int param2) {
   // split buffer from form "<auth> <id>" (seperated by a space)
   SplitOnSpace(buffer, auth, sizeof(auth), idStr, sizeof(idStr));
   TeleportToSavedGrenadePosition(client, auth, idStr);
-}
-
-// Adds all grenades matching |category| to the menu.
-// There is special handling for a category "" that matches all grenades.
-public void AddCategoryToMenu(Menu menu, const char[] category) {
-  bool allNades = StrEqual(category, "");
-  ArrayList ids = new ArrayList(GRENADE_ID_LENGTH);
-
-  if (g_GrenadeLocationsKv.GotoFirstSubKey()) {
-    do {
-      if (g_GrenadeLocationsKv.GotoFirstSubKey()) {
-        do {
-          char strId[GRENADE_ID_LENGTH];
-          g_GrenadeLocationsKv.GetSectionName(strId, sizeof(strId));
-          char categoryString[GRENADE_CATEGORY_LENGTH];
-          g_GrenadeLocationsKv.GetString("categories", categoryString, sizeof(categoryString));
-          ArrayList cats = new ArrayList(GRENADE_CATEGORY_LENGTH);
-          AddCategoriesToList(categoryString, cats);
-          if (allNades || FindStringInList(cats, GRENADE_CATEGORY_LENGTH, category, false) >= 0) {
-            ids.PushString(strId);
-          }
-          delete cats;
-        } while (g_GrenadeLocationsKv.GotoNextKey());
-        g_GrenadeLocationsKv.GoBack();
-      }
-    } while (g_GrenadeLocationsKv.GotoNextKey());
-    g_GrenadeLocationsKv.GoBack();
-  }
-
-  // Alphabetize the ids by name, if desired.
-  if (g_AlphabetizeNadeMenusCvar.IntValue != 0) {
-    SortADTArrayCustom(ids, SortIdArrayByName);
-  }
-
-  // Add the grenades to the menu.
-  for (int i = 0; i < ids.Length; i++) {
-    char id[GRENADE_ID_LENGTH];
-    ids.GetString(i, id, sizeof(id));
-    char ownerName[MAX_NAME_LENGTH];
-    char ownerAuth[AUTH_LENGTH];
-    if (TryJumpToOwnerId(id, ownerAuth, sizeof(ownerAuth), ownerName, sizeof(ownerName))) {
-      AddKvGrenadeToMenu(menu, g_GrenadeLocationsKv, ownerAuth, ownerName);
-      g_GrenadeLocationsKv.Rewind();
-    }
-  }
-
-  delete ids;
 }
 
 public int CountCategoryNades(const char[] category) {

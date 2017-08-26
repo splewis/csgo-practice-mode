@@ -140,7 +140,7 @@ public Action Command_Grenades(int client, int args) {
 
   if (args >= 1 && GetCmdArgString(arg, sizeof(arg))) {
     if (StrEqual(arg, "all", false)) {
-      GiveAllGrenades(client);
+      GiveGrenadeMenu(client, GrenadeMenuType_OneCategory, 0, "");
       return Plugin_Handled;
     }
 
@@ -149,17 +149,22 @@ public Action Command_Grenades(int client, int args) {
     FindMatchingCategory(arg, matchingCategory, sizeof(matchingCategory));
 
     if (FindGrenadeTarget(arg, name, sizeof(name), auth, sizeof(auth))) {
-      GiveGrenadesForPlayer(client, name, auth);
+      // GiveGrenadesForPlayer(client, name, auth);
+      GiveGrenadeMenu(client, GrenadeMenuType_OnePlayer, 0, auth);
       return Plugin_Handled;
     } else if (FindStringInList(g_KnownNadeCategories, GRENADE_CATEGORY_LENGTH, matchingCategory,
                                 false) >= 0) {
-      GiveCategoryGrenades(client, matchingCategory);
+      GiveGrenadeMenu(client, GrenadeMenuType_OneCategory, 0, matchingCategory);
       return Plugin_Handled;
     }
 
   } else {
     bool categoriesOnly = (g_SharedAllNadesCvar.IntValue == 0);
-    GiveGrenadesMenu(client, categoriesOnly);
+    if (categoriesOnly) {
+      GiveGrenadeMenu(client, GrenadeMenuType_Categories);
+    } else {
+      GiveGrenadeMenu(client, GrenadeMenuType_PlayersAndCategories);
+    }
   }
 
   return Plugin_Handled;
@@ -444,7 +449,7 @@ public Action Command_Categories(int client, int args) {
   if (!g_InPracticeMode) {
     return Plugin_Handled;
   }
-  GiveGrenadesMenu(client, true);
+  GiveGrenadeMenu(client, GrenadeMenuType_Categories);
   return Plugin_Handled;
 }
 
