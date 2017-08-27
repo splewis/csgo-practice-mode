@@ -159,7 +159,7 @@ public Action Command_Grenades(int client, int args) {
     }
 
   } else {
-    bool categoriesOnly = (g_SharedAllNadesCvar.IntValue == 0);
+    bool categoriesOnly = (g_SharedAllNadesCvar.IntValue != 0);
     if (categoriesOnly) {
       GiveGrenadeMenu(client, GrenadeMenuType_Categories);
     } else {

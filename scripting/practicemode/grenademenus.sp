@@ -90,6 +90,13 @@ stock void GiveGrenadeMenu(int client, GrenadeMenuType type, int position = 0,
     menu.SetTitle("Select a category:");
     count = AddCategoriesToMenu(menu);
 
+    // Fall back to all nades.
+    if (count == 0) {
+      GiveGrenadeMenu(client, GrenadeMenuType_OneCategory, 0, "all");
+      delete menu;
+      return;
+    }
+
   } else if (type == GrenadeMenuType_OnePlayer) {
     menu = new Menu(Grenade_NadeHandler);
     char name[MAX_NAME_LENGTH];
@@ -144,7 +151,6 @@ static int AddPlayersToMenu(Menu menu) {
 
       char display[256];
       Format(display, sizeof(display), "%s (%d saved)", name, nadeCount);
-
       if (nadeCount > 0) {
         count++;
         menu.AddItem(info, display);
