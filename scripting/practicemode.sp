@@ -181,6 +181,7 @@ Handle g_OnPracticeModeSettingsRead = INVALID_HANDLE;
 #include "practicemode/grenadeutils.sp"
 #include "practicemode/natives.sp"
 #include "practicemode/pugsetup_integration.sp"
+#include "practicemode/settingsmenu.sp"
 #include "practicemode/spawns.sp"
 
 // clang-format off
@@ -262,6 +263,7 @@ public void OnPluginStart() {
   RegConsoleCmd("sm_time", Command_Time);
   RegConsoleCmd("sm_time2", Command_Time2);
   RegConsoleCmd("sm_fastforward", Command_FastForward);
+  RegConsoleCmd("sm_pmsettings", Command_Settings);
 
   // Bot commands
   RegConsoleCmd("sm_bot", Command_Bot);
@@ -319,6 +321,7 @@ public void OnPluginStart() {
   PM_AddChatAlias(".fastforward", "sm_fastforward");
   PM_AddChatAlias(".fast", "sm_fastforward");
   PM_AddChatAlias(".ff", "sm_fastforward");
+  PM_AddChatAlias(".settings", "sm_pmsettings");
 
   // Saved grenade location commands
   RegConsoleCmd("sm_gotogrenade", Command_GotoNade);
