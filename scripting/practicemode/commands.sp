@@ -140,7 +140,7 @@ public Action Command_Grenades(int client, int args) {
 
   if (args >= 1 && GetCmdArgString(arg, sizeof(arg))) {
     if (StrEqual(arg, "all", false)) {
-      GiveGrenadeMenu(client, GrenadeMenuType_OneCategory, 0, "");
+      GiveGrenadeMenu(client, GrenadeMenuType_OneCategory, 0, "all");
       return Plugin_Handled;
     }
 

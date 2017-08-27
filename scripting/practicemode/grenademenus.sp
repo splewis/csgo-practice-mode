@@ -99,7 +99,11 @@ stock void GiveGrenadeMenu(int client, GrenadeMenuType type, int position = 0,
 
   } else if (type == GrenadeMenuType_OneCategory) {
     menu = new Menu(Grenade_NadeHandler);
-    menu.SetTitle("Category: %s", data);
+    if (StrEqual(data, "") || StrEqual(data, "all")) {
+      menu.SetTitle("All nades");
+    } else {
+      menu.SetTitle("Category: %s", data);
+    }
     count = AddOneCategoryToMenu(menu, data);
 
   } else {
