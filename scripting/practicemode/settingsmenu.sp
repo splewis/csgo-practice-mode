@@ -49,11 +49,11 @@ public int SettingsMenuHandler(Menu menu, MenuAction action, int param1, int par
           !GetCookieBool(client, g_LeaveNadeMenuOpenCookie, LEAVE_NADE_MENU_OPEN_SELECT_DEFAULT));
 
     } else if (StrEqual(buffer, "flash_blind_threshold")) {
-      PM_Message(client, "Open console and use this command to set the value (replacing 2.0 with the value you want:");
+      PM_Message(client, "Open console and use this command to set the value (replacing 2.0 with the value you want):");
       PM_Message(client, "sm_cookies practicemode_flash_threshold 2.0");
 
-    } else if (StrEqual(buffer, "practicemode_testflash_delay")) {
-      PM_Message(client, "Open console and use this command to set the value (replacing 0.3 with the value you want:");
+    } else if (StrEqual(buffer, "flash_teleport_delay")) {
+      PM_Message(client, "Open console and use this command to set the value (replacing 0.3 with the value you want):");
       PM_Message(client, "sm_cookies practicemode_flash_threshold 0.3");
 
     } else {
