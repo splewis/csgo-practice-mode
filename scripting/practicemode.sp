@@ -64,6 +64,10 @@ ConVar g_GrenadeThicknessCvar;
 ConVar g_GrenadeTimeCvar;
 ConVar g_GrenadeSpecTimeCvar;
 
+// Other cvars.
+ConVar g_FlashEffectiveThresholdCvar;
+ConVar g_TestFlashTeleportDelayCvar;
+
 // Saved grenade locations data
 #define GRENADE_DESCRIPTION_LENGTH 256
 #define GRENADE_NAME_LENGTH 64
@@ -156,12 +160,6 @@ KeyValues g_NamedSpawnsKv = null;
 
 #define SHOW_AIRTIME_DEFAULT true
 Handle g_ShowGrenadeAirtimeCookie = INVALID_HANDLE;
-
-#define FLASH_EFFECTIVE_THRESHOLD_DEFAULT 2.0
-Handle g_FlashEffectiveThresholdCookie = INVALID_HANDLE;
-
-#define TEST_FLASH_TELEPORT_DELAY_DEFAULT 0.3
-Handle g_TestFlashTeleportDelayCookie = INVALID_HANDLE;
 
 #define LEAVE_NADE_MENU_OPEN_SELECT_DEFAULT false
 Handle g_LeaveNadeMenuOpenCookie = INVALID_HANDLE;
@@ -382,6 +380,14 @@ public void OnPluginStart() {
   g_SharedAllNadesCvar = CreateConVar(
       "sm_practicemode_share_all_nades", "0",
       "When set to 1, grenades aren't per-user; they are shared amongst all users that have grenade access. Grenades are not displayed by user, but displayed in 1 grouping. Anyone on the server can edit other users' grenades.");
+
+  g_FlashEffectiveThresholdCvar =
+      CreateConVar("sm_practicemode_flash_effective_threshold", "2.0",
+                   "How many seconds a flash must last to be considered effective");
+  g_TestFlashTeleportDelayCvar =
+      CreateConVar("sm_practicemode_test_flash_delay", "0.3",
+                   "Seconds to wait before teleporting a player using .flash");
+
   AutoExecConfig(true, "practicemode");
 
   // New cvars we don't want saved in the autoexec'd file
@@ -420,13 +426,6 @@ public void OnPluginStart() {
   g_ShowGrenadeAirtimeCookie =
       RegClientCookie("practicemode_grenade_airtime",
                       "Whether to display airtime of grenades in chat", CookieAccess_Public);
-  g_FlashEffectiveThresholdCookie =
-      RegClientCookie("practicemode_flash_threshold",
-                      "Number of seconds a flash must last to be effective", CookieAccess_Public);
-  g_TestFlashTeleportDelayCookie = RegClientCookie(
-      "practicemode_testflash_delay",
-      "Seconds (as a float) waited before teleporting after throwing a flash using .flash",
-      CookieAccess_Public);
   g_LeaveNadeMenuOpenCookie = RegClientCookie(
       "practicemode_leave_menu_open", "Whether to leave the .nades menu open after slecting a nade",
       CookieAccess_Public);
@@ -973,11 +972,10 @@ public int OnEntitySpawned(int entity) {
       // If the user recently indicated they are testing a flash (.flash),
       // teleport to that spot.
       if (StrEqual(className, "flashbang_projectile") && g_TestingFlash[client]) {
-        float delay = GetCookieFloat(client, g_TestFlashTeleportDelayCookie,
-                                     TEST_FLASH_TELEPORT_DELAY_DEFAULT);
-
-        if (delay <= 0.0)
+        float delay = g_TestFlashTeleportDelayCvar.FloatValue;
+        if (delay <= 0.0) {
           delay = 0.1;
+        }
 
         CreateTimer(delay, Timer_TeleportClient, GetClientSerial(client));
       }
@@ -1074,8 +1072,7 @@ public void GetFlashInfo(int serial) {
         GetEntDataFloat(client, FindSendPropInfo("CCSPlayer", "m_flFlashDuration"));
     PM_Message(client, "Flash duration: %.1f seconds", flashDuration);
 
-    if (flashDuration < GetCookieFloat(client, g_FlashEffectiveThresholdCookie,
-                                       FLASH_EFFECTIVE_THRESHOLD_DEFAULT)) {
+    if (flashDuration < g_FlashEffectiveThresholdCvar.FloatValue) {
       PM_Message(client, "Ineffective flash");
       CreateTimer(1.0, Timer_FakeGrenadeBack, GetClientSerial(client));
     } else {
