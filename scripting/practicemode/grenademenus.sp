@@ -88,6 +88,7 @@ stock void GiveGrenadeMenu(int client, GrenadeMenuType type, int position = 0,
   } else if (type == GrenadeMenuType_Categories) {
     menu = new Menu(Grenade_PlayerAndCategoryHandler);
     menu.SetTitle("Select a category:");
+    menu.AddItem("all", "All nades");
     count = AddCategoriesToMenu(menu);
 
     // Fall back to all nades.
