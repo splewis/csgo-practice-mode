@@ -10,6 +10,8 @@ public void GiveSettingsMenu(int client) {
   bool showingAirtime = GetCookieBool(client, g_ShowGrenadeAirtimeCookie, SHOW_AIRTIME_DEFAULT);
   bool leaveNadeMenuOpen =
       GetCookieBool(client, g_LeaveNadeMenuOpenCookie, LEAVE_NADE_MENU_OPEN_SELECT_DEFAULT);
+  bool noGrenadeTrajectory =
+      GetCookieBool(client, g_LeaveNadeMenuOpenCookie, NO_GRENADE_TRAJECTORY_DEFAULT);
 
   char buffer[128];
   Format(buffer, sizeof(buffer), "Show grenade airtime: %s",
@@ -19,6 +21,10 @@ public void GiveSettingsMenu(int client) {
   Format(buffer, sizeof(buffer), "Leave .nade menu open after selection: %s",
          leaveNadeMenuOpen ? "enabled" : "disabled");
   menu.AddItem("leave_menu_open", buffer);
+
+  Format(buffer, sizeof(buffer), "Disable grenade trajectories: %s",
+         noGrenadeTrajectory ? "enabled" : "disabled");
+  menu.AddItem("grenade_trajectory", buffer);
 
   menu.Display(client, MENU_TIME_FOREVER);
 }
@@ -36,6 +42,11 @@ public int SettingsMenuHandler(Menu menu, MenuAction action, int param1, int par
       SetCookieBool(
           client, g_LeaveNadeMenuOpenCookie,
           !GetCookieBool(client, g_LeaveNadeMenuOpenCookie, LEAVE_NADE_MENU_OPEN_SELECT_DEFAULT));
+
+    } else if (StrEqual(buffer, "grenade_trajectory")) {
+      SetCookieBool(
+          client, g_NoGrenadeTrajectoryCookie,
+          !GetCookieBool(client, g_NoGrenadeTrajectoryCookie, NO_GRENADE_TRAJECTORY_DEFAULT));
     }
       else {
       LogError("SettingsMenuHandler uknown option: %s", buffer);

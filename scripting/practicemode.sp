@@ -164,6 +164,9 @@ Handle g_ShowGrenadeAirtimeCookie = INVALID_HANDLE;
 #define LEAVE_NADE_MENU_OPEN_SELECT_DEFAULT false
 Handle g_LeaveNadeMenuOpenCookie = INVALID_HANDLE;
 
+#define NO_GRENADE_TRAJECTORY_DEFAULT false
+Handle g_NoGrenadeTrajectoryCookie = INVALID_HANDLE;
+
 // Forwards
 Handle g_OnGrenadeSaved = INVALID_HANDLE;
 Handle g_OnPracticeModeDisabled = INVALID_HANDLE;
@@ -429,6 +432,9 @@ public void OnPluginStart() {
   g_LeaveNadeMenuOpenCookie = RegClientCookie(
       "practicemode_leave_menu_open", "Whether to leave the .nades menu open after slecting a nade",
       CookieAccess_Public);
+  g_NoGrenadeTrajectoryCookie =
+      RegClientCookie("practicemode_no_grenade_trajectory",
+                      "Whether to whether show grenade trajectories", CookieAccess_Public);
 
   // Remove cheats so sv_cheats isn't required for this:
   RemoveCvarFlag(g_GrenadeTrajectoryCvar, FCVAR_CHEAT);
@@ -948,6 +954,10 @@ public int OnEntitySpawned(int entity) {
         // Send a temp ent beam that follows the grenade entity to all other clients.
         for (int i = 1; i <= MaxClients; i++) {
           if (!IsClientConnected(i) || !IsClientInGame(i)) {
+            continue;
+          }
+
+          if (GetCookieBool(client, g_LeaveNadeMenuOpenCookie, NO_GRENADE_TRAJECTORY_DEFAULT)) {
             continue;
           }
 
