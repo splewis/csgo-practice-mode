@@ -13,7 +13,7 @@
 
 #include "include/practicemode.inc"
 #include "include/restorecvars.inc"
-#include "practicemode/generic.sp"
+#include "practicemode/util.sp"
 
 #pragma semicolon 1
 #pragma newdecls required
