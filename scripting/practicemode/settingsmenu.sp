@@ -11,7 +11,7 @@ public void GiveSettingsMenu(int client) {
   bool leaveNadeMenuOpen =
       GetCookieBool(client, g_LeaveNadeMenuOpenCookie, LEAVE_NADE_MENU_OPEN_SELECT_DEFAULT);
   bool noGrenadeTrajectory =
-      GetCookieBool(client, g_LeaveNadeMenuOpenCookie, NO_GRENADE_TRAJECTORY_DEFAULT);
+      GetCookieBool(client, g_NoGrenadeTrajectoryCookie, NO_GRENADE_TRAJECTORY_DEFAULT);
 
   char buffer[128];
   Format(buffer, sizeof(buffer), "Show grenade airtime: %s",

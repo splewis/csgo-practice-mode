@@ -433,7 +433,7 @@ public void OnPluginStart() {
       "practicemode_leave_menu_open", "Whether to leave the .nades menu open after slecting a nade",
       CookieAccess_Public);
   g_NoGrenadeTrajectoryCookie =
-      RegClientCookie("practicemode_no_grenade_trajectory",
+      RegClientCookie("practicemode_no_traject",
                       "Whether to whether show grenade trajectories", CookieAccess_Public);
 
   // Remove cheats so sv_cheats isn't required for this:
@@ -957,7 +957,7 @@ public int OnEntitySpawned(int entity) {
             continue;
           }
 
-          if (GetCookieBool(client, g_LeaveNadeMenuOpenCookie, NO_GRENADE_TRAJECTORY_DEFAULT)) {
+          if (GetCookieBool(client, g_NoGrenadeTrajectoryCookie, NO_GRENADE_TRAJECTORY_DEFAULT)) {
             continue;
           }
 
