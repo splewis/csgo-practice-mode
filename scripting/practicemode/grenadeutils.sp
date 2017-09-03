@@ -390,6 +390,31 @@ public bool FindGrenadeByName(const char[] auth, const char[] lookupName,
   return false;
 }
 
+public bool FindMatchingGrenadesByName(const char[] lookupName, ArrayList ids) {
+  char auth[AUTH_LENGTH];
+  char currentId[GRENADE_ID_LENGTH];
+  char name[GRENADE_NAME_LENGTH];
+  if (g_GrenadeLocationsKv.GotoFirstSubKey()) {
+    do {
+      g_GrenadeLocationsKv.GetSectionName(auth, sizeof(auth));
+      // Inner iteration by grenades for a user.
+      if (g_GrenadeLocationsKv.GotoFirstSubKey()) {
+        do {
+          g_GrenadeLocationsKv.GetSectionName(currentId, sizeof(currentId));
+          g_GrenadeLocationsKv.GetString("name", name, sizeof(name));
+          if (StrContains(name, lookupName, false) >= 0) {
+            ids.PushString(currentId);
+          }
+        } while (g_GrenadeLocationsKv.GotoNextKey());
+        g_GrenadeLocationsKv.GoBack();
+      }
+
+    } while (g_GrenadeLocationsKv.GotoNextKey());
+    g_GrenadeLocationsKv.GoBack();
+  }
+  return ids.Length > 0;
+}
+
 public int CountGrenadesForPlayer(const char[] auth) {
   int count = 0;
   if (g_GrenadeLocationsKv.JumpToKey(auth)) {

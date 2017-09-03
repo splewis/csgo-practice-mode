@@ -158,6 +158,12 @@ public Action Command_Grenades(int client, int args) {
       return Plugin_Handled;
     }
 
+    ArrayList ids = new ArrayList(GRENADE_ID_LENGTH);
+    if (FindMatchingGrenadesByName(arg, ids)) {
+      GiveGrenadeMenu(client, GrenadeMenuType_MatchingName, 0, arg);
+    }
+    delete ids;
+
   } else {
     bool categoriesOnly = (g_SharedAllNadesCvar.IntValue != 0);
     if (categoriesOnly) {

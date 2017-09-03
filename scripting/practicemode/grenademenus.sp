@@ -114,6 +114,28 @@ stock void GiveGrenadeMenu(int client, GrenadeMenuType type, int position = 0,
     }
     count = AddOneCategoryToMenu(menu, data);
 
+  } else if (type == GrenadeMenuType_MatchingName) {
+    menu = new Menu(Grenade_NadeHandler);
+    menu.SetTitle("Nades matching %s", data);
+
+    ArrayList ids = new ArrayList(GRENADE_ID_LENGTH);
+    FindMatchingGrenadesByName(data, ids);
+    char ownerAuth[AUTH_LENGTH];
+    char ownerName[MAX_NAME_LENGTH];
+    char id[GRENADE_ID_LENGTH];
+    for (int i = 0; i < ids.Length; i++) {
+      ids.GetString(i, id, sizeof(id));
+      if (FindId(id, ownerAuth, sizeof(ownerAuth))) {
+        g_GrenadeLocationsKv.JumpToKey(ownerAuth, true);
+        g_GrenadeLocationsKv.GetString("name", ownerName, sizeof(ownerName));
+        g_GrenadeLocationsKv.JumpToKey(id, true);
+        AddKvGrenadeToMenu(menu, g_GrenadeLocationsKv, ownerAuth, ownerName);
+        g_GrenadeLocationsKv.Rewind();
+        count++;
+      }
+    }
+    delete ids;
+
   } else {
     LogError("Unknown grenade menu type = %d", type);
     return;
@@ -353,7 +375,7 @@ stock void AddGrenadeToMenu(Menu menu, const char[] ownerAuth, const char[] owne
   Format(info, sizeof(info), "%s %s", ownerAuth, strId);
 
   char display[128];
-  if (showPlayerName && g_SharedAllNadesCvar.IntValue == 0) {
+  if (showPlayerName && g_SharedAllNadesCvar.IntValue == 0 && !StrEqual(ownerName, "")) {
     Format(display, sizeof(display), "%s (%s-%s)", name, ownerName, strId);
   } else {
     Format(display, sizeof(display), "%s (id %s)", name, strId);
@@ -363,16 +385,9 @@ stock void AddGrenadeToMenu(Menu menu, const char[] ownerAuth, const char[] owne
 }
 
 public void AddKvGrenadeToMenu(Menu menu, KeyValues kv, const char[] ownerAuth, const char[] ownerName) {
-  float origin[3];
-  float angles[3];
-  char description[GRENADE_DESCRIPTION_LENGTH];
   char name[GRENADE_NAME_LENGTH];
   char strId[GRENADE_ID_LENGTH];
-
   kv.GetSectionName(strId, sizeof(strId));
-  kv.GetVector("origin", origin);
-  kv.GetVector("angles", angles);
-  kv.GetString("description", description, sizeof(description));
   kv.GetString("name", name, sizeof(name));
   AddGrenadeToMenu(menu, ownerAuth, ownerName, strId, name);
 }
