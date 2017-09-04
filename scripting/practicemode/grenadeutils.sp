@@ -129,8 +129,42 @@ public bool TeleportToSavedGrenadePosition(int client, const char[] targetAuth, 
   return success;
 }
 
+public bool ThrowGrenade(const char[] id) {
+  if (!g_CSUtilsLoaded) {
+    return false;
+  }
+
+  char typeString[32];
+  float grenadeOrigin[3];
+  float grenadeVelocity[3];
+  char auth[AUTH_LENGTH];
+  bool success = false;
+
+  if (!FindId(id, auth, sizeof(auth))) {
+    return false;
+  }
+
+  if (g_GrenadeLocationsKv.JumpToKey(auth)) {
+    if (g_GrenadeLocationsKv.JumpToKey(id)) {
+      g_GrenadeLocationsKv.GetVector("grenadeOrigin", grenadeOrigin);
+      g_GrenadeLocationsKv.GetVector("grenadeVelocity", grenadeVelocity);
+      g_GrenadeLocationsKv.GetString("greandeType", typeString, sizeof(typeString));
+      GrenadeType type = GrenadeTypeFromString(typeString);
+      if (IsGrenade(type)) {
+        success = true;
+        CSU_ThrowGrenade(0, type, grenadeOrigin, grenadeVelocity);
+      }
+      g_GrenadeLocationsKv.GoBack();
+    }
+    g_GrenadeLocationsKv.GoBack();
+  }
+
+  return success;
+}
+
 stock int SaveGrenadeToKv(int client, const float origin[3], const float angles[3],
-                          const char[] name, const char[] description = "",
+                          const float grenadeOrigin[3], const float grenadeVelocity[3],
+                          GrenadeType type, const char[] name, const char[] description = "",
                           const char[] categoryString = "") {
   g_UpdatedGrenadeKv = true;
   char idStr[GRENADE_ID_LENGTH];
@@ -148,6 +182,14 @@ stock int SaveGrenadeToKv(int client, const float origin[3], const float angles[
   g_GrenadeLocationsKv.SetString("name", name);
   g_GrenadeLocationsKv.SetVector("origin", origin);
   g_GrenadeLocationsKv.SetVector("angles", angles);
+  PrintToChatAll("g_CSUtilsLoaded = %d", g_CSUtilsLoaded);
+  if (g_CSUtilsLoaded) {
+    char grenadeTypeString[32];
+    GrenadeTypeString(type, grenadeTypeString, sizeof(grenadeTypeString));
+    g_GrenadeLocationsKv.SetString("grenadeType", grenadeTypeString);
+    g_GrenadeLocationsKv.SetVector("grenadeOrigin", grenadeOrigin);
+    g_GrenadeLocationsKv.SetVector("grenadeVelocity", grenadeVelocity);
+  }
   g_GrenadeLocationsKv.SetString("description", description);
   g_GrenadeLocationsKv.SetString("categories", categoryString);
 
@@ -234,6 +276,16 @@ public void GetGrenadeData(const char[] auth, const char[] id, const char[] key,
   }
 }
 
+public void GetGrenadeVector(const char[] auth, const char[] id, const char[] key, float vector[3]) {
+  if (g_GrenadeLocationsKv.JumpToKey(auth)) {
+    if (g_GrenadeLocationsKv.JumpToKey(id)) {
+      g_GrenadeLocationsKv.GetVector(key, vector);
+      g_GrenadeLocationsKv.GoBack();
+    }
+    g_GrenadeLocationsKv.GoBack();
+  }
+}
+
 public void SetGrenadeVectors(const char[] auth, const char[] id, const float[3] origin,
                        const float[3] angles) {
   g_UpdatedGrenadeKv = true;
@@ -241,6 +293,22 @@ public void SetGrenadeVectors(const char[] auth, const char[] id, const float[3]
     if (g_GrenadeLocationsKv.JumpToKey(id)) {
       g_GrenadeLocationsKv.SetVector("origin", origin);
       g_GrenadeLocationsKv.SetVector("angles", angles);
+      g_GrenadeLocationsKv.GoBack();
+    }
+    g_GrenadeLocationsKv.GoBack();
+  }
+}
+
+public void SetGrenadeParameters(const char[] auth, const char[] id, GrenadeType type,
+                          const float[3] grenadeOrigin, const float[3] grenadeVelocity) {
+  g_UpdatedGrenadeKv = true;
+  if (g_GrenadeLocationsKv.JumpToKey(auth)) {
+    if (g_GrenadeLocationsKv.JumpToKey(id)) {
+      char typeString[32];
+      GrenadeTypeString(type, typeString, sizeof(typeString));
+      g_GrenadeLocationsKv.SetString("greandeType", typeString);
+      g_GrenadeLocationsKv.SetVector("grenadeOrigin", grenadeOrigin);
+      g_GrenadeLocationsKv.SetVector("grenadeVelocity", grenadeVelocity);
       g_GrenadeLocationsKv.GoBack();
     }
     g_GrenadeLocationsKv.GoBack();
@@ -269,6 +337,15 @@ public void SetClientGrenadeVectors(int id, const float[3] origin, const float[3
   IntToString(id, nadeId, sizeof(nadeId));
   FindId(nadeId, auth, sizeof(auth));
   SetGrenadeVectors(auth, nadeId, origin, angles);
+}
+
+public void SetClientGrenadeParameters(int id, GrenadeType type, const float[3] grenadeOrigin,
+                                const float[3] grenadeVelocity) {
+  char auth[AUTH_LENGTH];
+  char nadeId[GRENADE_ID_LENGTH];
+  IntToString(id, nadeId, sizeof(nadeId));
+  FindId(nadeId, auth, sizeof(auth));
+  SetGrenadeParameters(auth, nadeId, type, grenadeOrigin, grenadeVelocity);
 }
 
 public void UpdateGrenadeName(int id, const char[] name) {
@@ -469,6 +546,9 @@ public int FindNextGrenadeId(int client, int currentId) {
 public int CopyGrenade(const char[] ownerAuth, const char[] nadeId, int client) {
   float origin[3];
   float angles[3];
+  float grenadeOrigin[3];
+  float grenadeVelocity[3];
+  char grenadeTypeString[32];
   char grenadeName[GRENADE_NAME_LENGTH];
   char description[GRENADE_DESCRIPTION_LENGTH];
   char categoryString[GRENADE_CATEGORY_LENGTH];
@@ -479,6 +559,9 @@ public int CopyGrenade(const char[] ownerAuth, const char[] nadeId, int client) 
       success = true;
       g_GrenadeLocationsKv.GetVector("origin", origin);
       g_GrenadeLocationsKv.GetVector("angles", angles);
+      g_GrenadeLocationsKv.GetVector("grenadeOrigin", grenadeOrigin);
+      g_GrenadeLocationsKv.GetVector("grenadeVelocity", grenadeVelocity);
+      g_GrenadeLocationsKv.GetString("grenadeType", grenadeTypeString, sizeof(grenadeTypeString));
       g_GrenadeLocationsKv.GetString("name", grenadeName, sizeof(grenadeName));
       g_GrenadeLocationsKv.GetString("description", description, sizeof(description));
       g_GrenadeLocationsKv.GetString("categories", categoryString, sizeof(categoryString));
@@ -488,7 +571,9 @@ public int CopyGrenade(const char[] ownerAuth, const char[] nadeId, int client) 
   }
 
   if (success) {
-    return SaveGrenadeToKv(client, origin, angles, grenadeName, description, categoryString);
+    return SaveGrenadeToKv(client, origin, angles, grenadeOrigin, grenadeVelocity,
+                           GrenadeTypeFromString(grenadeTypeString), grenadeName, description,
+                           categoryString);
   } else {
     return -1;
   }

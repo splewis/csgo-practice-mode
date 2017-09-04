@@ -8,6 +8,7 @@
 #include <sourcemod>
 
 #undef REQUIRE_PLUGIN
+#include <csutils>
 #include <pugsetup>
 #include <updater>
 
@@ -20,6 +21,7 @@
 
 bool g_InPracticeMode = false;
 bool g_PugsetupLoaded = false;
+bool g_CSUtilsLoaded = false;
 
 // These data structures maintain a list of settings for a toggle-able option:
 // the name, the cvar/value for the enabled option, and the cvar/value for the disabled option.
@@ -92,6 +94,10 @@ ArrayList g_ClientGrenadeThrowTimes[MAXPLAYERS + 1];  // ArrayList of <int:entit
 bool g_TestingFlash[MAXPLAYERS + 1];
 float g_TestingFlashOrigins[MAXPLAYERS + 1][3];
 float g_TestingFlashAngles[MAXPLAYERS + 1][3];
+
+GrenadeType g_LastGrenadeType[MAXPLAYERS + 1];
+float g_LastGrenadeOrigin[MAXPLAYERS + 1][3];
+float g_LastGrenadeVelocity[MAXPLAYERS + 1][3];
 
 // Respawn values set by clients in the current session
 bool g_SavedRespawnActive[MAXPLAYERS + 1];
@@ -262,6 +268,9 @@ public void OnPluginStart() {
   RegConsoleCmd("sm_worstspawn", Command_GotoWorstSpawn);
   RegConsoleCmd("sm_namespawn", Command_SaveSpawn);
 
+  // csutils powered nade stuff.
+  RegConsoleCmd("sm_throw", Command_Throw);
+
   // Other commands
   RegConsoleCmd("sm_testflash", Command_TestFlash);
   RegConsoleCmd("sm_stopflash", Command_StopFlash);
@@ -292,6 +301,9 @@ public void OnPluginStart() {
   PM_AddChatAlias(".bestspawn", "sm_gotospawn");
   PM_AddChatAlias(".worstspawn", "sm_worstspawn");
   PM_AddChatAlias(".namespawn", "sm_namespawn");
+
+  PM_AddChatAlias(".throw", "sm_throw");
+  PM_AddChatAlias(".rethrow", "sm_throw");
 
   PM_AddChatAlias(".flash", "sm_testflash");
   PM_AddChatAlias(".testflash", "sm_testflash");
@@ -334,6 +346,7 @@ public void OnPluginStart() {
   RegConsoleCmd("sm_renamegrenade", Command_RenameGrenade);
   RegConsoleCmd("sm_savegrenade", Command_SaveGrenade);
   RegConsoleCmd("sm_movegrenade", Command_MoveGrenade);
+  RegConsoleCmd("sm_updategrenade", Command_UpdateGrenade);
   RegConsoleCmd("sm_adddescription", Command_GrenadeDescription);
   RegConsoleCmd("sm_deletegrenade", Command_DeleteGrenade);
   RegConsoleCmd("sm_categories", Command_Categories);
@@ -352,7 +365,7 @@ public void OnPluginStart() {
   PM_AddChatAlias(".savenade", "sm_savegrenade");
   PM_AddChatAlias(".save", "sm_savegrenade");
   PM_AddChatAlias(".resave", "sm_movegrenade");
-  PM_AddChatAlias(".update", "sm_movegrenade");
+  PM_AddChatAlias(".update", "sm_updategrenade");
   PM_AddChatAlias(".move", "sm_movegrenade");
   PM_AddChatAlias(".desc", "sm_adddescription");
   PM_AddChatAlias(".rename", "sm_renamegrenade");
@@ -448,6 +461,7 @@ public void OnPluginStart() {
   HookEvent("player_hurt", Event_DamageDealtEvent, EventHookMode_Pre);
 
   g_PugsetupLoaded = LibraryExists("pugsetup");
+  g_CSUtilsLoaded = LibraryExists("csutils");
 
   CreateTimer(1.0, Timer_GivePlayersMoney, _, TIMER_REPEAT);
 }
@@ -460,6 +474,7 @@ public void OnPluginEnd() {
 
 public void OnLibraryAdded(const char[] name) {
   g_PugsetupLoaded = LibraryExists("pugsetup");
+  g_CSUtilsLoaded = LibraryExists("csutils");
   if (LibraryExists("updater")) {
     Updater_AddPlugin(UPDATE_URL);
   }
@@ -467,6 +482,7 @@ public void OnLibraryAdded(const char[] name) {
 
 public void OnLibraryRemoved(const char[] name) {
   g_PugsetupLoaded = LibraryExists("pugsetup");
+  g_CSUtilsLoaded = LibraryExists("csutils");
 }
 
 /**
@@ -1179,4 +1195,11 @@ bool CanStartPracticeMode(int client) {
     return false;
   }
   return CheckCommandAccess(client, "sm_prac", ADMFLAG_CHANGEMAP);
+}
+
+public void CSU_OnThrowGrenade(int client, GrenadeType grenadeType, const float origin[3],
+                        const float velocity[3]) {
+  g_LastGrenadeType[client] = grenadeType;
+  g_LastGrenadeOrigin[client] = origin;
+  g_LastGrenadeVelocity[client] = velocity;
 }

@@ -117,6 +117,11 @@ public Action Command_GotoNade(int client, int args) {
   char auth[AUTH_LENGTH];
 
   if (args >= 1 && GetCmdArg(1, arg1, sizeof(arg1))) {
+    char id[GRENADE_ID_LENGTH];
+    if (!FindGrenade(arg1, id)) {
+
+    }
+
     if (!FindId(arg1, auth, sizeof(auth)) || !TeleportToSavedGrenadePosition(client, auth, arg1)) {
       PM_Message(client, "Grenade id %s not found.", arg1);
       return Plugin_Handled;
@@ -259,6 +264,12 @@ public Action Command_SaveGrenade(int client, int args) {
   GetClientAbsOrigin(client, origin);
   GetClientEyeAngles(client, angles);
 
+  GrenadeType grenadeType = g_LastGrenadeType[client];
+  float grenadeOrigin[3];
+  float grenadeVelocity[3];
+  grenadeOrigin = g_LastGrenadeOrigin[client];
+  grenadeVelocity = g_LastGrenadeVelocity[client];
+
   Action ret = Plugin_Continue;
   Call_StartForward(g_OnGrenadeSaved);
   Call_PushCell(client);
@@ -268,7 +279,8 @@ public Action Command_SaveGrenade(int client, int args) {
   Call_Finish(ret);
 
   if (ret < Plugin_Handled) {
-    int nadeId = SaveGrenadeToKv(client, origin, angles, name);
+    int nadeId =
+        SaveGrenadeToKv(client, origin, angles, grenadeOrigin, grenadeVelocity, grenadeType, name);
     g_CurrentSavedGrenadeId[client] = nadeId;
     PM_Message(
         client,
@@ -300,6 +312,32 @@ public Action Command_MoveGrenade(int client, int args) {
   GetClientEyeAngles(client, angles);
   SetClientGrenadeVectors(nadeId, origin, angles);
   PM_Message(client, "Updated grenade position.");
+  return Plugin_Handled;
+}
+
+public Action Command_UpdateGrenade(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  int nadeId = g_CurrentSavedGrenadeId[client];
+  if (nadeId < 0) {
+    return Plugin_Handled;
+  }
+
+  if (!CanEditGrenade(client, nadeId)) {
+    PM_Message(client, "You aren't the owner of this grenade.");
+    return Plugin_Handled;
+  }
+
+  float origin[3];
+  float angles[3];
+  GetClientAbsOrigin(client, origin);
+  GetClientEyeAngles(client, angles);
+  SetClientGrenadeVectors(nadeId, origin, angles);
+  SetClientGrenadeParameters(nadeId, g_LastGrenadeType[client], g_LastGrenadeOrigin[client],
+                             g_LastGrenadeVelocity[client]);
+  PM_Message(client, "Updated grenade.");
   return Plugin_Handled;
 }
 
@@ -405,6 +443,52 @@ public Action Command_GotoWorstSpawn(int client, int args) {
     SetEntityMoveType(client, MOVETYPE_WALK);
     PM_Message(client, "Moved to spawn %d (of %d).", spawnIndex + 1, spawnList.Length);
   }
+  return Plugin_Handled;
+}
+
+static void ClientThrowGrenade(int client, const char[] id) {
+  if (!ThrowGrenade(id)) {
+    PM_Message(
+        client,
+        "No grenade parameters found for %s. Try \".goto %s\", throw the nade, and \".update\" and try again.",
+        id, id);
+  }
+}
+
+public Action Command_Throw(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  if (!g_CSUtilsLoaded) {
+    PM_Message(client, "You need the csutils plugin installed to use that command.");
+    return Plugin_Handled;
+  }
+
+  char argString[256];
+  GetCmdArgString(argString, sizeof(argString));
+  if (args >= 1) {
+    char data[128];
+    ArrayList ids = new ArrayList(GRENADE_CATEGORY_LENGTH);
+    FindGrenades(argString, ids, data, sizeof(data));
+    for (int i = 0; i < ids.Length; i++) {
+      char id[GRENADE_ID_LENGTH];
+      ids.GetString(i, id, sizeof(id));
+      ClientThrowGrenade(client, id);
+    }
+    if (ids.Length == 0) {
+      PM_Message(client, "No nades match %s", argString);
+    }
+    delete ids;
+
+  } else {
+    // No arg, throw last nade.
+    if (IsGrenade(g_LastGrenadeType[client])) {
+      CSU_ThrowGrenade(client, g_LastGrenadeType[client], g_LastGrenadeOrigin[client],
+                       g_LastGrenadeVelocity[client]);
+    }
+  }
+
   return Plugin_Handled;
 }
 
