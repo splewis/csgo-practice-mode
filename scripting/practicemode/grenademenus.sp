@@ -26,10 +26,11 @@ stock void GivePracticeMenu(int client, int style = ITEMDRAW_DEFAULT, int pos = 
     AddMenuItem(menu, name, buffer, style);
   }
 
-  if (pos == -1)
+  if (pos == -1) {
     DisplayMenu(menu, client, MENU_TIME_FOREVER);
-  else
+  } else {
     DisplayMenuAtItem(menu, client, pos, MENU_TIME_FOREVER);
+  }
 }
 
 public int PracticeMenuHandler(Menu menu, MenuAction action, int param1, int param2) {
@@ -224,7 +225,7 @@ public int Grenade_PlayerAndCategoryHandler(Menu menu, MenuAction action, int pa
     menu.GetItem(param2, buffer, sizeof(buffer));
 
     if (StrEqual(buffer, "all")) {
-      GiveGrenadeMenu(client, GrenadeMenuType_OneCategory, 0, "");
+      GiveGrenadeMenu(client, GrenadeMenuType_OneCategory, 0, "all");
       return;
     }
 

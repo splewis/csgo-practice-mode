@@ -30,6 +30,22 @@ public bool FindGrenade(const char[] input, char id[GRENADE_ID_LENGTH]) {
 public GrenadeMenuType FindGrenades(const char[] input, ArrayList ids, char[] data, int len) {
   char id[GRENADE_ID_LENGTH];
 
+  // Try a list of ids.
+  int idx = 0;
+  int cur_idx = 0;
+  char auth[AUTH_LENGTH];
+  while (idx >= 0) {
+    idx = BreakString(input[cur_idx], id, sizeof(id));
+    cur_idx += idx;
+    if (FindId(id, auth, sizeof(auth))) {
+      ids.PushString(id);
+    }
+  }
+  if (ids.Length > 0) {
+    strcopy(data, len, input);
+    return GrenadeMenuType_MatchingId;
+  }
+
   // Try player name match first, and a steamid search.
   // data = auth.
   char name[MAX_NAME_LENGTH];
@@ -59,22 +75,6 @@ public GrenadeMenuType FindGrenades(const char[] input, ArrayList ids, char[] da
   if (FindMatchingGrenadesByName(input, ids)) {
     strcopy(data, len, input);
     return GrenadeMenuType_MatchingName;
-  }
-
-  // Then try a list of ids.
-  int idx = 0;
-  int cur_idx = 0;
-  char auth[AUTH_LENGTH];
-  while (idx >= 0) {
-    idx = BreakString(input[cur_idx], id, sizeof(id));
-    cur_idx += idx;
-    if (FindId(id, auth, sizeof(auth))) {
-      ids.PushString(id);
-    }
-  }
-  if (ids.Length > 0) {
-    strcopy(data, len, input);
-    return GrenadeMenuType_MatchingId;
   }
 
   return GrenadeMenuType_Invalid;

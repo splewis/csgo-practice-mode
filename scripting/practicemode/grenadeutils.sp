@@ -148,7 +148,7 @@ public bool ThrowGrenade(const char[] id) {
     if (g_GrenadeLocationsKv.JumpToKey(id)) {
       g_GrenadeLocationsKv.GetVector("grenadeOrigin", grenadeOrigin);
       g_GrenadeLocationsKv.GetVector("grenadeVelocity", grenadeVelocity);
-      g_GrenadeLocationsKv.GetString("greandeType", typeString, sizeof(typeString));
+      g_GrenadeLocationsKv.GetString("grenadeType", typeString, sizeof(typeString));
       GrenadeType type = GrenadeTypeFromString(typeString);
       if (IsGrenade(type)) {
         success = true;
@@ -182,7 +182,6 @@ stock int SaveGrenadeToKv(int client, const float origin[3], const float angles[
   g_GrenadeLocationsKv.SetString("name", name);
   g_GrenadeLocationsKv.SetVector("origin", origin);
   g_GrenadeLocationsKv.SetVector("angles", angles);
-  PrintToChatAll("g_CSUtilsLoaded = %d", g_CSUtilsLoaded);
   if (g_CSUtilsLoaded) {
     char grenadeTypeString[32];
     GrenadeTypeString(type, grenadeTypeString, sizeof(grenadeTypeString));
@@ -306,7 +305,7 @@ public void SetGrenadeParameters(const char[] auth, const char[] id, GrenadeType
     if (g_GrenadeLocationsKv.JumpToKey(id)) {
       char typeString[32];
       GrenadeTypeString(type, typeString, sizeof(typeString));
-      g_GrenadeLocationsKv.SetString("greandeType", typeString);
+      g_GrenadeLocationsKv.SetString("grenadeType", typeString);
       g_GrenadeLocationsKv.SetVector("grenadeOrigin", grenadeOrigin);
       g_GrenadeLocationsKv.SetVector("grenadeVelocity", grenadeVelocity);
       g_GrenadeLocationsKv.GoBack();

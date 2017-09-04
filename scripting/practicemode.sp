@@ -346,7 +346,9 @@ public void OnPluginStart() {
   RegConsoleCmd("sm_renamegrenade", Command_RenameGrenade);
   RegConsoleCmd("sm_savegrenade", Command_SaveGrenade);
   RegConsoleCmd("sm_movegrenade", Command_MoveGrenade);
+  RegConsoleCmd("sm_savethrow", Command_SaveThrow);
   RegConsoleCmd("sm_updategrenade", Command_UpdateGrenade);
+  RegConsoleCmd("sm_clearthrow", Command_ClearThrow);
   RegConsoleCmd("sm_adddescription", Command_GrenadeDescription);
   RegConsoleCmd("sm_deletegrenade", Command_DeleteGrenade);
   RegConsoleCmd("sm_categories", Command_Categories);
@@ -366,6 +368,9 @@ public void OnPluginStart() {
   PM_AddChatAlias(".save", "sm_savegrenade");
   PM_AddChatAlias(".resave", "sm_movegrenade");
   PM_AddChatAlias(".update", "sm_updategrenade");
+  PM_AddChatAlias(".savethrow", "sm_savethrow");
+  PM_AddChatAlias(".updatethrow", "sm_savethrow");
+  PM_AddChatAlias(".clearthrow", "sm_clearthrow");
   PM_AddChatAlias(".move", "sm_movegrenade");
   PM_AddChatAlias(".desc", "sm_adddescription");
   PM_AddChatAlias(".rename", "sm_renamegrenade");
@@ -393,7 +398,7 @@ public void OnPluginStart() {
   g_MaxHistorySizeCvar =
       CreateConVar("sm_practicemode_max_grenade_history_size", "1000",
                    "Maximum number of grenades throws saved in history per-client");
-  g_MaxGrenadesSavedCvar = CreateConVar("sm_practicemode_max_grenades_saved", "256",
+  g_MaxGrenadesSavedCvar = CreateConVar("sm_practicemode_max_grenades_saved", "512",
                                         "Maximum number of grenades saved per-map per-client");
   g_PracModeCanBeStartedCvar =
       CreateConVar("sm_practicemode_can_be_started", "1", "Whether practicemode may be started");
@@ -470,6 +475,7 @@ public void OnPluginEnd() {
   if (g_InPracticeMode) {
     ExitPracticeMode();
   }
+  MaybeWriteNewGrenadeData();
 }
 
 public void OnLibraryAdded(const char[] name) {
@@ -520,6 +526,7 @@ public void OnClientConnected(int client) {
   g_RunningTimeCommand[client] = false;
   g_RunningLiveTimeCommand[client] = false;
   g_SavedRespawnActive[client] = false;
+  g_LastGrenadeType[client] = GrenadeType_Count;
 }
 
 public void OnMapStart() {

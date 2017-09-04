@@ -285,6 +285,14 @@ public Action Command_SaveGrenade(int client, int args) {
         client,
         "Saved grenade (id %d). Type .desc <description> to add a description or .delete to delete this position.",
         nadeId);
+
+    if (g_CSUtilsLoaded) {
+      if (IsGrenade(g_LastGrenadeType[client])) {
+        PM_Message(client, "Saved grenade throw for a %s. Use .clearthrow or .savethrow to change the grenade parameters.");
+      } else {
+        PM_Message(client, "No grenade throw parameters saved. Throw it and update .savethrow to save them.");
+      }
+    }
   }
 
   return Plugin_Handled;
@@ -314,6 +322,32 @@ public Action Command_MoveGrenade(int client, int args) {
   return Plugin_Handled;
 }
 
+public Action Command_SaveThrow(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  if (!g_CSUtilsLoaded) {
+    PM_Message(client, "You need the csutils plugin installed to use that command.");
+    return Plugin_Handled;
+  }
+
+  int nadeId = g_CurrentSavedGrenadeId[client];
+  if (nadeId < 0) {
+    return Plugin_Handled;
+  }
+
+  if (!CanEditGrenade(client, nadeId)) {
+    PM_Message(client, "You aren't the owner of this grenade.");
+    return Plugin_Handled;
+  }
+
+  SetClientGrenadeParameters(nadeId, g_LastGrenadeType[client], g_LastGrenadeOrigin[client],
+                             g_LastGrenadeVelocity[client]);
+  PM_Message(client, "Updated grenade throw parameters.");
+  return Plugin_Handled;
+}
+
 public Action Command_UpdateGrenade(int client, int args) {
   if (!g_InPracticeMode) {
     return Plugin_Handled;
@@ -334,9 +368,44 @@ public Action Command_UpdateGrenade(int client, int args) {
   GetClientAbsOrigin(client, origin);
   GetClientEyeAngles(client, angles);
   SetClientGrenadeVectors(nadeId, origin, angles);
+  bool updatedParameters = false;
+  if (g_CSUtilsLoaded && IsGrenade(g_LastGrenadeType[client])) {
+    updatedParameters = true;
+    SetClientGrenadeParameters(nadeId, g_LastGrenadeType[client], g_LastGrenadeOrigin[client],
+                               g_LastGrenadeVelocity[client]);
+  }
+
+  if (updatedParameters) {
+    PM_Message(client, "Updated grenade position and throwing parameters.");
+  } else {
+    PM_Message(client, "Updated grenade position.");
+  }
+  return Plugin_Handled;
+}
+
+public Action Command_ClearThrow(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  if (!g_CSUtilsLoaded) {
+    PM_Message(client, "You need the csutils plugin installed to use that command.");
+    return Plugin_Handled;
+  }
+
+  int nadeId = g_CurrentSavedGrenadeId[client];
+  if (nadeId < 0) {
+    return Plugin_Handled;
+  }
+
+  if (!CanEditGrenade(client, nadeId)) {
+    PM_Message(client, "You aren't the owner of this grenade.");
+    return Plugin_Handled;
+  }
+
   SetClientGrenadeParameters(nadeId, g_LastGrenadeType[client], g_LastGrenadeOrigin[client],
                              g_LastGrenadeVelocity[client]);
-  PM_Message(client, "Updated grenade.");
+  PM_Message(client, "Cleared nade throwing parameters.");
   return Plugin_Handled;
 }
 
@@ -476,6 +545,18 @@ public Action Command_Throw(int client, int args) {
       FindGrenades(argString, ids, data, sizeof(data));
     }
 
+    char idString[256];
+    for (int i = 0; i < ids.Length; i++) {
+      char id[GRENADE_ID_LENGTH];
+      ids.GetString(i, id, sizeof(id));
+      StrCat(idString, sizeof(idString), id);
+      if (i + 1 != ids.Length) {
+        StrCat(idString, sizeof(idString), ", ");
+      }
+    }
+    PM_Message(client, "Throwing nade ids %s", idString);
+
+    // TODO: print the nades being thrown here.
     for (int i = 0; i < ids.Length; i++) {
       char id[GRENADE_ID_LENGTH];
       ids.GetString(i, id, sizeof(id));
