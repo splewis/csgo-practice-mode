@@ -33,7 +33,8 @@ public GrenadeMenuType FindGrenades(const char[] input, ArrayList ids, char[] da
   // Try player name match first, and a steamid search.
   // data = auth.
   char name[MAX_NAME_LENGTH];
-  if (FindGrenadeTarget(input, name, sizeof(name), data, len) && FindPlayerNades(data, ids)) {
+  if (strlen(input) >= 2 && FindGrenadeTarget(input, name, sizeof(name), data, len) &&
+      FindPlayerNades(data, ids)) {
     return GrenadeMenuType_OnePlayer;
   }
   if (g_GrenadeLocationsKv.JumpToKey(input)) {

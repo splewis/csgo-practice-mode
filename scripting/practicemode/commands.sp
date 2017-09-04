@@ -119,7 +119,6 @@ public Action Command_GotoNade(int client, int args) {
   if (args >= 1 && GetCmdArg(1, arg1, sizeof(arg1))) {
     char id[GRENADE_ID_LENGTH];
     if (!FindGrenade(arg1, id)) {
-
     }
 
     if (!FindId(arg1, auth, sizeof(auth)) || !TeleportToSavedGrenadePosition(client, auth, arg1)) {
@@ -470,7 +469,13 @@ public Action Command_Throw(int client, int args) {
   if (args >= 1) {
     char data[128];
     ArrayList ids = new ArrayList(GRENADE_CATEGORY_LENGTH);
-    FindGrenades(argString, ids, data, sizeof(data));
+
+    if (StrEqual(argString, "current", false)) {
+      FindGrenades(g_ClientLastMenuData[client], ids, data, sizeof(data));
+    } else {
+      FindGrenades(argString, ids, data, sizeof(data));
+    }
+
     for (int i = 0; i < ids.Length; i++) {
       char id[GRENADE_ID_LENGTH];
       ids.GetString(i, id, sizeof(id));
