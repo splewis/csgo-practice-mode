@@ -95,6 +95,7 @@ public bool FindPlayerNades(const char[] auth, ArrayList ids) {
 }
 
 public bool FindCategoryNades(const char[] category, ArrayList ids) {
+  bool success = false;
   char id[GRENADE_ID_LENGTH];
   bool allNades = StrEqual(category, "all", false);
   if (g_GrenadeLocationsKv.GotoFirstSubKey()) {
@@ -108,6 +109,7 @@ public bool FindCategoryNades(const char[] category, ArrayList ids) {
           AddCategoriesToList(categoryString, cats);
           if (allNades || FindStringInList(cats, GRENADE_CATEGORY_LENGTH, category, false) >= 0) {
             ids.PushString(id);
+            success = true;
           }
           delete cats;
         } while (g_GrenadeLocationsKv.GotoNextKey());
@@ -116,6 +118,7 @@ public bool FindCategoryNades(const char[] category, ArrayList ids) {
     } while (g_GrenadeLocationsKv.GotoNextKey());
     g_GrenadeLocationsKv.GoBack();
   }
+  return success;
 }
 
 public bool FindGrenadeByName(const char[] auth, const char[] lookupName,
