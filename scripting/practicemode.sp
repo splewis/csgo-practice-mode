@@ -8,7 +8,9 @@
 #include <sourcemod>
 
 #undef REQUIRE_PLUGIN
-#include <csutils>
+// #include <csutils>
+#include "include/csutils.inc"
+
 #include <pugsetup>
 #include <updater>
 
@@ -343,6 +345,7 @@ public void OnPluginStart() {
   // Saved grenade location commands
   RegConsoleCmd("sm_gotogrenade", Command_GotoNade);
   RegConsoleCmd("sm_grenades", Command_Grenades);
+  RegConsoleCmd("sm_find", Command_Find);
   RegConsoleCmd("sm_renamegrenade", Command_RenameGrenade);
   RegConsoleCmd("sm_savegrenade", Command_SaveGrenade);
   RegConsoleCmd("sm_movegrenade", Command_MoveGrenade);
@@ -363,6 +366,7 @@ public void OnPluginStart() {
   RegConsoleCmd("sm_stopall", Command_StopAll);
   PM_AddChatAlias(".nades", "sm_grenades");
   PM_AddChatAlias(".grenades", "sm_grenades");
+  PM_AddChatAlias(".find", "sm_find");
   PM_AddChatAlias(".addnade", "sm_savegrenade");
   PM_AddChatAlias(".savenade", "sm_savegrenade");
   PM_AddChatAlias(".save", "sm_savegrenade");

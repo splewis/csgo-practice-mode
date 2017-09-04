@@ -162,6 +162,21 @@ public Action Command_Grenades(int client, int args) {
   return Plugin_Handled;
 }
 
+public Action Command_Find(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  char arg[MAX_NAME_LENGTH];
+  if (args >= 1 && GetCmdArgString(arg, sizeof(arg))) {
+    GiveGrenadeMenu(client, GrenadeMenuType_MatchingName, 0, arg);
+  } else {
+    PM_Message(client, "Usage: .find <arg>");
+  }
+
+  return Plugin_Handled;
+}
+
 public Action Command_GrenadeDescription(int client, int args) {
   if (!g_InPracticeMode) {
     return Plugin_Handled;
@@ -288,13 +303,18 @@ public Action Command_SaveGrenade(int client, int args) {
 
     if (g_CSUtilsLoaded) {
       if (IsGrenade(g_LastGrenadeType[client])) {
-        PM_Message(client, "Saved grenade throw for a %s. Use .clearthrow or .savethrow to change the grenade parameters.");
+        PM_Message(
+            client,
+            "Saved grenade throw for a %s. Use .clearthrow or .savethrow to change the grenade parameters.");
       } else {
-        PM_Message(client, "No grenade throw parameters saved. Throw it and update .savethrow to save them.");
+        PM_Message(
+            client,
+            "No grenade throw parameters saved. Throw it and update .savethrow to save them.");
       }
     }
   }
 
+  g_LastGrenadeType[client] = GrenadeType_Count;
   return Plugin_Handled;
 }
 
@@ -345,6 +365,7 @@ public Action Command_SaveThrow(int client, int args) {
   SetClientGrenadeParameters(nadeId, g_LastGrenadeType[client], g_LastGrenadeOrigin[client],
                              g_LastGrenadeVelocity[client]);
   PM_Message(client, "Updated grenade throw parameters.");
+  g_LastGrenadeType[client] = GrenadeType_Count;
   return Plugin_Handled;
 }
 
@@ -380,6 +401,8 @@ public Action Command_UpdateGrenade(int client, int args) {
   } else {
     PM_Message(client, "Updated grenade position.");
   }
+
+  g_LastGrenadeType[client] = GrenadeType_Count;
   return Plugin_Handled;
 }
 
