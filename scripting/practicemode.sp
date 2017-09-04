@@ -189,6 +189,7 @@ Handle g_OnPracticeModeSettingsRead = INVALID_HANDLE;
 
 #include "practicemode/bots.sp"
 #include "practicemode/commands.sp"
+#include "practicemode/grenadecommands.sp"
 #include "practicemode/grenadefilters.sp"
 #include "practicemode/grenademenus.sp"
 #include "practicemode/grenadeutils.sp"
