@@ -62,9 +62,11 @@ public GrenadeMenuType FindGrenades(const char[] input, ArrayList ids, char[] da
 
   // Then try a list of ids.
   int idx = 0;
+  int cur_idx = 0;
   char auth[AUTH_LENGTH];
   while (idx >= 0) {
-    idx = BreakString(input[idx], id, sizeof(id));
+    idx = BreakString(input[cur_idx], id, sizeof(id));
+    cur_idx += idx;
     if (FindId(id, auth, sizeof(auth))) {
       ids.PushString(id);
     }
