@@ -135,11 +135,13 @@ float g_LastTimeCommand[MAXPLAYERS + 1];
 MoveType g_PreFastForwardMoveTypes[MAXPLAYERS + 1];
 
 enum GrenadeMenuType {
+  GrenadeMenuType_Invalid = -1,
   GrenadeMenuType_PlayersAndCategories = 0,
   GrenadeMenuType_Categories = 1,
   GrenadeMenuType_OnePlayer = 2,
   GrenadeMenuType_OneCategory = 3,  // Note: empty category "" = all nades.
   GrenadeMenuType_MatchingName = 4,
+  GrenadeMenuType_MatchingId = 5,
 };
 
 // All the data we need to call GiveGrenadeMenu for a client to reopen the .nades menu
@@ -179,6 +181,7 @@ Handle g_OnPracticeModeSettingsRead = INVALID_HANDLE;
 
 #include "practicemode/bots.sp"
 #include "practicemode/commands.sp"
+#include "practicemode/grenadefilters.sp"
 #include "practicemode/grenademenus.sp"
 #include "practicemode/grenadeutils.sp"
 #include "practicemode/natives.sp"
@@ -434,8 +437,8 @@ public void OnPluginStart() {
       "practicemode_leave_menu_open", "Whether to leave the .nades menu open after slecting a nade",
       CookieAccess_Public);
   g_NoGrenadeTrajectoryCookie =
-      RegClientCookie("practicemode_no_traject",
-                      "Whether to whether show grenade trajectories", CookieAccess_Public);
+      RegClientCookie("practicemode_no_traject", "Whether to whether show grenade trajectories",
+                      CookieAccess_Public);
 
   // Remove cheats so sv_cheats isn't required for this:
   RemoveCvarFlag(g_GrenadeTrajectoryCvar, FCVAR_CHEAT);

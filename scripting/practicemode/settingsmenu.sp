@@ -47,8 +47,7 @@ public int SettingsMenuHandler(Menu menu, MenuAction action, int param1, int par
       SetCookieBool(
           client, g_NoGrenadeTrajectoryCookie,
           !GetCookieBool(client, g_NoGrenadeTrajectoryCookie, NO_GRENADE_TRAJECTORY_DEFAULT));
-    }
-      else {
+    } else {
       LogError("SettingsMenuHandler uknown option: %s", buffer);
     }
 

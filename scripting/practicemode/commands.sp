@@ -135,32 +135,14 @@ public Action Command_Grenades(int client, int args) {
   }
 
   char arg[MAX_NAME_LENGTH];
-  char auth[AUTH_LENGTH];
-  char name[MAX_NAME_LENGTH];
-
   if (args >= 1 && GetCmdArgString(arg, sizeof(arg))) {
-    if (StrEqual(arg, "all", false)) {
-      GiveGrenadeMenu(client, GrenadeMenuType_OneCategory, 0, "all");
-      return Plugin_Handled;
-    }
-
-    // Get a lower case version of the arg for a category search.
-    char matchingCategory[GRENADE_CATEGORY_LENGTH];
-    FindMatchingCategory(arg, matchingCategory, sizeof(matchingCategory));
-
-    if (FindGrenadeTarget(arg, name, sizeof(name), auth, sizeof(auth))) {
-      // GiveGrenadesForPlayer(client, name, auth);
-      GiveGrenadeMenu(client, GrenadeMenuType_OnePlayer, 0, auth);
-      return Plugin_Handled;
-    } else if (FindStringInList(g_KnownNadeCategories, GRENADE_CATEGORY_LENGTH, matchingCategory,
-                                false) >= 0) {
-      GiveGrenadeMenu(client, GrenadeMenuType_OneCategory, 0, matchingCategory);
-      return Plugin_Handled;
-    }
-
     ArrayList ids = new ArrayList(GRENADE_ID_LENGTH);
-    if (FindMatchingGrenadesByName(arg, ids)) {
-      GiveGrenadeMenu(client, GrenadeMenuType_MatchingName, 0, arg);
+    char data[256];
+    GrenadeMenuType type = FindGrenades(arg, ids, data, sizeof(data));
+    if (type != GrenadeMenuType_Invalid) {
+      GiveGrenadeMenu(client, type, 0, data, ids);
+    } else {
+      PM_Message(client, "No matching grenades found.");
     }
     delete ids;
 
