@@ -238,6 +238,7 @@ public void OnPluginStart() {
   HookEvent("weapon_fire", Event_WeaponFired);
   HookEvent("flashbang_detonate", Event_FlashDetonate);
   HookEvent("smokegrenade_detonate", Event_SmokeDetonate);
+  HookEvent("player_blind", Event_PlayerBlind);
 
   for (int i = 0; i <= MAXPLAYERS; i++) {
     g_GrenadeHistoryPositions[i] = new ArrayList(3);
@@ -1103,15 +1104,18 @@ public Action Event_FlashDetonate(Event event, const char[] name, bool dontBroad
   if (IsPlayer(client) && g_TestingFlash[client]) {
     // Get the impact of the flash next frame, since doing it in
     // this frame doesn't work.
-    RequestFrame(GetFlashInfo, GetClientSerial(client));
+    RequestFrame(GetTestingFlashInfo, GetClientSerial(client));
   }
 }
 
-public void GetFlashInfo(int serial) {
+public float GetFlashDuration(int client) {
+  return GetEntDataFloat(client, FindSendPropInfo("CCSPlayer", "m_flFlashDuration"));
+}
+
+public void GetTestingFlashInfo(int serial) {
   int client = GetClientFromSerial(serial);
   if (IsPlayer(client) && g_TestingFlash[client]) {
-    float flashDuration =
-        GetEntDataFloat(client, FindSendPropInfo("CCSPlayer", "m_flFlashDuration"));
+    float flashDuration = GetFlashDuration(client);
     PM_Message(client, "Flash duration: %.1f seconds", flashDuration);
 
     if (flashDuration < g_FlashEffectiveThresholdCvar.FloatValue) {

@@ -55,6 +55,19 @@ stock int GetClientBot(int client, int index = -1) {
   return -1;
 }
 
+public int GetBotsOwner(int bot) {
+  if (!IsPMBot(bot)) {
+    return -1;
+  }
+  for (int i = 0; i <= MaxClients; i++) {
+    ArrayList list = g_ClientBots[i];
+    if (list.FindValue(bot) >= 0) {
+      return i;
+    }
+  }
+  return -1;
+}
+
 stock void KickClientBot(int client, int index = -1) {
   int bot = GetClientBot(client, index);
   if (bot > 0) {
@@ -268,4 +281,19 @@ public Action Event_DamageDealtEvent(Event event, const char[] name, bool dontBr
   }
 
   return Plugin_Continue;
+}
+
+public Action Event_PlayerBlind(Event event, const char[] name, bool dontBroadcast) {
+  if (!g_InPracticeMode) {
+    return;
+  }
+
+  int userid = event.GetInt("userid");
+  int client = GetClientOfUserId(userid);
+  if (IsPMBot(client)) {
+    int owner = GetBotsOwner(client);
+    if (IsPlayer(owner)) {
+      PM_Message(owner, "---> %.1f second flash for BOT %N", GetFlashDuration(client), client);
+    }
+  }
 }
