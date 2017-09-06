@@ -1190,7 +1190,7 @@ public void OnClientSayCommand_Post(int client, const char[] command, const char
 }
 
 public void ShowHelpInfo(int client) {
-  ShowMOTDPanel(client, "Practicemode Help", "http://csgo.splewis.net/redirect_practicemode_help",
+  ShowMOTDPanel(client, "Practicemode Help", "http://whiffcity.com/redirect_practicemode_help",
                 MOTDPANEL_TYPE_URL);
   QueryClientConVar(client, "cl_disablehtmlmotd", CheckMOTDAllowed, client);
 }

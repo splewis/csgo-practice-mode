@@ -282,7 +282,8 @@ public Action Command_SaveGrenade(int client, int args) {
         GrenadeTypeString(g_LastGrenadeType[client], grenadeName, sizeof(grenadeName));
         PM_Message(
             client,
-            "Saved grenade throw for a %s. Use .clearthrow or .savethrow to change the grenade parameters.", grenadeName);
+            "Saved grenade throw for a %s. Use .clearthrow or .savethrow to change the grenade parameters.",
+            grenadeName);
       } else {
         PM_Message(
             client,
