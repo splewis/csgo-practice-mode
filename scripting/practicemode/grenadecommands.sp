@@ -278,9 +278,11 @@ public Action Command_SaveGrenade(int client, int args) {
 
     if (g_CSUtilsLoaded) {
       if (IsGrenade(g_LastGrenadeType[client])) {
+        char grenadeName[64];
+        GrenadeTypeString(g_LastGrenadeType[client], grenadeName, sizeof(grenadeName));
         PM_Message(
             client,
-            "Saved grenade throw for a %s. Use .clearthrow or .savethrow to change the grenade parameters.");
+            "Saved grenade throw for a %s. Use .clearthrow or .savethrow to change the grenade parameters.", grenadeName);
       } else {
         PM_Message(
             client,
@@ -447,7 +449,9 @@ public Action Command_Throw(int client, int args) {
         StrCat(idString, sizeof(idString), ", ");
       }
     }
-    PM_Message(client, "Throwing nade ids %s", idString);
+    if (ids.Length > 0) {
+      PM_Message(client, "Throwing nade ids %s", idString);
+    }
 
     // TODO: print the nades being thrown here.
     for (int i = 0; i < ids.Length; i++) {
