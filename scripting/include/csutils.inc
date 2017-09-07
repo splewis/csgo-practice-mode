@@ -4,13 +4,13 @@
 #define _csutils_included
 
 enum GrenadeType {
-  GrenadeType_Smoke = 0,
-  GrenadeType_Flash = 1,
-  GrenadeType_HE = 2,
-  GrenadeType_Molotov = 3,
-  GrenadeType_Decoy = 4,
-  GrenadeType_Incendiary = 5,
-  GrenadeType_Count = 6,
+  GrenadeType_None = 0,
+  GrenadeType_Smoke = 1,
+  GrenadeType_Flash = 2,
+  GrenadeType_HE = 3,
+  GrenadeType_Molotov = 4,
+  GrenadeType_Decoy = 5,
+  GrenadeType_Incendiary = 6,
 };
 
 // Core grenade functions.
@@ -18,11 +18,16 @@ enum GrenadeType {
 native int CSU_ThrowGrenade(int client, GrenadeType grenadeType, const float origin[3],
                             const float velocity[3]);
 
+native int CSU_ThrowGrenadeXY(int client, GrenadeType grenadeType, const float origin[3],
+                              const float velocity[3], float x, float y);
+
+// When a client throws a grenade.
+// This is *not* called when the grenade came from the CSU_ThrowGrenade native.
 forward void CSU_OnThrowGrenade(int client, GrenadeType grenadeType, const float origin[3],
                                 const float velocity[3]);
 
 stock bool IsGrenade(GrenadeType g) {
-  return g >= GrenadeType_Smoke && g < GrenadeType_Count;
+  return g != GrenadeType_None;
 }
 
 stock GrenadeType GrenadeFromProjectileName(const char[] projectileName) {
@@ -39,7 +44,7 @@ stock GrenadeType GrenadeFromProjectileName(const char[] projectileName) {
   } else if (StrEqual(projectileName, "molotov_projectile")) {
     return GrenadeType_Incendiary;
   } else {
-    return GrenadeType_Count;
+    return GrenadeType_None;
   }
 }
 
@@ -76,7 +81,7 @@ stock GrenadeType GrenadeTypeFromString(const char[] name) {
   } else if (StrEqual(name, "incendiary")) {
     return GrenadeType_Incendiary;
   } else {
-    return GrenadeType_Count;
+    return GrenadeType_None;
   }
 }
 

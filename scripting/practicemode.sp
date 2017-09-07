@@ -532,7 +532,7 @@ public void OnClientConnected(int client) {
   g_RunningTimeCommand[client] = false;
   g_RunningLiveTimeCommand[client] = false;
   g_SavedRespawnActive[client] = false;
-  g_LastGrenadeType[client] = GrenadeType_Count;
+  g_LastGrenadeType[client] = GrenadeType_None;
 }
 
 public void OnMapStart() {

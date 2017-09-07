@@ -1,7 +1,17 @@
 Plugin(source='scripting/practicemode.sp')
+Plugin(source='scripting/csutils.sp')
+
+Package(name='csutils',
+        plugins=['csutils'],
+        configs=None,
+        data=None,
+        filegroups={
+            'addons/sourcemod/configs': ['configs/csutils.cfg'],
+        }
+)
 
 Package(name='practicemode',
-        plugins=['practicemode'],
+        plugins=['practicemode', 'csutils'],
         filegroups={
             '.': ['LICENSE', 'README.md'],
         },

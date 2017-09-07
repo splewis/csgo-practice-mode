@@ -289,8 +289,8 @@ int SortIdArrayByName(int index1, int index2, Handle array, Handle hndl) {
   return strcmp(name1, name2, false);
 }
 
-stock void AddGrenadeToMenu(Menu menu, const char[] ownerName,
-                            const char[] strId, const char[] name, bool showPlayerName = false) {
+stock void AddGrenadeToMenu(Menu menu, const char[] ownerName, const char[] strId,
+                            const char[] name, bool showPlayerName = false) {
   char display[128];
   if (showPlayerName && g_SharedAllNadesCvar.IntValue == 0 && !StrEqual(ownerName, "")) {
     Format(display, sizeof(display), "%s (%s-%s)", name, ownerName, strId);

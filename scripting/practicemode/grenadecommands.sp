@@ -286,7 +286,7 @@ public Action Command_SaveGrenade(int client, int args) {
     }
   }
 
-  g_LastGrenadeType[client] = GrenadeType_Count;
+  g_LastGrenadeType[client] = GrenadeType_None;
   return Plugin_Handled;
 }
 
@@ -337,7 +337,7 @@ public Action Command_SaveThrow(int client, int args) {
   SetClientGrenadeParameters(nadeId, g_LastGrenadeType[client], g_LastGrenadeOrigin[client],
                              g_LastGrenadeVelocity[client]);
   PM_Message(client, "Updated grenade throw parameters.");
-  g_LastGrenadeType[client] = GrenadeType_Count;
+  g_LastGrenadeType[client] = GrenadeType_None;
   return Plugin_Handled;
 }
 
@@ -374,7 +374,7 @@ public Action Command_UpdateGrenade(int client, int args) {
     PM_Message(client, "Updated grenade position.");
   }
 
-  g_LastGrenadeType[client] = GrenadeType_Count;
+  g_LastGrenadeType[client] = GrenadeType_None;
   return Plugin_Handled;
 }
 
