@@ -79,7 +79,7 @@ public bool TryJumpToOwnerId(const char[] idStr, char[] ownerAuth, int authLengt
   return false;
 }
 
-public bool TeleportToSavedGrenadePosition(int client, const char[] targetAuth, const char[] id) {
+public bool TeleportToSavedGrenadePosition(int client, const char[] id) {
   float origin[3];
   float angles[3];
   float velocity[3];
@@ -88,42 +88,36 @@ public bool TeleportToSavedGrenadePosition(int client, const char[] targetAuth, 
   bool success = false;
 
   // Update the client's current grenade id.
-  char clientAuth[AUTH_LENGTH];
-  GetClientAuthId(client, AUTH_METHOD, clientAuth, sizeof(clientAuth));
   g_CurrentSavedGrenadeId[client] = StringToInt(id);
 
-  if (g_GrenadeLocationsKv.JumpToKey(targetAuth)) {
-    char targetName[MAX_NAME_LENGTH];
+  char targetAuth[AUTH_LENGTH];
+  char targetName[MAX_NAME_LENGTH];
+  if (TryJumpToOwnerId(id, targetAuth, sizeof(targetAuth), targetName, sizeof(targetName))) {
     char grenadeName[GRENADE_NAME_LENGTH];
-    g_GrenadeLocationsKv.GetString("name", targetName, sizeof(targetName));
+    success = true;
+    g_GrenadeLocationsKv.GetVector("origin", origin);
+    g_GrenadeLocationsKv.GetVector("angles", angles);
+    g_GrenadeLocationsKv.GetString("name", grenadeName, sizeof(grenadeName));
+    g_GrenadeLocationsKv.GetString("description", description, sizeof(description));
+    g_GrenadeLocationsKv.GetString("categories", category, sizeof(category));
+    TeleportEntity(client, origin, angles, velocity);
+    SetEntityMoveType(client, MOVETYPE_WALK);
+    PM_Message(client, "Teleporting to grenade id %s, \"%s\".", id, grenadeName);
 
-    if (g_GrenadeLocationsKv.JumpToKey(id)) {
-      success = true;
-      g_GrenadeLocationsKv.GetVector("origin", origin);
-      g_GrenadeLocationsKv.GetVector("angles", angles);
-      g_GrenadeLocationsKv.GetString("name", grenadeName, sizeof(grenadeName));
-      g_GrenadeLocationsKv.GetString("description", description, sizeof(description));
-      g_GrenadeLocationsKv.GetString("categories", category, sizeof(category));
-      TeleportEntity(client, origin, angles, velocity);
-      SetEntityMoveType(client, MOVETYPE_WALK);
-      PM_Message(client, "Teleporting to grenade id %s, \"%s\".", id, grenadeName);
-
-      if (!StrEqual(description, "")) {
-        PM_Message(client, "Description: %s", description);
-      }
-
-      if (!StrEqual(category, "")) {
-        ReplaceString(category, sizeof(category), ";", ", ");
-        // Cut off the last two characters of the category string to avoid
-        // an extraneous comma and space.
-        int len = strlen(category);
-        category[len - 2] = '\0';
-        PM_Message(client, "Categories: %s", category);
-      }
-
-      g_GrenadeLocationsKv.GoBack();
+    if (!StrEqual(description, "")) {
+      PM_Message(client, "Description: %s", description);
     }
-    g_GrenadeLocationsKv.GoBack();
+
+    if (!StrEqual(category, "")) {
+      ReplaceString(category, sizeof(category), ";", ", ");
+      // Cut off the last two characters of the category string to avoid
+      // an extraneous comma and space.
+      int len = strlen(category);
+      category[len - 2] = '\0';
+      PM_Message(client, "Categories: %s", category);
+    }
+
+    g_GrenadeLocationsKv.Rewind();
   }
 
   return success;

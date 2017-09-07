@@ -209,7 +209,7 @@ static void AddIdsToMenu(Menu menu, ArrayList ids) {
     ids.GetString(i, id, sizeof(id));
     if (TryJumpToOwnerId(id, auth, sizeof(auth), name, sizeof(name))) {
       // TODO: do we need the owner name here?
-      AddKvGrenadeToMenu(menu, g_GrenadeLocationsKv, auth, name);
+      AddKvGrenadeToMenu(menu, g_GrenadeLocationsKv, name);
       g_GrenadeLocationsKv.Rewind();
     }
   }
@@ -289,11 +289,8 @@ int SortIdArrayByName(int index1, int index2, Handle array, Handle hndl) {
   return strcmp(name1, name2, false);
 }
 
-stock void AddGrenadeToMenu(Menu menu, const char[] ownerAuth, const char[] ownerName,
+stock void AddGrenadeToMenu(Menu menu, const char[] ownerName,
                             const char[] strId, const char[] name, bool showPlayerName = false) {
-  char info[128];
-  Format(info, sizeof(info), "%s %s", ownerAuth, strId);
-
   char display[128];
   if (showPlayerName && g_SharedAllNadesCvar.IntValue == 0 && !StrEqual(ownerName, "")) {
     Format(display, sizeof(display), "%s (%s-%s)", name, ownerName, strId);
@@ -301,25 +298,21 @@ stock void AddGrenadeToMenu(Menu menu, const char[] ownerAuth, const char[] owne
     Format(display, sizeof(display), "%s (id %s)", name, strId);
   }
 
-  menu.AddItem(info, display);
+  menu.AddItem(strId, display);
 }
 
-public void AddKvGrenadeToMenu(Menu menu, KeyValues kv, const char[] ownerAuth, const char[] ownerName) {
+public void AddKvGrenadeToMenu(Menu menu, KeyValues kv, const char[] ownerName) {
   char name[GRENADE_NAME_LENGTH];
   char strId[GRENADE_ID_LENGTH];
   kv.GetSectionName(strId, sizeof(strId));
   kv.GetString("name", name, sizeof(name));
-  AddGrenadeToMenu(menu, ownerAuth, ownerName, strId, name);
+  AddGrenadeToMenu(menu, ownerName, strId, name);
 }
 
 public void HandleGrenadeSelected(int client, Menu menu, int param2) {
-  char buffer[128];
-  menu.GetItem(param2, buffer, sizeof(buffer));
-  char auth[AUTH_LENGTH];
-  char idStr[GRENADE_ID_LENGTH];
-  // split buffer from form "<auth> <id>" (seperated by a space)
-  SplitOnSpace(buffer, auth, sizeof(auth), idStr, sizeof(idStr));
-  TeleportToSavedGrenadePosition(client, auth, idStr);
+  char id[GRENADE_ID_LENGTH];
+  menu.GetItem(param2, id, sizeof(id));
+  TeleportToSavedGrenadePosition(client, id);
 }
 
 public int CountCategoryNades(const char[] category) {

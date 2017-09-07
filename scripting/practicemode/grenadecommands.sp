@@ -29,7 +29,7 @@ public Action Command_NextGrenade(int client, int args) {
 
     char idBuffer[GRENADE_ID_LENGTH];
     IntToString(nextId, idBuffer, sizeof(idBuffer));
-    TeleportToSavedGrenadePosition(client, auth, idBuffer);
+    TeleportToSavedGrenadePosition(client, idBuffer);
   }
 
   return Plugin_Handled;
@@ -88,19 +88,13 @@ public Action Command_GotoNade(int client, int args) {
     return Plugin_Handled;
   }
 
-  char arg1[GRENADE_ID_LENGTH];
-  char auth[AUTH_LENGTH];
-
-  if (args >= 1 && GetCmdArg(1, arg1, sizeof(arg1))) {
+  char arg[GRENADE_ID_LENGTH];
+  if (args >= 1 && GetCmdArg(1, arg, sizeof(arg))) {
     char id[GRENADE_ID_LENGTH];
-    if (!FindGrenade(arg1, id)) {
-    }
-
-    if (!FindId(arg1, auth, sizeof(auth)) || !TeleportToSavedGrenadePosition(client, auth, arg1)) {
-      PM_Message(client, "Grenade id %s not found.", arg1);
+    if (!FindGrenade(arg, id) || !TeleportToSavedGrenadePosition(client, arg)) {
+      PM_Message(client, "Grenade id %s not found.", arg);
       return Plugin_Handled;
     }
-
   } else {
     PM_Message(client, "Usage: .goto <grenadeid>");
   }
