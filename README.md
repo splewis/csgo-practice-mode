@@ -73,8 +73,7 @@ All of the following commands can only be used on _your_ grenades. They will app
 - ``.last``: teleports you back to where you threw your last grenade from
 - ``.back``: teleports you back a position in your grenade history
 - ``.forward``: teleports you forward a position in your grenade history
-- ``.flash``:  saves you position to test flashbangs against it. Use this command in a spot you want to try to blind, then move and throw the flashbang; you will be teleported back to the position and see how effective the flashbang is
-- ``.stop``: stops flash testing
+- ``.flash``:  saves you position to test flashbangs against it. Use this command in a spot you want to try to blind, then move and throw the flashbang; you will be teleported back to the position and see how effective the flashbang is. Use ``.stop`` to cancel.
 - ``.throw [filter]``: automatically throws all grenades matching the filter. With no filter, throws the last grenade you threw.
 
 ### Bot commands
@@ -86,6 +85,7 @@ All of the following commands can only be used on _your_ grenades. They will app
 - ``.nobots``: clears all bots (``.clearbots``, ``.removebots``, ``.kickbots`` also work)
 
 ### Spawn commands
+- ``.respawn``: makes you respawn at the spot you are standing (``.stop`` to cancel)
 - ``.spawn``: same as ``.bestspawn`` (closest spawn)
 - ``.spawn <number>``: teleports you to a spawn # for the maps's spawns
 - ``.namespawn <name>``: saves the closest spawn to you under a name, which can then be gone to via ``.spawn <name>``
@@ -96,3 +96,4 @@ All of the following commands can only be used on _your_ grenades. They will app
 - ``.timer``: starts a timer when you start moving in any direction, and stops it when you stop moving, telling you the duration of time between starting/stopping
 - ``.timer2``: starts a timer immediately and stops it when you type .timer2 again, telling you the duration of time
 - ``.fastfoward`` (or ``.ff``): speeds up the server clock so the next 20 seconds lasts just 1 second
+- ``.repeat``: give a number of seconds and a chat command, the command will automatically repeat at the given interval. For example: ``.repeat .throw``

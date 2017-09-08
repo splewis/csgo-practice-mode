@@ -8,7 +8,6 @@
 #include <sourcemod>
 
 #undef REQUIRE_PLUGIN
-// #include <csutils>
 #include "include/csutils.inc"
 
 #include <pugsetup>
@@ -96,6 +95,9 @@ ArrayList g_ClientGrenadeThrowTimes[MAXPLAYERS + 1];  // ArrayList of <int:entit
 bool g_TestingFlash[MAXPLAYERS + 1];
 float g_TestingFlashOrigins[MAXPLAYERS + 1][3];
 float g_TestingFlashAngles[MAXPLAYERS + 1][3];
+
+bool g_RunningRepeatedCommand[MAXPLAYERS + 1];
+char g_RunningRepeatedCommandArg[MAXPLAYERS][256];
 
 GrenadeType g_LastGrenadeType[MAXPLAYERS + 1];
 float g_LastGrenadeOrigin[MAXPLAYERS + 1][3];
@@ -282,6 +284,8 @@ public void OnPluginStart() {
   RegConsoleCmd("sm_time2", Command_Time2);
   RegConsoleCmd("sm_fastforward", Command_FastForward);
   RegConsoleCmd("sm_pmsettings", Command_Settings);
+  RegConsoleCmd("sm_repeat", Command_Repeat);
+  RegConsoleCmd("sm_stoprepeat", Command_StopRepeat);
 
   // Bot commands
   RegConsoleCmd("sm_bot", Command_Bot);
@@ -343,6 +347,8 @@ public void OnPluginStart() {
   PM_AddChatAlias(".fast", "sm_fastforward");
   PM_AddChatAlias(".ff", "sm_fastforward");
   PM_AddChatAlias(".settings", "sm_pmsettings");
+  PM_AddChatAlias(".repeat", "sm_repeat");
+  PM_AddChatAlias(".repeat", "sm_stoprepeat");
 
   // Saved grenade location commands
   RegConsoleCmd("sm_gotogrenade", Command_GotoNade);
@@ -533,6 +539,7 @@ public void OnClientConnected(int client) {
   g_RunningLiveTimeCommand[client] = false;
   g_SavedRespawnActive[client] = false;
   g_LastGrenadeType[client] = GrenadeType_None;
+  g_RunningRepeatedCommand[client] = false;
 }
 
 public void OnMapStart() {

@@ -129,7 +129,7 @@ public Action Command_Respawn(int client, int args) {
   GetClientEyeAngles(client, g_SavedRespawnAngles[client]);
   PM_Message(
       client,
-      "Saved respawn point. When you die will you respawn here, use .stoprespawn to cancel.");
+      "Saved respawn point. When you die will you respawn here, use {GREEN}.stop {NORMAL}to cancel.");
   return Plugin_Handled;
 }
 
@@ -152,6 +152,9 @@ public Action Command_StopAll(int client, int args) {
   }
   if (g_TestingFlash[client]) {
     Command_StopFlash(client, 0);
+  }
+  if (g_RunningRepeatedCommand[client]) {
+    Command_StopRepeat(client, 0);
   }
   return Plugin_Handled;
 }
@@ -187,6 +190,58 @@ public Action Timer_ResetTimescale(Handle timer) {
     if (IsPlayer(i)) {
       SetEntityMoveType(i, g_PreFastForwardMoveTypes[i]);
     }
+  }
+  return Plugin_Handled;
+}
+
+public Action Command_Repeat(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  if (args < 2) {
+    PM_Message(client, "Usage: .repeat <interval in seconds> <any chat command>");
+    return Plugin_Handled;
+  }
+
+  char timeString[64];
+  char fullString[256];
+  if (GetCmdArgString(fullString, sizeof(fullString)) &&
+      SplitOnSpace(fullString, timeString, sizeof(timeString), g_RunningRepeatedCommandArg[client],
+                   sizeof(fullString))) {
+    float time = StringToFloat(timeString);
+    if (time < 0.0) {
+      time = 0.1;
+    }
+
+    g_RunningRepeatedCommand[client] = true;
+    CreateTimer(time, Timer_RepeatCommand, GetClientSerial(client),
+                TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
+    PM_Message(client, "Running command every %.1f seconds.", time);
+    PM_Message(client, "Use {GREEN}.stop {NORMAL}when you are done.");
+  }
+
+  return Plugin_Handled;
+}
+
+public Action Timer_RepeatCommand(Handle timer, int serial) {
+  int client = GetClientFromSerial(serial);
+  if (!IsPlayer(client) || !g_RunningRepeatedCommand[client]) {
+    return Plugin_Stop;
+  }
+
+  FakeClientCommand(client, "say %s", g_RunningRepeatedCommandArg[client]);
+  return Plugin_Continue;
+}
+
+public Action Command_StopRepeat(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  if (g_RunningRepeatedCommand[client]) {
+    g_RunningRepeatedCommand[client] = false;
+    PM_Message(client, "Cancelled repeating command.");
   }
   return Plugin_Handled;
 }
