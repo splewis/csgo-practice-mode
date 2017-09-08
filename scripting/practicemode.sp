@@ -191,6 +191,7 @@ Handle g_OnPracticeModeSettingsRead = INVALID_HANDLE;
 
 #include "practicemode/bots.sp"
 #include "practicemode/commands.sp"
+#include "practicemode/grenadebackups.sp"
 #include "practicemode/grenadecommands.sp"
 #include "practicemode/grenadefilters.sp"
 #include "practicemode/grenademenus.sp"
@@ -551,6 +552,7 @@ public void OnMapStart() {
   EnforceDirectoryExists("data/practicemode");
   EnforceDirectoryExists("data/practicemode/grenades");
   EnforceDirectoryExists("data/practicemode/spawns");
+  EnforceDirectoryExists("data/practicemode/grenades/backups");
 
   // This supports backwards compatability for grenades saved in the old location
   // data/practicemode_grenades. The data is transferred to the new
@@ -633,6 +635,7 @@ public void OnMapEnd() {
 static void MaybeWriteNewGrenadeData() {
   if (g_UpdatedGrenadeKv) {
     g_GrenadeLocationsKv.Rewind();
+    BackupGrenadeData(g_GrenadeLocationsKv);
     g_GrenadeLocationsKv.ExportToFile(g_GrenadeLocationsFile);
     g_UpdatedGrenadeKv = false;
   }
