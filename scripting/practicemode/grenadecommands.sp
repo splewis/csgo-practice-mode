@@ -444,7 +444,9 @@ public Action Command_Throw(int client, int args) {
         StrCat(idString, sizeof(idString), ", ");
       }
     }
-    if (ids.Length > 0) {
+    if (ids.Length == 1) {
+      PM_Message(client, "Throwing nade id %s", idString);
+    } else if (ids.Length > 1) {
       PM_Message(client, "Throwing nade ids %s", idString);
     }
 
@@ -462,8 +464,11 @@ public Action Command_Throw(int client, int args) {
   } else {
     // No arg, throw last nade.
     if (IsGrenade(g_LastGrenadeType[client])) {
+      PM_Message(client, "Throwing your last nade.");
       CSU_ThrowGrenade(client, g_LastGrenadeType[client], g_LastGrenadeOrigin[client],
                        g_LastGrenadeVelocity[client]);
+    } else {
+      PM_Message(client, "Can't throw you last nade; you haven't thrown any!");
     }
   }
 

@@ -400,6 +400,7 @@ public void OnPluginStart() {
   PM_AddChatAlias(".copy", "sm_copygrenade");
   PM_AddChatAlias(".respawn", "sm_respawn");
   PM_AddChatAlias(".stoprespawn", "sm_stoprespawn");
+  PM_AddChatAlias(".stoprepeat", "sm_stoprepeat");
   PM_AddChatAlias(".stop", "sm_stopall");
 
   // New Plugin cvars
