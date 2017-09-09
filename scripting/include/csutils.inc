@@ -18,9 +18,6 @@ enum GrenadeType {
 native int CSU_ThrowGrenade(int client, GrenadeType grenadeType, const float origin[3],
                             const float velocity[3]);
 
-native int CSU_ThrowGrenadeXY(int client, GrenadeType grenadeType, const float origin[3],
-                              const float velocity[3], float x, float y);
-
 // When a client throws a grenade.
 // This is *not* called when the grenade came from the CSU_ThrowGrenade native.
 forward void CSU_OnThrowGrenade(int client, GrenadeType grenadeType, const float origin[3],
