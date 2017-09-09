@@ -68,13 +68,15 @@ public int GetBotsOwner(int bot) {
   return -1;
 }
 
-stock void KickClientBot(int client, int index = -1) {
+stock bool KickClientBot(int client, int index = -1) {
   int bot = GetClientBot(client, index);
   if (bot > 0) {
     KickClient(bot);
     g_IsPMBot[bot] = false;
     FindAndErase(g_ClientBots[client], bot);
+    return true;
   }
+  return false;
 }
 
 public void KickAllClientBots(int client) {
@@ -253,7 +255,9 @@ public Action Command_RemoveBot(int client, int args) {
     return Plugin_Handled;
   }
 
-  KickClientBot(client);
+  if (KickClientBot(client)) {
+    PM_Message(client, "Removed your last-placed bot.");
+  }
   return Plugin_Handled;
 }
 
