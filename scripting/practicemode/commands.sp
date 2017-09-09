@@ -215,6 +215,7 @@ public Action Command_Repeat(int client, int args) {
     }
 
     g_RunningRepeatedCommand[client] = true;
+    FakeClientCommand(client, "say %s", g_RunningRepeatedCommandArg[client]);
     CreateTimer(time, Timer_RepeatCommand, GetClientSerial(client),
                 TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
     PM_Message(client, "Running command every %.1f seconds.", time);
