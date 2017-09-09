@@ -98,3 +98,5 @@ All of the following commands can only be used on _your_ grenades. They will app
 - ``.timer2``: starts a timer immediately and stops it when you type .timer2 again, telling you the duration of time
 - ``.fastfoward`` (or ``.ff``): speeds up the server clock so the next 20 seconds lasts just 1 second
 - ``.repeat``: give a number of seconds and a chat command, the command will automatically repeat at the given interval. For example: ``.repeat .throw``
+
+Also see the [notes for power users](https://github.com/splewis/csgo-practice-mode/wiki/Notes-for-power-users) for more detail on using these commands effectively.
