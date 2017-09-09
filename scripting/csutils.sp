@@ -64,7 +64,7 @@ public bool KeepBotDead() {
 }
 
 public void CleanupBot() {
-  if (KeepBotDead() && GrenadeQueueLength() == 0 && IsCandidateNadeBot(g_NadeBot) && IsPlayerAlive(g_NadeBot)) {
+  if (KeepBotDead() && GrenadeQueueLength() == 0 && IsNadeBot(g_NadeBot) && IsPlayerAlive(g_NadeBot)) {
     ForcePlayerSuicide(g_NadeBot);
   }
 }
@@ -91,6 +91,12 @@ public void OnConfigsExecuted() {
 public void OnClientPutInServer(int client) {
   if (client != g_NadeBot) {
     SetEntData(GetPlayerResourceEntity(), g_ConnectedOffset + (g_NadeBot * 4), false, 1);
+  }
+}
+
+public void OnClientDisconnect(int client) {
+  if (IsNadeBot(client)) {
+    g_NadeBot = -1;
   }
 }
 
@@ -149,17 +155,14 @@ public int Native_ThrowGrenade(Handle plugin, int numParams) {
 
 public int Native_ClearGrenades(Handle plugin, int numParams) {
   g_GrenadeQueue.Clear();
-  if (IsCandidateNadeBot(g_NadeBot)) {
+  if (IsNadeBot(g_NadeBot)) {
     KickClient(g_NadeBot);
   }
 }
 
-bool IsCandidateNadeBot(int client) {
-  return client > 0 && IsClientInGame(client) && IsFakeClient(client) && !IsClientSourceTV(client);
-}
-
 bool IsNadeBot(int client) {
-  return IsCandidateNadeBot(client) && client == g_NadeBot;
+  return client > 0 && IsClientInGame(client) && IsFakeClient(client) &&
+      !IsClientSourceTV(client) && client == g_NadeBot;
 }
 
 static void GetBotName(char[] name, int len) {
@@ -174,7 +177,7 @@ static void GetBotName(char[] name, int len) {
 }
 
 int GetOrCreateNadeBot() {
-  if (!IsCandidateNadeBot(g_NadeBot)) {
+  if (!IsNadeBot(g_NadeBot)) {
     char name[MAX_NAME_LENGTH + 1];
     GetBotName(name, sizeof(name));
     g_NadeBot = CreateFakeClient(name);
