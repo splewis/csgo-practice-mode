@@ -58,6 +58,7 @@ You can edit these in the file ``cfg/sourcemod/practicemode.cfg``, which is auto
 - ``.save <name>``: saves your current position as a grenade spot with the given name
 - ``.goto <grenadeid>``: teleports you to a player's saved grenade (or your own if no player is named)
 - ``.delete``: deletes the last grenade of yours that you used .goto (or .nades) to teleport to
+- ``.find <text>``: searches all grenade names for a text match
 
 ### Modifying a saved grenade
 All of the following commands can only be used on _your_ grenades. They will apply to the last saved grenade you went to, whether by ``.save``, ``.nades``, or ``.goto``.
