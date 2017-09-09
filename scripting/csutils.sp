@@ -41,6 +41,7 @@ public Plugin myinfo = {
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max) {
   CreateNative("CSU_ThrowGrenade", Native_ThrowGrenade);
+  CreateNative("CSU_ClearGrenades", Native_ClearGrenades);
   RegPluginLibrary("csutils");
   return APLRes_Success;
 }
@@ -74,9 +75,7 @@ public Action Timer_Test(Handle timer) {
 }
 
 public void OnPluginEnd() {
-  if (IsNadeBot(g_NadeBot)) {
-    KickClient(g_NadeBot);
-  }
+  CSU_ClearGrenades();
 }
 
 public void OnMapStart() {
@@ -146,6 +145,13 @@ public int Native_ThrowGrenade(Handle plugin, int numParams) {
   AddGrenadeToQueue(grenadeType, origin, velocity);
   MaybeStartGrenadeThrow();
   return 0;
+}
+
+public int Native_ClearGrenades(Handle plugin, int numParams) {
+  g_GrenadeQueue.Clear();
+  if (IsCandidateNadeBot(g_NadeBot)) {
+    KickClient(g_NadeBot);
+  }
 }
 
 bool IsCandidateNadeBot(int client) {

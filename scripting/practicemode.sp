@@ -953,6 +953,10 @@ public void ExitPracticeMode() {
     }
   }
 
+  if (g_CSUtilsLoaded) {
+    CSU_ClearGrenades();
+  }
+
   ServerCommand("exec sourcemod/practicemode_end.cfg");
   PM_MessageToAll("Practice mode is now disabled.");
 }
