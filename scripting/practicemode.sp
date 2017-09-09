@@ -604,10 +604,9 @@ public void OnConfigsExecuted() {
 
   // Autostart practicemode if enabled.
   if (g_AutostartCvar.IntValue != 0) {
-    if (g_PugsetupLoaded && PugSetup_GetGameState() != GameState_None) {
-      return;
+    if (!g_PugsetupLoaded || PugSetup_GetGameState() == GameState_None) {
+      LaunchPracticeMode();
     }
-    LaunchPracticeMode();
   }
 }
 
