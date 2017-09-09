@@ -267,7 +267,7 @@ public Action Command_SaveGrenade(int client, int args) {
     g_CurrentSavedGrenadeId[client] = nadeId;
     PM_Message(
         client,
-        "Saved grenade (id %d). Type .desc <description> to add a description or .delete to delete this position.",
+        "Saved grenade position (id %d). Type .desc <description> to add a description or .delete to delete this position.",
         nadeId);
 
     if (g_CSUtilsLoaded) {
@@ -276,12 +276,11 @@ public Action Command_SaveGrenade(int client, int args) {
         GrenadeTypeString(g_LastGrenadeType[client], grenadeName, sizeof(grenadeName));
         PM_Message(
             client,
-            "Saved grenade throw for a %s. Use .clearthrow or .savethrow to change the grenade parameters.",
+            "Saved %s throw. Use .clearthrow or .savethrow to change the grenade parameters.",
             grenadeName);
       } else {
-        PM_Message(
-            client,
-            "No grenade throw parameters saved. Throw it and update .savethrow to save them.");
+        PM_Message(client,
+                   "No grenade throw parameters saved. Throw it and use .savethrow to save them.");
       }
     }
   }

@@ -176,7 +176,7 @@ stock int SaveGrenadeToKv(int client, const float origin[3], const float angles[
   g_GrenadeLocationsKv.SetString("name", name);
   g_GrenadeLocationsKv.SetVector("origin", origin);
   g_GrenadeLocationsKv.SetVector("angles", angles);
-  if (g_CSUtilsLoaded) {
+  if (g_CSUtilsLoaded && IsGrenade(type)) {
     char grenadeTypeString[32];
     GrenadeTypeString(type, grenadeTypeString, sizeof(grenadeTypeString));
     g_GrenadeLocationsKv.SetString("grenadeType", grenadeTypeString);
@@ -294,6 +294,10 @@ public void SetGrenadeVectors(const char[] auth, const char[] id, const float[3]
 
 public void SetGrenadeParameters(const char[] auth, const char[] id, GrenadeType type,
                           const float[3] grenadeOrigin, const float[3] grenadeVelocity) {
+  if (!IsGrenade(type)) {
+    return;
+  }
+
   g_UpdatedGrenadeKv = true;
   if (g_GrenadeLocationsKv.JumpToKey(auth)) {
     if (g_GrenadeLocationsKv.JumpToKey(id)) {
@@ -621,7 +625,6 @@ public void CorrectGrenadeIds() {
   g_NewKv = new KeyValues("Grenades");
   g_NextID = 1;
   IterateGrenades(CorrectGrenadeIdsHelper);
-  g_UpdatedGrenadeKv = true;
 
   // Move the temp g_NewKv to replace data in g_GrenadeLocationsKv.
   delete g_GrenadeLocationsKv;
