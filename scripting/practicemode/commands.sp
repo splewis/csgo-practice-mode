@@ -210,8 +210,9 @@ public Action Command_Repeat(int client, int args) {
       SplitOnSpace(fullString, timeString, sizeof(timeString), g_RunningRepeatedCommandArg[client],
                    sizeof(fullString))) {
     float time = StringToFloat(timeString);
-    if (time < 0.0) {
-      time = 0.1;
+    if (time <= 0.0) {
+      PM_Message(client, "Usage: .repeat <interval in seconds> <any chat command>");
+      return Plugin_Handled;
     }
 
     g_RunningRepeatedCommand[client] = true;
@@ -245,4 +246,39 @@ public Action Command_StopRepeat(int client, int args) {
     PM_Message(client, "Cancelled repeating command.");
   }
   return Plugin_Handled;
+}
+
+public Action Command_Delay(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  if (args < 2) {
+    PM_Message(client, "Usage: .delay <interval in seconds> <any chat command>");
+    return Plugin_Handled;
+  }
+
+  char timeString[64];
+  char fullString[256];
+  if (GetCmdArgString(fullString, sizeof(fullString)) &&
+      SplitOnSpace(fullString, timeString, sizeof(timeString), g_RunningRepeatedCommandArg[client],
+                   sizeof(fullString))) {
+    float time = StringToFloat(timeString);
+    if (time <= 0.0) {
+      PM_Message(client, "Usage: .repeat <interval in seconds> <any chat command>");
+      return Plugin_Handled;
+    }
+
+    CreateTimer(time, Timer_DelayedComand, GetClientSerial(client));
+  }
+
+  return Plugin_Handled;
+}
+
+public Action Timer_DelayedComand(Handle timer, int serial) {
+  int client = GetClientFromSerial(serial);
+  if (IsPlayer(client)) {
+    FakeClientCommand(client, "say %s", g_RunningRepeatedCommandArg[client]);
+  }
+  return Plugin_Stop;
 }

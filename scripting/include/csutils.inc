@@ -104,6 +104,41 @@ stock void GrenadeTypeString(GrenadeType type, char[] buffer, int length) {
   }
 }
 
+stock void CSU_DelayThrowGrenade(float delay, int client, GrenadeType grenadeType,
+                                 const float origin[3], const float velocity[3]) {
+  DataPack p = new DataPack();
+  if (client == 0) {
+    p.WriteCell(0);
+  } else {
+    p.WriteCell(GetClientSerial(client));
+  }
+  p.WriteCell(grenadeType);
+  p.WriteFloat(origin[0]);
+  p.WriteFloat(origin[1]);
+  p.WriteFloat(origin[2]);
+  p.WriteFloat(velocity[0]);
+  p.WriteFloat(velocity[1]);
+  p.WriteFloat(velocity[2]);
+  CreateTimer(delay, __csutils__DelayThrowGrenade, p);
+}
+
+public Action __csutils__DelayThrowGrenade(Handle timer, DataPack data) {
+  data.Reset();
+  int client = GetClientFromSerial(data.ReadCell());
+  GrenadeType type = view_as<GrenadeType>(data.ReadCell());
+  float origin[3];
+  float velocity[3];
+  origin[0] = data.ReadFloat();
+  origin[1] = data.ReadFloat();
+  origin[2] = data.ReadFloat();
+  velocity[0] = data.ReadFloat();
+  velocity[1] = data.ReadFloat();
+  velocity[2] = data.ReadFloat();
+  delete data;
+  CSU_ThrowGrenade(client, type, origin, velocity);
+  return Plugin_Handled;
+}
+
 public SharedPlugin __pl_csutils = {
     name = "csutils", file = "csutils.smx",
 #if defined REQUIRE_PLUGIN

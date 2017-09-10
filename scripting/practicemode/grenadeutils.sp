@@ -123,7 +123,7 @@ public bool TeleportToSavedGrenadePosition(int client, const char[] id) {
   return success;
 }
 
-public bool ThrowGrenade(const char[] id) {
+stock bool ThrowGrenade(const char[] id, float delay = 0.0) {
   if (!g_CSUtilsLoaded) {
     return false;
   }
@@ -146,7 +146,11 @@ public bool ThrowGrenade(const char[] id) {
       GrenadeType type = GrenadeTypeFromString(typeString);
       if (IsGrenade(type)) {
         success = true;
-        CSU_ThrowGrenade(0, type, grenadeOrigin, grenadeVelocity);
+        if (delay > 0.1) {
+          CSU_DelayThrowGrenade(delay, 0, type, grenadeOrigin, grenadeVelocity);
+        } else {
+          CSU_ThrowGrenade(0, type, grenadeOrigin, grenadeVelocity);
+        }
       }
       g_GrenadeLocationsKv.GoBack();
     }
@@ -248,10 +252,31 @@ public bool FindTargetInGrenadesKvByName(const char[] inputName, char[] name, in
 
 public void SetGrenadeData(const char[] auth, const char[] id, const char[] key, const char[] value) {
   g_UpdatedGrenadeKv = true;
-
   if (g_GrenadeLocationsKv.JumpToKey(auth)) {
     if (g_GrenadeLocationsKv.JumpToKey(id)) {
       g_GrenadeLocationsKv.SetString(key, value);
+      g_GrenadeLocationsKv.GoBack();
+    }
+    g_GrenadeLocationsKv.GoBack();
+  }
+}
+
+public void SetGrenadeInt(const char[] auth, const char[] id, const char[] key, int value) {
+  g_UpdatedGrenadeKv = true;
+  if (g_GrenadeLocationsKv.JumpToKey(auth)) {
+    if (g_GrenadeLocationsKv.JumpToKey(id)) {
+      g_GrenadeLocationsKv.SetNum(key, value);
+      g_GrenadeLocationsKv.GoBack();
+    }
+    g_GrenadeLocationsKv.GoBack();
+  }
+}
+
+public void SetGrenadeFloat(const char[] auth, const char[] id, const char[] key, float value) {
+  g_UpdatedGrenadeKv = true;
+  if (g_GrenadeLocationsKv.JumpToKey(auth)) {
+    if (g_GrenadeLocationsKv.JumpToKey(id)) {
+      g_GrenadeLocationsKv.SetFloat(key, value);
       g_GrenadeLocationsKv.GoBack();
     }
     g_GrenadeLocationsKv.GoBack();
@@ -267,6 +292,30 @@ public void GetGrenadeData(const char[] auth, const char[] id, const char[] key,
     }
     g_GrenadeLocationsKv.GoBack();
   }
+}
+
+public int GetGrenadeInt(const char[] auth, const char[] id, const char[] key) {
+  int value = 0;
+  if (g_GrenadeLocationsKv.JumpToKey(auth)) {
+    if (g_GrenadeLocationsKv.JumpToKey(id)) {
+      value = g_GrenadeLocationsKv.GetNum(key);
+      g_GrenadeLocationsKv.GoBack();
+    }
+    g_GrenadeLocationsKv.GoBack();
+  }
+  return value;
+}
+
+public float GetGrenadeFloat(const char[] auth, const char[] id, const char[] key) {
+  float value = 0.0;
+  if (g_GrenadeLocationsKv.JumpToKey(auth)) {
+    if (g_GrenadeLocationsKv.JumpToKey(id)) {
+      value = g_GrenadeLocationsKv.GetFloat(key);
+      g_GrenadeLocationsKv.GoBack();
+    }
+    g_GrenadeLocationsKv.GoBack();
+  }
+  return value;
 }
 
 public void GetGrenadeVector(const char[] auth, const char[] id, const char[] key, float vector[3]) {
@@ -326,6 +375,38 @@ public void GetClientGrenadeData(int id, const char[] key, char[] value, int val
   IntToString(id, nadeId, sizeof(nadeId));
   FindId(nadeId, auth, sizeof(auth));
   GetGrenadeData(auth, nadeId, key, value, valueLength);
+}
+
+public void SetClientGrenadeInt(int id, const char[] key, int value) {
+  char auth[AUTH_LENGTH];
+  char nadeId[GRENADE_ID_LENGTH];
+  IntToString(id, nadeId, sizeof(nadeId));
+  FindId(nadeId, auth, sizeof(auth));
+  SetGrenadeInt(auth, nadeId, key, value);
+}
+
+public int GetClientGrenadeInt(int id, const char[] key) {
+  char auth[AUTH_LENGTH];
+  char nadeId[GRENADE_ID_LENGTH];
+  IntToString(id, nadeId, sizeof(nadeId));
+  FindId(nadeId, auth, sizeof(auth));
+  return GetGrenadeInt(auth, nadeId, key);
+}
+
+public void SetClientGrenadeFloat(int id, const char[] key, float value) {
+  char auth[AUTH_LENGTH];
+  char nadeId[GRENADE_ID_LENGTH];
+  IntToString(id, nadeId, sizeof(nadeId));
+  FindId(nadeId, auth, sizeof(auth));
+  SetGrenadeFloat(auth, nadeId, key, value);
+}
+
+public float GetClientGrenadeFloat(int id, const char[] key) {
+  char auth[AUTH_LENGTH];
+  char nadeId[GRENADE_ID_LENGTH];
+  IntToString(id, nadeId, sizeof(nadeId));
+  FindId(nadeId, auth, sizeof(auth));
+  return GetGrenadeFloat(auth, nadeId, key);
 }
 
 public void SetClientGrenadeVectors(int id, const float[3] origin, const float[3] angles) {

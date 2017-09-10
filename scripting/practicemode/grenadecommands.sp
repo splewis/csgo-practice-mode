@@ -377,6 +377,39 @@ public Action Command_UpdateGrenade(int client, int args) {
   return Plugin_Handled;
 }
 
+public Action Command_SetDelay(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  if (!g_CSUtilsLoaded) {
+    PM_Message(client, "You need the csutils plugin installed to use that command.");
+    return Plugin_Handled;
+  }
+
+  if (args < 1) {
+    PM_Message(client, "Usage: .delay <duration in seconds>");
+    return Plugin_Handled;
+  }
+
+  int nadeId = g_CurrentSavedGrenadeId[client];
+  if (nadeId < 0) {
+    return Plugin_Handled;
+  }
+
+  if (!CanEditGrenade(client, nadeId)) {
+    PM_Message(client, "You aren't the owner of this grenade.");
+    return Plugin_Handled;
+  }
+
+  char arg[64];
+  GetCmdArgString(arg, sizeof(arg));
+  float delay = StringToFloat(arg);
+  SetClientGrenadeFloat(nadeId, "delay", delay);
+  PM_Message(client, "Saved delay of %.1f seconds for grenade id %d.", delay, nadeId);
+  return Plugin_Handled;
+}
+
 public Action Command_ClearThrow(int client, int args) {
   if (!g_InPracticeMode) {
     return Plugin_Handled;
@@ -403,8 +436,8 @@ public Action Command_ClearThrow(int client, int args) {
   return Plugin_Handled;
 }
 
-static void ClientThrowGrenade(int client, const char[] id) {
-  if (!ThrowGrenade(id)) {
+static void ClientThrowGrenade(int client, const char[] id, float delay = 0.0) {
+  if (!ThrowGrenade(id, delay)) {
     PM_Message(
         client,
         "No grenade parameters found for %s. Try \".goto %s\", throw the nade, and \".update\" and try again.",
@@ -428,32 +461,44 @@ public Action Command_Throw(int client, int args) {
     char data[128];
     ArrayList ids = new ArrayList(GRENADE_CATEGORY_LENGTH);
 
+    GrenadeMenuType filterType;
     if (StrEqual(argString, "current", false)) {
-      FindGrenades(g_ClientLastMenuData[client], ids, data, sizeof(data));
+      filterType = FindGrenades(g_ClientLastMenuData[client], ids, data, sizeof(data));
     } else {
-      FindGrenades(argString, ids, data, sizeof(data));
+      filterType = FindGrenades(argString, ids, data, sizeof(data));
     }
 
-    char idString[256];
-    for (int i = 0; i < ids.Length; i++) {
-      char id[GRENADE_ID_LENGTH];
-      ids.GetString(i, id, sizeof(id));
-      StrCat(idString, sizeof(idString), id);
-      if (i + 1 != ids.Length) {
-        StrCat(idString, sizeof(idString), ", ");
+    // Print what's about to be thrown.
+    if (filterType == GrenadeMenuType_OneCategory) {
+      PM_Message(client, "Throwing category: %s", data);
+
+    } else {
+      char idString[256];
+      for (int i = 0; i < ids.Length; i++) {
+        char id[GRENADE_ID_LENGTH];
+        ids.GetString(i, id, sizeof(id));
+        StrCat(idString, sizeof(idString), id);
+        if (i + 1 != ids.Length) {
+          StrCat(idString, sizeof(idString), ", ");
+        }
+      }
+      if (ids.Length == 1) {
+        PM_Message(client, "Throwing nade id %s", idString);
+      } else if (ids.Length > 1) {
+        PM_Message(client, "Throwing nade ids %s", idString);
       }
     }
-    if (ids.Length == 1) {
-      PM_Message(client, "Throwing nade id %s", idString);
-    } else if (ids.Length > 1) {
-      PM_Message(client, "Throwing nade ids %s", idString);
-    }
 
-    // TODO: print the nades being thrown here.
+    // Actually do the throwing.
     for (int i = 0; i < ids.Length; i++) {
       char id[GRENADE_ID_LENGTH];
       ids.GetString(i, id, sizeof(id));
-      ClientThrowGrenade(client, id);
+      float delay = 0.0;
+      // Only support delays when throwing a category.
+      if (filterType == GrenadeMenuType_OneCategory) {
+        delay = GetClientGrenadeFloat(StringToInt(id), "delay");
+      }
+      ClientThrowGrenade(client, id, delay);
     }
     if (ids.Length == 0) {
       PM_Message(client, "No nades match %s", argString);

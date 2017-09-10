@@ -69,6 +69,7 @@ All of the following commands can only be used on _your_ grenades. They will app
 - ``.clearcats``: removes all categories on your last grenade
 - ``.deletecat <category>``: removes a category from **all** of your saved grenades
 - ``.copy <username> <grenadeid>``: copies another user's grenade and saves it for you
+- ``.setdelay <delay>``: sets a delay on your last grenade. This is only used when using .throw against a category
 
 ### Testing grenades
 - ``.last``: teleports you back to where you threw your last grenade from
@@ -97,6 +98,7 @@ All of the following commands can only be used on _your_ grenades. They will app
 - ``.timer``: starts a timer when you start moving in any direction, and stops it when you stop moving, telling you the duration of time between starting/stopping
 - ``.timer2``: starts a timer immediately and stops it when you type .timer2 again, telling you the duration of time
 - ``.fastfoward`` (or ``.ff``): speeds up the server clock so the next 20 seconds lasts just 1 second
-- ``.repeat``: give a number of seconds and a chat command, the command will automatically repeat at the given interval. For example: ``.repeat .throw``
+- ``.repeat <interval> <command>``: give a number of seconds and a chat command, the command will automatically repeat at the given interval. For example: ``.repeat 3 .throw`` repeats .throw every 3 seconds
+- ``.delay <duration> <command>``: runs the given chat command after a given duration (in seconds)
 
 Also see the [notes for power users](https://github.com/splewis/csgo-practice-mode/wiki/Notes-for-power-users) for more detail on using these commands effectively.

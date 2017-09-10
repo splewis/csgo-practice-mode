@@ -287,6 +287,7 @@ public void OnPluginStart() {
   RegConsoleCmd("sm_pmsettings", Command_Settings);
   RegConsoleCmd("sm_repeat", Command_Repeat);
   RegConsoleCmd("sm_stoprepeat", Command_StopRepeat);
+  RegConsoleCmd("sm_delay", Command_Delay);
 
   // Bot commands
   RegConsoleCmd("sm_bot", Command_Bot);
@@ -350,6 +351,7 @@ public void OnPluginStart() {
   PM_AddChatAlias(".settings", "sm_pmsettings");
   PM_AddChatAlias(".repeat", "sm_repeat");
   PM_AddChatAlias(".repeat", "sm_stoprepeat");
+  PM_AddChatAlias(".delay", "sm_delay");
 
   // Saved grenade location commands
   RegConsoleCmd("sm_gotogrenade", Command_GotoNade);
@@ -360,6 +362,7 @@ public void OnPluginStart() {
   RegConsoleCmd("sm_movegrenade", Command_MoveGrenade);
   RegConsoleCmd("sm_savethrow", Command_SaveThrow);
   RegConsoleCmd("sm_updategrenade", Command_UpdateGrenade);
+  RegConsoleCmd("sm_savedelay", Command_SetDelay);
   RegConsoleCmd("sm_clearthrow", Command_ClearThrow);
   RegConsoleCmd("sm_adddescription", Command_GrenadeDescription);
   RegConsoleCmd("sm_deletegrenade", Command_DeleteGrenade);
@@ -383,6 +386,8 @@ public void OnPluginStart() {
   PM_AddChatAlias(".update", "sm_updategrenade");
   PM_AddChatAlias(".savethrow", "sm_savethrow");
   PM_AddChatAlias(".updatethrow", "sm_savethrow");
+  PM_AddChatAlias(".setdelay", "sm_savedelay");
+  PM_AddChatAlias(".savedelay", "sm_savedelay");
   PM_AddChatAlias(".clearthrow", "sm_clearthrow");
   PM_AddChatAlias(".move", "sm_movegrenade");
   PM_AddChatAlias(".desc", "sm_adddescription");
