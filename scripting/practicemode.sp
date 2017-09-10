@@ -264,150 +264,195 @@ public void OnPluginStart() {
               "Reset grenade ids so they are consecutive and start at 1.");
 
   // Grenade history commands
-  RegConsoleCmd("sm_grenadeback", Command_GrenadeBack);
-  RegConsoleCmd("sm_grenadeforward", Command_GrenadeForward);
-  RegConsoleCmd("sm_lastgrenade", Command_LastGrenade);
-  RegConsoleCmd("sm_nextgrenade", Command_NextGrenade);
-  RegConsoleCmd("sm_clearnades", Command_ClearNades);
+  {
+    RegConsoleCmd("sm_grenadeback", Command_GrenadeBack);
+    PM_AddChatAlias(".back", "sm_grenadeback");
+
+    RegConsoleCmd("sm_grenadeforward", Command_GrenadeForward);
+    PM_AddChatAlias(".forward", "sm_grenadeforward");
+
+    RegConsoleCmd("sm_lastgrenade", Command_LastGrenade);
+    PM_AddChatAlias(".last", "sm_lastgrenade");
+
+    RegConsoleCmd("sm_nextgrenade", Command_NextGrenade);
+    PM_AddChatAlias(".next", "sm_nextgrenade");
+    PM_AddChatAlias(".nextid", "sm_nextgrenade");
+
+    RegConsoleCmd("sm_clearnades", Command_ClearNades);
+    PM_AddChatAlias(".clearnades", "sm_clearnades");
+  }
 
   // Spawn commands
-  RegConsoleCmd("sm_gotospawn", Command_GotoSpawn);
-  RegConsoleCmd("sm_worstspawn", Command_GotoWorstSpawn);
-  RegConsoleCmd("sm_namespawn", Command_SaveSpawn);
+  {
+    RegConsoleCmd("sm_gotospawn", Command_GotoSpawn);
+    PM_AddChatAlias(".spawn", "sm_gotospawn");
+    PM_AddChatAlias(".bestspawn", "sm_gotospawn");
+
+    RegConsoleCmd("sm_worstspawn", Command_GotoWorstSpawn);
+    PM_AddChatAlias(".worstspawn", "sm_worstspawn");
+
+    RegConsoleCmd("sm_namespawn", Command_SaveSpawn);
+    PM_AddChatAlias(".namespawn", "sm_namespawn");
+  }
 
   // csutils powered nade stuff.
-  RegConsoleCmd("sm_throw", Command_Throw);
-
-  // Other commands
-  RegConsoleCmd("sm_testflash", Command_TestFlash);
-  RegConsoleCmd("sm_stopflash", Command_StopFlash);
-  RegConsoleCmd("sm_time", Command_Time);
-  RegConsoleCmd("sm_time2", Command_Time2);
-  RegConsoleCmd("sm_fastforward", Command_FastForward);
-  RegConsoleCmd("sm_pmsettings", Command_Settings);
-  RegConsoleCmd("sm_repeat", Command_Repeat);
-  RegConsoleCmd("sm_stoprepeat", Command_StopRepeat);
-  RegConsoleCmd("sm_delay", Command_Delay);
+  {
+    RegConsoleCmd("sm_throw", Command_Throw);
+    PM_AddChatAlias(".throw", "sm_throw");
+    PM_AddChatAlias(".rethrow", "sm_throw");
+  }
 
   // Bot commands
-  RegConsoleCmd("sm_bot", Command_Bot);
-  RegConsoleCmd("sm_movebot", Command_MoveBot);
-  RegConsoleCmd("sm_crouchbot", Command_CrouchBot);
-  RegConsoleCmd("sm_botplace", Command_BotPlace);
-  RegConsoleCmd("sm_boost", Command_Boost);
-  RegConsoleCmd("sm_crouchboost", Command_CrouchBoost);
-  RegConsoleCmd("sm_removebot", Command_RemoveBot);
-  RegConsoleCmd("sm_removebots", Command_RemoveBots);
+  {
+    RegConsoleCmd("sm_bot", Command_Bot);
+    PM_AddChatAlias(".bot", "sm_bot");
+    PM_AddChatAlias(".addbot", "sm_bot");
 
-  PM_AddChatAlias(".back", "sm_grenadeback");
-  PM_AddChatAlias(".last", "sm_lastgrenade");
-  PM_AddChatAlias(".forward", "sm_grenadeforward");
-  PM_AddChatAlias(".clearnades", "sm_clearnades");
-  PM_AddChatAlias(".goto", "sm_gotogrenade");
-  PM_AddChatAlias(".next", "sm_nextgrenade");
-  PM_AddChatAlias(".nextid", "sm_nextgrenade");
+    RegConsoleCmd("sm_movebot", Command_MoveBot);
+    PM_AddChatAlias(".movebot", "sm_movebot");
 
-  PM_AddChatAlias(".spawn", "sm_gotospawn");
-  PM_AddChatAlias(".bestspawn", "sm_gotospawn");
-  PM_AddChatAlias(".worstspawn", "sm_worstspawn");
-  PM_AddChatAlias(".namespawn", "sm_namespawn");
+    RegConsoleCmd("sm_crouchbot", Command_CrouchBot);
+    PM_AddChatAlias(".crouchbot", "sm_crouchbot");
+    PM_AddChatAlias(".cbot", "sm_crouchbot");
 
-  PM_AddChatAlias(".throw", "sm_throw");
-  PM_AddChatAlias(".rethrow", "sm_throw");
+    RegConsoleCmd("sm_botplace", Command_BotPlace);
+    PM_AddChatAlias(".botplace", "sm_botplace");
+    PM_AddChatAlias(".bot2", "sm_botplace");
 
-  PM_AddChatAlias(".flash", "sm_testflash");
-  PM_AddChatAlias(".testflash", "sm_testflash");
-  PM_AddChatAlias(".startflash", "sm_testflash");
-  PM_AddChatAlias(".endflash", "sm_stopflash");
-  PM_AddChatAlias(".stopflash", "sm_stopflash");
+    RegConsoleCmd("sm_boost", Command_Boost);
+    PM_AddChatAlias(".boost", "sm_boost");
 
-  PM_AddChatAlias(".timer", "sm_time");
-  PM_AddChatAlias(".time", "sm_time");
-  PM_AddChatAlias(".timer2", "sm_time2");
+    RegConsoleCmd("sm_crouchboost", Command_CrouchBoost);
+    PM_AddChatAlias(".crouchboost", "sm_crouchboost");
+    PM_AddChatAlias(".cboost", "sm_crouchboost");
 
-  PM_AddChatAlias(".bot", "sm_bot");
-  PM_AddChatAlias(".addbot", "sm_bot");
-  PM_AddChatAlias(".movebot", "sm_movebot");
-  PM_AddChatAlias(".crouchbot", "sm_crouchbot");
-  PM_AddChatAlias(".cbot", "sm_crouchbot");
-  PM_AddChatAlias(".botplace", "sm_botplace");
-  PM_AddChatAlias(".bot2", "sm_botplace");
-  PM_AddChatAlias(".boost", "sm_boost");
-  PM_AddChatAlias(".crouchboost", "sm_crouchboost");
-  PM_AddChatAlias(".cboost", "sm_crouchboost");
+    RegConsoleCmd("sm_removebot", Command_RemoveBot);
+    PM_AddChatAlias(".removebot", "sm_removebot");
+    PM_AddChatAlias(".kickbot", "sm_removebot");
+    PM_AddChatAlias(".clearbot", "sm_removebot");
+    PM_AddChatAlias(".nobot", "sm_removebot");
 
-  PM_AddChatAlias(".removebot", "sm_removebot");
-  PM_AddChatAlias(".kickbot", "sm_removebot");
-  PM_AddChatAlias(".clearbot", "sm_removebot");
-  PM_AddChatAlias(".nobot", "sm_removebot");
-
-  PM_AddChatAlias(".kickbots", "sm_removebots");
-  PM_AddChatAlias(".clearbots", "sm_removebots");
-  PM_AddChatAlias(".nobots", "sm_removebots");
-
-  PM_AddChatAlias(".fastforward", "sm_fastforward");
-  PM_AddChatAlias(".fast", "sm_fastforward");
-  PM_AddChatAlias(".ff", "sm_fastforward");
-  PM_AddChatAlias(".settings", "sm_pmsettings");
-  PM_AddChatAlias(".repeat", "sm_repeat");
-  PM_AddChatAlias(".repeat", "sm_stoprepeat");
-  PM_AddChatAlias(".delay", "sm_delay");
+    RegConsoleCmd("sm_removebots", Command_RemoveBots);
+    PM_AddChatAlias(".kickbots", "sm_removebots");
+    PM_AddChatAlias(".clearbots", "sm_removebots");
+    PM_AddChatAlias(".nobots", "sm_removebots");
+  }
 
   // Saved grenade location commands
-  RegConsoleCmd("sm_gotogrenade", Command_GotoNade);
-  RegConsoleCmd("sm_grenades", Command_Grenades);
-  RegConsoleCmd("sm_find", Command_Find);
-  RegConsoleCmd("sm_renamegrenade", Command_RenameGrenade);
-  RegConsoleCmd("sm_savegrenade", Command_SaveGrenade);
-  RegConsoleCmd("sm_movegrenade", Command_MoveGrenade);
-  RegConsoleCmd("sm_savethrow", Command_SaveThrow);
-  RegConsoleCmd("sm_updategrenade", Command_UpdateGrenade);
-  RegConsoleCmd("sm_savedelay", Command_SetDelay);
-  RegConsoleCmd("sm_clearthrow", Command_ClearThrow);
-  RegConsoleCmd("sm_adddescription", Command_GrenadeDescription);
-  RegConsoleCmd("sm_deletegrenade", Command_DeleteGrenade);
-  RegConsoleCmd("sm_categories", Command_Categories);
-  RegConsoleCmd("sm_addcategory", Command_AddCategory);
-  RegConsoleCmd("sm_addcategories", Command_AddCategories);
-  RegConsoleCmd("sm_removecategory", Command_RemoveCategory);
-  RegConsoleCmd("sm_deletecategory", Command_DeleteCategory);
-  RegConsoleCmd("sm_clearcategories", Command_ClearGrenadeCategories);
-  RegConsoleCmd("sm_copygrenade", Command_CopyGrenade);
-  RegConsoleCmd("sm_respawn", Command_Respawn);
-  RegConsoleCmd("sm_stoprespawn", Command_Respawn);
-  RegConsoleCmd("sm_stopall", Command_StopAll);
-  PM_AddChatAlias(".nades", "sm_grenades");
-  PM_AddChatAlias(".grenades", "sm_grenades");
-  PM_AddChatAlias(".find", "sm_find");
-  PM_AddChatAlias(".addnade", "sm_savegrenade");
-  PM_AddChatAlias(".savenade", "sm_savegrenade");
-  PM_AddChatAlias(".save", "sm_savegrenade");
-  PM_AddChatAlias(".resave", "sm_movegrenade");
-  PM_AddChatAlias(".update", "sm_updategrenade");
-  PM_AddChatAlias(".savethrow", "sm_savethrow");
-  PM_AddChatAlias(".updatethrow", "sm_savethrow");
-  PM_AddChatAlias(".setdelay", "sm_savedelay");
-  PM_AddChatAlias(".savedelay", "sm_savedelay");
-  PM_AddChatAlias(".clearthrow", "sm_clearthrow");
-  PM_AddChatAlias(".move", "sm_movegrenade");
-  PM_AddChatAlias(".desc", "sm_adddescription");
-  PM_AddChatAlias(".rename", "sm_renamegrenade");
-  PM_AddChatAlias(".delete", "sm_deletegrenade");
-  PM_AddChatAlias(".category", "sm_addcategory");
-  PM_AddChatAlias(".cat", "sm_addcategory");
-  PM_AddChatAlias(".cats", "sm_categories");
-  PM_AddChatAlias(".addcategory", "sm_addcategory");
-  PM_AddChatAlias(".addcat", "sm_addcategory");
-  PM_AddChatAlias(".addcats", "sm_addcategories");
-  PM_AddChatAlias(".removecategory", "sm_removecategory");
-  PM_AddChatAlias(".removecat", "sm_removecategory");
-  PM_AddChatAlias(".deletecat", "sm_deletecategory");
-  PM_AddChatAlias(".clearcats", "sm_clearcategories");
-  PM_AddChatAlias(".copy", "sm_copygrenade");
-  PM_AddChatAlias(".respawn", "sm_respawn");
-  PM_AddChatAlias(".stoprespawn", "sm_stoprespawn");
-  PM_AddChatAlias(".stoprepeat", "sm_stoprepeat");
-  PM_AddChatAlias(".stop", "sm_stopall");
+  {
+    RegConsoleCmd("sm_gotogrenade", Command_GotoNade);
+    PM_AddChatAlias(".goto", "sm_gotogrenade");
+
+    RegConsoleCmd("sm_grenades", Command_Grenades);
+    PM_AddChatAlias(".nades", "sm_grenades");
+    PM_AddChatAlias(".grenades", "sm_grenades");
+
+    RegConsoleCmd("sm_find", Command_Find);
+    PM_AddChatAlias(".find", "sm_find");
+
+    RegConsoleCmd("sm_renamegrenade", Command_RenameGrenade);
+    PM_AddChatAlias(".rename", "sm_renamegrenade");
+
+    RegConsoleCmd("sm_savegrenade", Command_SaveGrenade);
+    PM_AddChatAlias(".addnade", "sm_savegrenade");
+    PM_AddChatAlias(".savenade", "sm_savegrenade");
+    PM_AddChatAlias(".save", "sm_savegrenade");
+
+    RegConsoleCmd("sm_movegrenade", Command_MoveGrenade);
+    PM_AddChatAlias(".resave", "sm_movegrenade");
+    PM_AddChatAlias(".move", "sm_movegrenade");
+
+    RegConsoleCmd("sm_savethrow", Command_SaveThrow);
+    PM_AddChatAlias(".savethrow", "sm_savethrow");
+    PM_AddChatAlias(".updatethrow", "sm_savethrow");
+
+    RegConsoleCmd("sm_updategrenade", Command_UpdateGrenade);
+    PM_AddChatAlias(".update", "sm_updategrenade");
+
+    RegConsoleCmd("sm_savedelay", Command_SetDelay);
+    PM_AddChatAlias(".setdelay", "sm_savedelay");
+    PM_AddChatAlias(".savedelay", "sm_savedelay");
+
+    RegConsoleCmd("sm_clearthrow", Command_ClearThrow);
+    PM_AddChatAlias(".clearthrow", "sm_clearthrow");
+
+    RegConsoleCmd("sm_adddescription", Command_GrenadeDescription);
+    PM_AddChatAlias(".desc", "sm_adddescription");
+
+    RegConsoleCmd("sm_deletegrenade", Command_DeleteGrenade);
+    PM_AddChatAlias(".delete", "sm_deletegrenade");
+
+    RegConsoleCmd("sm_categories", Command_Categories);
+
+    RegConsoleCmd("sm_addcategory", Command_AddCategory);
+    PM_AddChatAlias(".category", "sm_addcategory");
+    PM_AddChatAlias(".cat", "sm_addcategory");
+    PM_AddChatAlias(".cats", "sm_categories");
+    PM_AddChatAlias(".addcategory", "sm_addcategory");
+    PM_AddChatAlias(".addcat", "sm_addcategory");
+
+    RegConsoleCmd("sm_addcategories", Command_AddCategories);
+    PM_AddChatAlias(".addcats", "sm_addcategories");
+
+    RegConsoleCmd("sm_removecategory", Command_RemoveCategory);
+    PM_AddChatAlias(".removecategory", "sm_removecategory");
+    PM_AddChatAlias(".removecat", "sm_removecategory");
+
+    RegConsoleCmd("sm_deletecategory", Command_DeleteCategory);
+    PM_AddChatAlias(".deletecat", "sm_deletecategory");
+
+    RegConsoleCmd("sm_clearcategories", Command_ClearGrenadeCategories);
+    PM_AddChatAlias(".clearcats", "sm_clearcategories");
+
+    RegConsoleCmd("sm_copygrenade", Command_CopyGrenade);
+    PM_AddChatAlias(".copy", "sm_copygrenade");
+
+    RegConsoleCmd("sm_respawn", Command_Respawn);
+    PM_AddChatAlias(".respawn", "sm_respawn");
+
+    RegConsoleCmd("sm_stoprespawn", Command_Respawn);
+    PM_AddChatAlias(".stoprespawn", "sm_stoprespawn");
+  }
+
+  // Other commands
+  {
+    RegConsoleCmd("sm_testflash", Command_TestFlash);
+
+    PM_AddChatAlias(".flash", "sm_testflash");
+    PM_AddChatAlias(".testflash", "sm_testflash");
+    PM_AddChatAlias(".startflash", "sm_testflash");
+
+    RegConsoleCmd("sm_stopflash", Command_StopFlash);
+    PM_AddChatAlias(".endflash", "sm_stopflash");
+    PM_AddChatAlias(".stopflash", "sm_stopflash");
+
+    RegConsoleCmd("sm_time", Command_Time);
+    PM_AddChatAlias(".timer", "sm_time");
+    PM_AddChatAlias(".time", "sm_time");
+
+    RegConsoleCmd("sm_time2", Command_Time2);
+    PM_AddChatAlias(".timer2", "sm_time2");
+
+    RegConsoleCmd("sm_fastforward", Command_FastForward);
+    PM_AddChatAlias(".fastforward", "sm_fastforward");
+    PM_AddChatAlias(".fast", "sm_fastforward");
+    PM_AddChatAlias(".ff", "sm_fastforward");
+
+    RegConsoleCmd("sm_pmsettings", Command_Settings);
+    PM_AddChatAlias(".settings", "sm_pmsettings");
+
+    RegConsoleCmd("sm_repeat", Command_Repeat);
+    PM_AddChatAlias(".repeat", "sm_repeat");
+
+    RegConsoleCmd("sm_stoprepeat", Command_StopRepeat);
+    PM_AddChatAlias(".stoprepeat", "sm_stoprepeat");
+
+    RegConsoleCmd("sm_delay", Command_Delay);
+    PM_AddChatAlias(".delay", "sm_delay");
+
+    RegConsoleCmd("sm_stopall", Command_StopAll);
+    PM_AddChatAlias(".stop", "sm_stopall");
+  }
 
   // New Plugin cvars
   g_AlphabetizeNadeMenusCvar = CreateConVar("sm_practicemode_alphabetize_nades", "0",
