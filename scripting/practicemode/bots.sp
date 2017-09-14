@@ -287,6 +287,8 @@ public Action Event_DamageDealtEvent(Event event, const char[] name, bool dontBr
   return Plugin_Continue;
 }
 
+// TODO: rework this to print the message to the bot owner AND the flash thrower.
+// It probably needs to use the flashbang_detonate event (so piggyback on Event_FlashDetonate).
 public Action Event_PlayerBlind(Event event, const char[] name, bool dontBroadcast) {
   if (!g_InPracticeMode) {
     return;

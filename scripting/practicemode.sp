@@ -111,7 +111,6 @@ float g_SavedRespawnAngles[MAXPLAYERS + 1][3];
 ArrayList g_KnownNadeCategories = null;
 
 ArrayList g_ClientBots[MAXPLAYERS + 1];  // Bots owned by each client.
-// int g_BotOwned[MAXPLAYERS + 1];
 bool g_IsPMBot[MAXPLAYERS + 1];
 float g_BotSpawnOrigin[MAXPLAYERS + 1][3];
 float g_BotSpawnAngles[MAXPLAYERS + 1][3];
