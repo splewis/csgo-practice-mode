@@ -150,7 +150,8 @@ static void FindMapSpawnsForTeam(ArrayList list, const char[] spawnClassName) {
   ent = -1;
   while ((ent = FindEntityByClassname(ent, spawnClassName)) != -1) {
     int priority = GetEntProp(ent, Prop_Data, "m_iPriority");
-    if (priority == minPriority) {
+    int enabled = GetEntProp(ent, Prop_Data, "m_bEnabled");
+    if (enabled && priority == minPriority) {
       list.Push(ent);
     }
   }
