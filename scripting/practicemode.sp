@@ -876,7 +876,8 @@ public void ReadPracticeSettings() {
 
         char enabledString[64];
         kv.GetString("default", enabledString, sizeof(enabledString), "enabled");
-        bool enabled = StrEqual(enabledString, "enabled", false);
+        bool enabled =
+            StrEqual(enabledString, "enabled", false) || StrEqual(enabledString, "enable", false);
 
         bool changeable = (kv.GetNum("changeable", 1) != 0);
 
