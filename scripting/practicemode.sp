@@ -1259,8 +1259,15 @@ public void OnClientSayCommand_Post(int client, const char[] command, const char
 
 public void ShowHelpInfo(int client) {
   char url[256];
+  char version[64];
+#if defined COMMIT_STRING
+  Format(version, sizeof(version), COMMIT_STRING);
+#else
+  Format(version, sizeof(version), PLUGIN_VERSION);
+#endif
+
   Format(url, sizeof(url), "http://whiffcity.com/redirect_practicemode_help_version/%s",
-         PLUGIN_VERSION);
+         version);
   ShowMOTDPanel(client, "Practicemode Help", url, MOTDPANEL_TYPE_URL);
   QueryClientConVar(client, "cl_disablehtmlmotd", CheckMOTDAllowed, client);
 }
