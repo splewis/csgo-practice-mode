@@ -1260,8 +1260,8 @@ public void OnClientSayCommand_Post(int client, const char[] command, const char
 public void ShowHelpInfo(int client) {
   char url[256];
   char version[64];
-#if defined COMMIT_STRING
-  Format(version, sizeof(version), COMMIT_STRING);
+#if defined COMMIT_STRING_LONG
+  Format(version, sizeof(version), COMMIT_STRING_LONG);
 #else
   Format(version, sizeof(version), PLUGIN_VERSION);
 #endif
