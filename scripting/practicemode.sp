@@ -1266,8 +1266,7 @@ public void ShowHelpInfo(int client) {
   Format(version, sizeof(version), PLUGIN_VERSION);
 #endif
 
-  Format(url, sizeof(url), "http://whiffcity.com/redirect_practicemode_help_version/%s",
-         version);
+  Format(url, sizeof(url), "http://whiffcity.com/redirect_practicemode_help_version/%s", version);
   ShowMOTDPanel(client, "Practicemode Help", url, MOTDPANEL_TYPE_URL);
   QueryClientConVar(client, "cl_disablehtmlmotd", CheckMOTDAllowed, client);
 }

@@ -42,6 +42,7 @@ stock GrenadeType GrenadeFromProjectileName(const char[] projectileName) {
   } else if (StrEqual(projectileName, "decoy_projectile")) {
     return GrenadeType_Decoy;
   } else if (StrEqual(projectileName, "molotov_projectile")) {
+    // TODO: try to find a way to differentiate the molotov from incendiary.
     return GrenadeType_Incendiary;
   } else {
     return GrenadeType_None;
