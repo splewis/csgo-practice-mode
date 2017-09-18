@@ -49,6 +49,7 @@ You can edit these in the file ``cfg/sourcemod/practicemode.cfg``, which is auto
 ### General commands
 
 - ``.setup`` displays the practicemode menu
+- ``.prac`` launches practice mode and displays the ``.setup`` menu
 - ``.help``: displays this page
 - ``.settings``: opens the client settings menu
 
