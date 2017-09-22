@@ -5,7 +5,7 @@ csgo-practice-mode
 
 Practice Mode is a sourcemod plugin for helping players/teams run practices. It was formerly a part of [PugSetup](https://github.com/splewis/csgo-pug-setup) but has since been made into a separate project. It still contains integrations with pugsetup to make it available on it's ``.setup`` menu. It is also still distributed in pugsetup's releases.
 
-**Note**: access to the .setup requires having the sourcemod admin changemap flag ("g") by default. See [the wiki](https://github.com/splewis/csgo-practice-mode/wiki/Restricting-command-access) for more information on changing how admin access works.
+**Note**: access to the .setup requires having the sourcemod admin changemap flag ("g") by default. See [the wiki](https://github.com/splewis/csgo-practice-mode/wiki/Command-access) for more information on changing how admin access works.
 
 See this [YouTube video](https://www.youtube.com/watch?v=ua_I30DTggQ) for a demonstration.
 
