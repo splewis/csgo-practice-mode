@@ -282,3 +282,33 @@ public Action Timer_DelayedComand(Handle timer, int serial) {
   }
   return Plugin_Stop;
 }
+
+public Action Command_Map(int client, int args) {
+  char map[PLATFORM_MAX_PATH];
+  if (args >= 1 && GetCmdArg(1, map, sizeof(map))) {
+    ChangeMap(map);
+  } else {
+    Menu menu = new Menu(ChangeMapHandler);
+    menu.ExitButton = true;
+    menu.ExitBackButton = true;
+    menu.SetTitle("Select a map:");
+    for (int i = 0; i < g_MapList.Length; i++) {
+      g_MapList.GetString(i, map, sizeof(map));
+      AddMenuInt(menu, i, map);
+    }
+    DisplayMenu(menu, client, MENU_TIME_FOREVER);
+  }
+
+  return Plugin_Handled;
+}
+
+public int ChangeMapHandler(Menu menu, MenuAction action, int param1, int param2) {
+  if (action == MenuAction_Select) {
+    int index = GetMenuInt(menu, param2);
+    char map[PLATFORM_MAX_PATH];
+    g_MapList.GetString(index, map, sizeof(map));
+    ChangeMap(map);
+  } else if (action == MenuAction_End) {
+    delete menu;
+  }
+}

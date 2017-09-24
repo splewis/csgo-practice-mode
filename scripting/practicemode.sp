@@ -38,6 +38,8 @@ ArrayList g_BinaryOptionDisabledCvars;
 ArrayList g_BinaryOptionDisabledValues;
 ArrayList g_BinaryOptionCvarRestore;
 
+ArrayList g_MapList;
+
 /** Chat aliases loaded **/
 #define ALIAS_LENGTH 64
 #define COMMAND_LENGTH 64
@@ -234,6 +236,7 @@ public void OnPluginStart() {
   g_BinaryOptionDisabledCvars = new ArrayList();
   g_BinaryOptionDisabledValues = new ArrayList();
   g_BinaryOptionCvarRestore = new ArrayList();
+  g_MapList = new ArrayList(PLATFORM_MAX_PATH + 1);
   ReadPracticeSettings();
 
   // Setup stuff for grenade history
@@ -256,6 +259,9 @@ public void OnPluginStart() {
     RegAdminCmd("sm_practice", Command_LaunchPracticeMode, ADMFLAG_CHANGEMAP,
                 "Launches practice mode");
     PM_AddChatAlias(".prac", "sm_prac");
+
+    RegAdminCmd("sm_practicemap", Command_Map, ADMFLAG_CHANGEMAP);
+    PM_AddChatAlias(".map", "sm_practicemap");
   }
 
   RegAdminCmd("sm_exitpractice", Command_ExitPracticeMode, ADMFLAG_CHANGEMAP,
@@ -855,6 +861,7 @@ public void ReadPracticeSettings() {
   ClearNestedArray(g_BinaryOptionDisabledCvars);
   ClearNestedArray(g_BinaryOptionDisabledValues);
   ClearArray(g_BinaryOptionCvarRestore);
+  ClearArray(g_MapList);
 
   char filePath[PLATFORM_MAX_PATH];
   BuildPath(Path_SM, filePath, sizeof(filePath), "configs/practicemode.cfg");
@@ -906,6 +913,26 @@ public void ReadPracticeSettings() {
     }
   }
   kv.Rewind();
+
+  char map[PLATFORM_MAX_PATH + 1];
+  if (kv.JumpToKey("maps")) {
+    if (kv.GotoFirstSubKey()) {
+      do {
+        kv.GetString(NULL_STRING, map, sizeof(map));
+        g_MapList.PushString(map);
+      } while (kv.GotoNextKey());
+    }
+  }
+  if (g_MapList.Length == 0) {
+    g_MapList.PushString("de_cache");
+    g_MapList.PushString("de_cbble");
+    g_MapList.PushString("de_dust2");
+    g_MapList.PushString("de_inferno");
+    g_MapList.PushString("de_mirage");
+    g_MapList.PushString("de_nuke");
+    g_MapList.PushString("de_overpass");
+    g_MapList.PushString("de_train");
+  }
 
   Call_StartForward(g_OnPracticeModeSettingsRead);
   Call_Finish();

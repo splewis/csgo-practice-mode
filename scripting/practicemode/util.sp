@@ -289,3 +289,46 @@ stock void ReadCvarKv(KeyValues kv, ArrayList cvars, ArrayList values) {
     kv.GoBack();
   }
 }
+
+stock void ChangeMap(const char[] map, float delay = 3.0) {
+  PM_MessageToAll("Changing map to %s...", map);
+  DataPack pack = CreateDataPack();
+  pack.WriteString(map);
+  CreateTimer(delay, Timer_DelayedChangeMap, pack);
+}
+
+public Action Timer_DelayedChangeMap(Handle timer, Handle data) {
+  char map[PLATFORM_MAX_PATH];
+  DataPack pack = view_as<DataPack>(data);
+  pack.Reset();
+  pack.ReadString(map, sizeof(map));
+  delete pack;
+
+  if (IsMapValid(map)) {
+    ServerCommand("changelevel %s", map);
+  } else if (StrContains(map, "workshop") == 0) {
+    ServerCommand("host_workshop_map %d", GetMapIdFromString(map));
+  }
+
+  return Plugin_Handled;
+}
+
+public int GetMapIdFromString(const char[] map) {
+  char buffers[4][PLATFORM_MAX_PATH];
+  ExplodeString(map, "/", buffers, sizeof(buffers), PLATFORM_MAX_PATH);
+  return StringToInt(buffers[1]);
+}
+
+stock void AddMenuInt(Menu menu, int value, const char[] display, any:...) {
+  char formattedDisplay[128];
+  VFormat(formattedDisplay, sizeof(formattedDisplay), display, 4);
+  char buffer[32];
+  IntToString(value, buffer, sizeof(buffer));
+  menu.AddItem(buffer, formattedDisplay);
+}
+
+stock int GetMenuInt(Menu menu, int param2) {
+  char buffer[32];
+  menu.GetItem(param2, buffer, sizeof(buffer));
+  return StringToInt(buffer);
+}

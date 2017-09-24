@@ -101,5 +101,6 @@ All of the following commands can only be used on _your_ grenades. They will app
 - ``.fastfoward`` (or ``.ff``): speeds up the server clock so the next 20 seconds lasts just 1 second
 - ``.repeat <interval> <command>``: give a number of seconds and a chat command, the command will automatically repeat at the given interval. For example: ``.repeat 3 .throw`` repeats .throw every 3 seconds
 - ``.delay <duration> <command>``: runs the given chat command after a given duration (in seconds)
+- ``.map``: changes map (you can use a map name like ``.map de_dust2`` or just ``.map`` to get a menu)
 
 Also see the [notes for power users](https://github.com/splewis/csgo-practice-mode/wiki/Notes-for-power-users) for more detail on using these commands effectively.
