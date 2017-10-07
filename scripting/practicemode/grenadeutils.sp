@@ -86,6 +86,7 @@ public bool TeleportToSavedGrenadePosition(int client, const char[] id) {
   char description[GRENADE_DESCRIPTION_LENGTH];
   char category[GRENADE_CATEGORY_LENGTH];
   bool success = false;
+  float delay = 0.0;
 
   // Update the client's current grenade id.
   g_CurrentSavedGrenadeId[client] = StringToInt(id);
@@ -100,6 +101,7 @@ public bool TeleportToSavedGrenadePosition(int client, const char[] id) {
     g_GrenadeLocationsKv.GetString("name", grenadeName, sizeof(grenadeName));
     g_GrenadeLocationsKv.GetString("description", description, sizeof(description));
     g_GrenadeLocationsKv.GetString("categories", category, sizeof(category));
+    delay = g_GrenadeLocationsKv.GetFloat("delay");
     TeleportEntity(client, origin, angles, velocity);
     SetEntityMoveType(client, MOVETYPE_WALK);
     PM_Message(client, "Teleporting to grenade id %s, \"%s\".", id, grenadeName);
@@ -115,6 +117,10 @@ public bool TeleportToSavedGrenadePosition(int client, const char[] id) {
       int len = strlen(category);
       category[len - 2] = '\0';
       PM_Message(client, "Categories: %s", category);
+    }
+
+    if (delay > 0.0) {
+      PM_Message(client, "Grenade delay: %.1f seconds", delay);
     }
 
     g_GrenadeLocationsKv.Rewind();
