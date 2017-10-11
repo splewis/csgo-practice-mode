@@ -18,6 +18,7 @@ Handle g_OnGrenadeThrownForward = INVALID_HANDLE;
 int g_NadeBot;
 int g_NadeBotStage = -1;
 int g_iNextAttackOffset = -1;
+bool g_PendingNadeTeleport = false;
 
 ArrayList g_GrenadeQueue = null;
 
@@ -81,6 +82,7 @@ public void OnPluginEnd() {
 public void OnMapStart() {
   InitGrenadeQueue();
   g_NadeBotStage = -1;
+  g_PendingNadeTeleport = false;
   GetBotSpawnPoint();
 }
 
@@ -149,7 +151,10 @@ public int Native_ThrowGrenade(Handle plugin, int numParams) {
   GetNativeArray(4, velocity, sizeof(velocity));
 
   AddGrenadeToQueue(grenadeType, origin, velocity);
-  MaybeStartGrenadeThrow();
+
+  if (!g_PendingNadeTeleport) {
+    MaybeStartGrenadeThrow();
+  }
   return 0;
 }
 
@@ -261,6 +266,7 @@ public void OnGrenadeProjectileCreated(int entity) {
   if (client > 0 && IsClientInGame(client)) {
     if (IsNadeBot(client)) {
       TeleportEntity(entity, g_ActiveGrenadeOrigin, NULL_VECTOR, g_ActiveGrenadeVelocity);
+      g_PendingNadeTeleport = false;
       RemoveGrenadeFromQueue();
       if (!MaybeStartGrenadeThrow()) {
         CleanupBot();
@@ -301,6 +307,7 @@ public bool MaybeStartGrenadeThrow() {
   }
 
   g_NadeBotStage = 1;
+  g_PendingNadeTeleport = true;
   return true;
 }
 
