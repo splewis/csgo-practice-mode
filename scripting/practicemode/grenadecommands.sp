@@ -242,6 +242,11 @@ public Action Command_SaveGrenade(int client, int args) {
     return Plugin_Handled;
   }
 
+  if (GetEntityMoveType(client) == MOVETYPE_NOCLIP) {
+    PM_Message(client, "You can't save grenades while noclipped.");
+    return Plugin_Handled;
+  }
+
   float origin[3];
   float angles[3];
   GetClientAbsOrigin(client, origin);
@@ -304,6 +309,11 @@ public Action Command_MoveGrenade(int client, int args) {
     return Plugin_Handled;
   }
 
+  if (GetEntityMoveType(client) == MOVETYPE_NOCLIP) {
+    PM_Message(client, "You can't move grenades while noclipped.");
+    return Plugin_Handled;
+  }
+
   float origin[3];
   float angles[3];
   GetClientAbsOrigin(client, origin);
@@ -352,6 +362,11 @@ public Action Command_UpdateGrenade(int client, int args) {
 
   if (!CanEditGrenade(client, nadeId)) {
     PM_Message(client, "You aren't the owner of this grenade.");
+    return Plugin_Handled;
+  }
+
+  if (GetEntityMoveType(client) == MOVETYPE_NOCLIP) {
+    PM_Message(client, "You can't update grenades while noclipped.");
     return Plugin_Handled;
   }
 
