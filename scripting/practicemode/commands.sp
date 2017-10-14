@@ -346,5 +346,14 @@ public Action Command_DryRun(int client, int args) {
   DisableSettingById("showimpacts");
   DisableSettingById("solidteammates");
 
+  for (int i = 1; i <= MaxClients; i++) {
+    g_TestingFlash[i] = false;
+    g_RunningRepeatedCommand[i] = false;
+    g_SavedRespawnActive[i] = false;
+    if (IsPlayer(i)) {
+      SetEntityMoveType(i, MOVETYPE_WALK);
+    }
+  }
+
   return Plugin_Handled;
 }
