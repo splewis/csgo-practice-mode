@@ -49,6 +49,7 @@ ArrayList g_ChatAliasesCommands;
 // Plugin cvars
 ConVar g_AlphabetizeNadeMenusCvar;
 ConVar g_AutostartCvar;
+ConVar g_DryRunFreezeTimeCvar;
 ConVar g_MaxGrenadesSavedCvar;
 ConVar g_MaxHistorySizeCvar;
 ConVar g_PracModeCanBeStartedCvar;
@@ -460,6 +461,9 @@ public void OnPluginStart() {
 
     RegConsoleCmd("sm_stopall", Command_StopAll);
     PM_AddChatAlias(".stop", "sm_stopall");
+
+    RegConsoleCmd("sm_dryrun", Command_DryRun);
+    PM_AddChatAlias(".dryrun", "sm_dryrun");
   }
 
   // New Plugin cvars
@@ -467,6 +471,8 @@ public void OnPluginStart() {
                                             "Whether menus of grenades are alphabetized by name.");
   g_AutostartCvar = CreateConVar("sm_practicemode_autostart", "0",
                                  "Whether the plugin is automatically started on mapstart");
+  g_DryRunFreezeTimeCvar = CreateConVar("sm_practicemode_dry_run_freeze_time", "10",
+                                        "Freezetime after running the .dryrun command.");
   g_MaxHistorySizeCvar =
       CreateConVar("sm_practicemode_max_grenade_history_size", "1000",
                    "Maximum number of grenades throws saved in history per-client");
@@ -853,6 +859,7 @@ public void PerformNoclipAction(int client) {
 }
 
 public void ReadPracticeSettings() {
+  ClearArray(g_BinaryOptionIds);
   ClearArray(g_BinaryOptionNames);
   ClearArray(g_BinaryOptionEnabled);
   ClearArray(g_BinaryOptionChangeable);
@@ -954,6 +961,9 @@ public void LaunchPracticeMode() {
 }
 
 stock void ChangeSetting(int index, bool enabled, bool print = true) {
+  bool previousSetting = g_BinaryOptionEnabled.Get(index);
+  g_BinaryOptionEnabled.Set(index, enabled);
+
   if (enabled) {
     ArrayList cvars = g_BinaryOptionEnabledCvars.Get(index);
     ArrayList values = g_BinaryOptionEnabledValues.Get(index);
@@ -982,11 +992,9 @@ stock void ChangeSetting(int index, bool enabled, bool print = true) {
   g_BinaryOptionIds.GetString(index, id, sizeof(id));
   g_BinaryOptionNames.GetString(index, name, sizeof(name));
 
-  if (print) {
+  if (print && enabled != previousSetting) {
     char enabledString[32];
     GetEnabledString(enabledString, sizeof(enabledString), enabled);
-
-    // don't display empty names
     if (!StrEqual(name, "")) {
       PM_MessageToAll("%s is now %s.", name, enabledString);
     }

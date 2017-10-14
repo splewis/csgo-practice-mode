@@ -312,3 +312,39 @@ public int ChangeMapHandler(Menu menu, MenuAction action, int param1, int param2
     delete menu;
   }
 }
+
+static void DisableSettingById(const char[] id) {
+  for (int i = 0; i < g_BinaryOptionIds.Length; i++) {
+    char name[OPTION_NAME_LENGTH];
+    g_BinaryOptionIds.GetString(i, name, sizeof(name));
+    if (StrEqual(name, id, false)) {
+      ChangeSetting(i, false, true);
+    }
+  }
+}
+
+public Action Command_DryRun(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  SetCvar("mp_freezetime", g_DryRunFreezeTimeCvar.IntValue);
+  ServerCommand("mp_restartgame 1");
+  // SetCvar("sv_cheats", 1);
+  // ServerCommand("endround");
+  // SetCvar("sv_cheats", 0);
+
+  DisableSettingById("allradar");
+  DisableSettingById("buyanywhere");
+  DisableSettingById("blockroundendings");
+  DisableSettingById("cheats");
+  DisableSettingById("grenadetrajectory");
+  DisableSettingById("infiniteammo");
+  DisableSettingById("infintemoney");
+  DisableSettingById("noclip");
+  DisableSettingById("respawning");
+  DisableSettingById("showimpacts");
+  DisableSettingById("solidteammates");
+
+  return Plugin_Handled;
+}

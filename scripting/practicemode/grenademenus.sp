@@ -45,7 +45,6 @@ public int PracticeMenuHandler(Menu menu, MenuAction action, int param1, int par
       g_BinaryOptionNames.GetString(i, name, sizeof(name));
       if (StrEqual(name, buffer)) {
         bool setting = !g_BinaryOptionEnabled.Get(i);
-        g_BinaryOptionEnabled.Set(i, setting);
         ChangeSetting(i, setting);
         GivePracticeMenu(client, ITEMDRAW_DEFAULT, pos);
         return 0;
