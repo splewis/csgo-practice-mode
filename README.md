@@ -103,5 +103,7 @@ All of the following commands can only be used on _your_ grenades. They will app
 - ``.delay <duration> <command>``: runs the given chat command after a given duration (in seconds)
 - ``.map``: changes map (you can use a map name like ``.map de_dust2`` or just ``.map`` to get a menu)
 - ``.dryrun``: disables most practicemode settings (leaving infinte money on), restarts the round, and sets freezetime to ``sm_practicemode_dry_run_freeze_time`` (default 10)
+- ``.enable <arg>``: enables a partially-named setting, or "all" settings.
+- ``.disable <arg>``: disables a partially-named setting, or "all" settings.
 
 Also see the [notes for power users](https://github.com/splewis/csgo-practice-mode/wiki/Notes-for-power-users) for more detail on using these commands effectively.

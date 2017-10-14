@@ -464,6 +464,12 @@ public void OnPluginStart() {
 
     RegConsoleCmd("sm_dryrun", Command_DryRun);
     PM_AddChatAlias(".dryrun", "sm_dryrun");
+
+    RegConsoleCmd("sm_enablesetting", Command_Enable);
+    PM_AddChatAlias(".enable", "sm_enablesetting");
+
+    RegConsoleCmd("sm_disablesetting", Command_Disable);
+    PM_AddChatAlias(".disable", "sm_disablesetting");
   }
 
   // New Plugin cvars
@@ -960,7 +966,7 @@ public void LaunchPracticeMode() {
   Call_Finish();
 }
 
-stock void ChangeSetting(int index, bool enabled, bool print = true) {
+stock bool ChangeSetting(int index, bool enabled, bool print = true) {
   bool previousSetting = g_BinaryOptionEnabled.Get(index);
   g_BinaryOptionEnabled.Set(index, enabled);
 
@@ -1006,6 +1012,8 @@ stock void ChangeSetting(int index, bool enabled, bool print = true) {
   Call_PushString(name);
   Call_PushCell(enabled);
   Call_Finish();
+
+  return enabled != previousSetting;
 }
 
 public void ExitPracticeMode() {

@@ -330,10 +330,6 @@ public Action Command_DryRun(int client, int args) {
 
   SetCvar("mp_freezetime", g_DryRunFreezeTimeCvar.IntValue);
   ServerCommand("mp_restartgame 1");
-  // SetCvar("sv_cheats", 1);
-  // ServerCommand("endround");
-  // SetCvar("sv_cheats", 0);
-
   DisableSettingById("allradar");
   DisableSettingById("buyanywhere");
   DisableSettingById("blockroundendings");
@@ -355,5 +351,57 @@ public Action Command_DryRun(int client, int args) {
     }
   }
 
+  return Plugin_Handled;
+}
+
+static void ChangeSettingArg(int client, const char[] arg, bool enabled) {
+  if (StrEqual(arg, "all", false)) {
+    for (int i = 0; i < g_BinaryOptionIds.Length; i++) {
+      ChangeSetting(i, enabled, true);
+    }
+    return;
+  }
+
+  ArrayList indexMatches = new ArrayList();
+  for (int i = 0; i < g_BinaryOptionIds.Length; i++) {
+    char name[OPTION_NAME_LENGTH];
+    g_BinaryOptionNames.GetString(i, name, sizeof(name));
+    if (StrContains(name, arg, false) >= 0) {
+      indexMatches.Push(i);
+    }
+  }
+
+  if (indexMatches.Length == 0) {
+    PM_Message(client, "No settings matched \"%s\"", arg);
+  } else if (indexMatches.Length == 1) {
+      if (!ChangeSetting(indexMatches.Get(0), enabled, true)) {
+        PM_Message(client, "That is already enabled.");
+      }
+  } else {
+    PM_Message(client, "Multiple settings matched \"%s\"", arg);
+  }
+
+  delete indexMatches;
+}
+
+public Action Command_Enable(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  char arg[128];
+  GetCmdArgString(arg, sizeof(arg));
+  ChangeSettingArg(client, arg, true);
+  return Plugin_Handled;
+}
+
+public Action Command_Disable(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  char arg[128];
+  GetCmdArgString(arg, sizeof(arg));
+  ChangeSettingArg(client, arg, false);
   return Plugin_Handled;
 }
