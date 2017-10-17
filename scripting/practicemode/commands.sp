@@ -331,16 +331,16 @@ public Action Command_DryRun(int client, int args) {
   SetCvar("mp_freezetime", g_DryRunFreezeTimeCvar.IntValue);
   ServerCommand("mp_restartgame 1");
   DisableSettingById("allradar");
-  DisableSettingById("buyanywhere");
   DisableSettingById("blockroundendings");
+  DisableSettingById("buyanywhere");
   DisableSettingById("cheats");
   DisableSettingById("grenadetrajectory");
   DisableSettingById("infiniteammo");
   DisableSettingById("infintemoney");
   DisableSettingById("noclip");
+  DisableSettingById("nocollisions");
   DisableSettingById("respawning");
   DisableSettingById("showimpacts");
-  DisableSettingById("solidteammates");
 
   for (int i = 1; i <= MaxClients; i++) {
     g_TestingFlash[i] = false;
