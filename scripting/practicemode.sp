@@ -99,6 +99,8 @@ bool g_TestingFlash[MAXPLAYERS + 1];
 float g_TestingFlashOrigins[MAXPLAYERS + 1][3];
 float g_TestingFlashAngles[MAXPLAYERS + 1][3];
 
+bool g_ClientNoFlash[MAXPLAYERS + 1];
+
 bool g_RunningRepeatedCommand[MAXPLAYERS + 1];
 char g_RunningRepeatedCommandArg[MAXPLAYERS][256];
 
@@ -435,6 +437,9 @@ public void OnPluginStart() {
     PM_AddChatAlias(".endflash", "sm_stopflash");
     PM_AddChatAlias(".stopflash", "sm_stopflash");
 
+    RegConsoleCmd("sm_noflash", Command_NoFlash);
+    PM_AddChatAlias(".noflash", "sm_noflash");
+
     RegConsoleCmd("sm_time", Command_Time);
     PM_AddChatAlias(".timer", "sm_time");
     PM_AddChatAlias(".time", "sm_time");
@@ -607,6 +612,7 @@ public void OnClientConnected(int client) {
   ClearArray(g_GrenadeHistoryAngles[client]);
   ClearArray(g_ClientGrenadeThrowTimes[client]);
   g_TestingFlash[client] = false;
+  g_ClientNoFlash[client] = false;
   g_RunningTimeCommand[client] = false;
   g_RunningLiveTimeCommand[client] = false;
   g_SavedRespawnActive[client] = false;

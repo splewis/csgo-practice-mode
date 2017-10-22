@@ -78,6 +78,7 @@ All of the following commands can only be used on _your_ grenades. They will app
 - ``.forward``: teleports you forward a position in your grenade history
 - ``.flash``:  saves you position to test flashbangs against it. Use this command in a spot you want to try to blind, then move and throw the flashbang; you will be teleported back to the position and see how effective the flashbang is. Use ``.stop`` to cancel.
 - ``.throw [filter]``: automatically throws all grenades matching the filter. With no filter, throws the last grenade you threw.
+- ``.noflash``: makes it so no flashbangs will blind you (they still blind others)
 
 ### Bot commands
 - ``.bot``: adds a bot where you're standing (or crouching!); ``.crouchbot`` to force a crouching bot

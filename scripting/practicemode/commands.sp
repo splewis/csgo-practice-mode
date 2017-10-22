@@ -23,6 +23,20 @@ public Action Command_ExitPracticeMode(int client, int args) {
   return Plugin_Handled;
 }
 
+public Action Command_NoFlash(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  g_ClientNoFlash[client] = !g_ClientNoFlash[client];
+  if (g_ClientNoFlash[client]) {
+    PM_Message(client, "Enabled noflash. Use .noflash again to let flashbangs blind you.");
+  } else {
+    PM_Message(client, "Disabled noflash.");
+  }
+  return Plugin_Handled;
+}
+
 public Action Command_Time(int client, int args) {
   if (!g_InPracticeMode) {
     return Plugin_Handled;
@@ -346,6 +360,7 @@ public Action Command_DryRun(int client, int args) {
     g_TestingFlash[i] = false;
     g_RunningRepeatedCommand[i] = false;
     g_SavedRespawnActive[i] = false;
+    g_ClientNoFlash[client] = false;
     if (IsPlayer(i)) {
       SetEntityMoveType(i, MOVETYPE_WALK);
     }
@@ -374,9 +389,9 @@ static void ChangeSettingArg(int client, const char[] arg, bool enabled) {
   if (indexMatches.Length == 0) {
     PM_Message(client, "No settings matched \"%s\"", arg);
   } else if (indexMatches.Length == 1) {
-      if (!ChangeSetting(indexMatches.Get(0), enabled, true)) {
-        PM_Message(client, "That is already enabled.");
-      }
+    if (!ChangeSetting(indexMatches.Get(0), enabled, true)) {
+      PM_Message(client, "That is already enabled.");
+    }
   } else {
     PM_Message(client, "Multiple settings matched \"%s\"", arg);
   }

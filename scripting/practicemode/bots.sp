@@ -302,4 +302,15 @@ public Action Event_PlayerBlind(Event event, const char[] name, bool dontBroadca
       PM_Message(owner, "---> %.1f second flash for BOT %N", GetFlashDuration(client), client);
     }
   }
+
+  // TODO: move this into another place (has nothing to do with bots!)
+  if (g_ClientNoFlash[client]) {
+    RequestFrame(KillFlashEffect, GetClientSerial(client));
+  }
+}
+
+public void KillFlashEffect(int serial) {
+  int client = GetClientFromSerial(serial);
+  // Idea used from SAMURAI16 @ https://forums.alliedmods.net/showthread.php?p=685111
+  SetEntDataFloat(client, FindSendPropInfo("CCSPlayer", "m_flFlashMaxAlpha"), 0.5);
 }
