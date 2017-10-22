@@ -591,6 +591,7 @@ public Action Event_CvarChanged(Event event, const char[] name, bool dontBroadca
 }
 
 public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast) {
+  CheckAutoStart();
   if (!g_InPracticeMode) {
     return Plugin_Continue;
   }
@@ -618,6 +619,7 @@ public void OnClientConnected(int client) {
   g_SavedRespawnActive[client] = false;
   g_LastGrenadeType[client] = GrenadeType_None;
   g_RunningRepeatedCommand[client] = false;
+  CheckAutoStart();
 }
 
 public void OnMapStart() {
@@ -678,9 +680,14 @@ public void OnConfigsExecuted() {
     LogMessage("%s was unloaded and moved to %s", legacyPluginFile, disabledLegacyPluginName);
   }
 
+  CheckAutoStart();
+}
+
+public void CheckAutoStart() {
   // Autostart practicemode if enabled.
-  if (g_AutostartCvar.IntValue != 0) {
-    if (!g_PugsetupLoaded || PugSetup_GetGameState() == GameState_None) {
+  if (g_AutostartCvar.IntValue != 0 && !g_InPracticeMode) {
+    bool pugsetup_live = g_PugsetupLoaded && PugSetup_GetGameState() != GameState_None;
+    if (!pugsetup_live) {
       LaunchPracticeMode();
     }
   }
@@ -694,6 +701,17 @@ public void OnClientDisconnect(int client) {
   }
 
   g_IsPMBot[client] = false;
+
+  // If the server empties out, exit practice mode.
+  int playerCount = 0;
+  for (int i = 0; i <= MaxClients; i++) {
+    if (IsPlayer(i)) {
+      playerCount++;
+    }
+  }
+  if (playerCount == 0 && g_InPracticeMode) {
+    ExitPracticeMode();
+  }
 }
 
 public void OnMapEnd() {
