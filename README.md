@@ -106,5 +106,6 @@ All of the following commands can only be used on _your_ grenades. They will app
 - ``.dryrun``: disables most practicemode settings (leaving infinte money on), restarts the round, and sets freezetime to ``sm_practicemode_dry_run_freeze_time`` (default 10)
 - ``.enable <arg>``: enables a partially-named setting, or "all" settings.
 - ``.disable <arg>``: disables a partially-named setting, or "all" settings.
+- ``.savepos``: temporarily saves a position so you can ``.back`` to it (this adds the position to the list of grenade positions you've thrown)
 
 Also see the [notes for power users](https://github.com/splewis/csgo-practice-mode/wiki/Notes-for-power-users) for more detail on using these commands effectively.

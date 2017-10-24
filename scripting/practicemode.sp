@@ -292,6 +292,9 @@ public void OnPluginStart() {
 
     RegConsoleCmd("sm_clearnades", Command_ClearNades);
     PM_AddChatAlias(".clearnades", "sm_clearnades");
+
+    RegConsoleCmd("sm_savepos", Command_SavePos);
+    PM_AddChatAlias(".savepos", "sm_savepos");
   }
 
   // Spawn commands
@@ -1135,8 +1138,7 @@ public int OnEntitySpawned(int entity) {
           }
 
           // Note: the technique using temporary entities is taken from InternetBully's NadeTails
-          // plugin
-          // which you can find at https://forums.alliedmods.net/showthread.php?t=240668
+          // plugin which you can find at https://forums.alliedmods.net/showthread.php?t=240668
           float time = (GetClientTeam(i) == CS_TEAM_SPECTATOR) ? g_GrenadeSpecTimeCvar.FloatValue
                                                                : g_GrenadeTimeCvar.FloatValue;
 
@@ -1192,19 +1194,9 @@ public Action Event_WeaponFired(Event event, const char[] name, bool dontBroadca
   char weapon[CLASS_LENGTH];
   event.GetString("weapon", weapon, sizeof(weapon));
 
+  AddGrenadeToHistory(client);
   if (IsGrenadeWeapon(weapon) && IsPlayer(client)) {
-    if (GetArraySize(g_GrenadeHistoryPositions[client]) >= g_MaxHistorySizeCvar.IntValue) {
-      RemoveFromArray(g_GrenadeHistoryPositions[client], 0);
-      RemoveFromArray(g_GrenadeHistoryAngles[client], 0);
-    }
-
-    float position[3];
-    float angles[3];
-    GetClientAbsOrigin(client, position);
-    GetClientEyeAngles(client, angles);
-    PushArrayArray(g_GrenadeHistoryPositions[client], position, sizeof(position));
-    PushArrayArray(g_GrenadeHistoryAngles[client], angles, sizeof(angles));
-    g_GrenadeHistoryIndex[client] = g_GrenadeHistoryPositions[client].Length;
+    AddGrenadeToHistory(client);
   }
 }
 

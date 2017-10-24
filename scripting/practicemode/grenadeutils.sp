@@ -238,6 +238,21 @@ public bool FindTargetNameByAuth(const char[] inputAuth, char[] name, int nameLe
   return false;
 }
 
+public void AddGrenadeToHistory(int client) {
+  if (GetArraySize(g_GrenadeHistoryPositions[client]) >= g_MaxHistorySizeCvar.IntValue) {
+    RemoveFromArray(g_GrenadeHistoryPositions[client], 0);
+    RemoveFromArray(g_GrenadeHistoryAngles[client], 0);
+  }
+
+  float position[3];
+  float angles[3];
+  GetClientAbsOrigin(client, position);
+  GetClientEyeAngles(client, angles);
+  PushArrayArray(g_GrenadeHistoryPositions[client], position, sizeof(position));
+  PushArrayArray(g_GrenadeHistoryAngles[client], angles, sizeof(angles));
+  g_GrenadeHistoryIndex[client] = g_GrenadeHistoryPositions[client].Length;
+}
+
 public bool FindTargetInGrenadesKvByName(const char[] inputName, char[] name, int nameLen, char[] auth,
                                   int authLen) {
   if (g_GrenadeLocationsKv.GotoFirstSubKey()) {

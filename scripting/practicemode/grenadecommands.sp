@@ -53,6 +53,16 @@ public Action Command_GrenadeBack(int client, int args) {
   return Plugin_Handled;
 }
 
+public Action Command_SavePos(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  AddGrenadeToHistory(client);
+  PM_Message(client, "Saved position. Use .back to go back to it.");
+  return Plugin_Handled;
+}
+
 public Action Command_GrenadeForward(int client, int args) {
   if (!g_InPracticeMode) {
     return Plugin_Handled;
