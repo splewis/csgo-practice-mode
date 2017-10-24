@@ -219,6 +219,7 @@ public void OnPluginStart() {
   g_InPracticeMode = false;
   AddCommandListener(Command_TeamJoin, "jointeam");
   AddCommandListener(Command_Noclip, "noclip");
+  AddCommandListener(Command_SetPos, "setpos");
 
   // Forwards
   g_OnGrenadeSaved = CreateGlobalForward("PM_OnPracticeModeEnabled", ET_Event, Param_Cell,
@@ -856,6 +857,11 @@ public Action Command_TeamJoin(int client, const char[] command, int argc) {
 public Action Command_Noclip(int client, const char[] command, int argc) {
   PerformNoclipAction(client);
   return Plugin_Handled;
+}
+
+public Action Command_SetPos(int client, const char[] command, int argc) {
+  SetEntityMoveType(client, MOVETYPE_WALK);
+  return Plugin_Continue;
 }
 
 public Action OnClientSayCommand(int client, const char[] command, const char[] text) {
