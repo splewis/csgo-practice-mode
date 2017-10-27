@@ -1001,6 +1001,10 @@ public void LaunchPracticeMode() {
 
 stock bool ChangeSetting(int index, bool enabled, bool print = true) {
   bool previousSetting = g_BinaryOptionEnabled.Get(index);
+  if (enabled == previousSetting) {
+    return false;
+  }
+
   g_BinaryOptionEnabled.Set(index, enabled);
 
   if (enabled) {
@@ -1031,7 +1035,7 @@ stock bool ChangeSetting(int index, bool enabled, bool print = true) {
   g_BinaryOptionIds.GetString(index, id, sizeof(id));
   g_BinaryOptionNames.GetString(index, name, sizeof(name));
 
-  if (print && enabled != previousSetting) {
+  if (print) {
     char enabledString[32];
     GetEnabledString(enabledString, sizeof(enabledString), enabled);
     if (!StrEqual(name, "")) {
@@ -1046,7 +1050,7 @@ stock bool ChangeSetting(int index, bool enabled, bool print = true) {
   Call_PushCell(enabled);
   Call_Finish();
 
-  return enabled != previousSetting;
+  return true;
 }
 
 public void ExitPracticeMode() {

@@ -343,7 +343,6 @@ public Action Command_DryRun(int client, int args) {
   }
 
   SetCvar("mp_freezetime", g_DryRunFreezeTimeCvar.IntValue);
-  ServerCommand("mp_restartgame 1");
   DisableSettingById("allradar");
   DisableSettingById("blockroundendings");
   DisableSettingById("buyanywhere");
@@ -366,6 +365,7 @@ public Action Command_DryRun(int client, int args) {
     }
   }
 
+  ServerCommand("mp_restartgame 1");
   return Plugin_Handled;
 }
 
