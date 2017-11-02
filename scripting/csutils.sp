@@ -176,6 +176,7 @@ static void GetBotName(char[] name, int len) {
   choices.PushString("BOT Eley");
   choices.PushString("BOT Drone");
   choices.PushString("BOT iannn");
+  choices.PushString("BOT Otoris!");
   int index = GetRandomInt(0, choices.Length - 1);
   choices.GetString(index, name, len);
   delete choices;
