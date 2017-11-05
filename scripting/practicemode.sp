@@ -1198,7 +1198,6 @@ public Action Event_WeaponFired(Event event, const char[] name, bool dontBroadca
   char weapon[CLASS_LENGTH];
   event.GetString("weapon", weapon, sizeof(weapon));
 
-  AddGrenadeToHistory(client);
   if (IsGrenadeWeapon(weapon) && IsPlayer(client)) {
     AddGrenadeToHistory(client);
   }
