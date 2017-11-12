@@ -991,7 +991,7 @@ public void LaunchPracticeMode() {
 
   g_InPracticeMode = true;
   for (int i = 0; i < g_BinaryOptionNames.Length; i++) {
-    ChangeSetting(i, PM_IsSettingEnabled(i), false);
+    ChangeSetting(i, PM_IsSettingEnabled(i), false, true);
   }
 
   PM_MessageToAll("Practice mode is now enabled.");
@@ -999,9 +999,9 @@ public void LaunchPracticeMode() {
   Call_Finish();
 }
 
-stock bool ChangeSetting(int index, bool enabled, bool print = true) {
+stock bool ChangeSetting(int index, bool enabled, bool print = true, bool force_setting = false) {
   bool previousSetting = g_BinaryOptionEnabled.Get(index);
-  if (enabled == previousSetting) {
+  if (enabled == previousSetting && !force_setting) {
     return false;
   }
 
