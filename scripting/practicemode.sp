@@ -1094,10 +1094,11 @@ public void ExitPracticeMode() {
 }
 
 public Action Timer_GivePlayersMoney(Handle timer) {
+  int maxMoney = GetCvarIntSafe("mp_maxmoney", 16000);
   if (g_InfiniteMoneyCvar.IntValue != 0) {
     for (int i = 1; i <= MaxClients; i++) {
       if (IsPlayer(i)) {
-        SetEntProp(i, Prop_Send, "m_iAccount", 16000);
+        SetEntProp(i, Prop_Send, "m_iAccount", maxMoney);
       }
     }
   }

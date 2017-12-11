@@ -102,11 +102,11 @@ stock void GetEnabledString(char[] buffer, int length, bool variable, int client
     Format(buffer, length, "disabled");
 }
 
-stock int GetCvarIntSafe(const char[] cvarName) {
+stock int GetCvarIntSafe(const char[] cvarName, int defaultValue=0) {
   Handle cvar = FindConVar(cvarName);
   if (cvar == INVALID_HANDLE) {
     LogError("Failed to find cvar \"%s\"", cvar);
-    return 0;
+    return defaultValue;
   } else {
     return GetConVarInt(cvar);
   }
