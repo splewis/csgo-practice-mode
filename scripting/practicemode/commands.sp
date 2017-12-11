@@ -351,7 +351,6 @@ public Action Command_DryRun(int client, int args) {
   DisableSettingById("infiniteammo");
   DisableSettingById("infintemoney");
   DisableSettingById("noclip");
-  DisableSettingById("nocollisions");
   DisableSettingById("respawning");
   DisableSettingById("showimpacts");
 
