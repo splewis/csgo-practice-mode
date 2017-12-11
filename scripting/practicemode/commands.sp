@@ -419,3 +419,31 @@ public Action Command_Disable(int client, int args) {
   ChangeSettingArg(client, arg, false);
   return Plugin_Handled;
 }
+
+public Action Command_God(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  if (!GetCvarIntSafe("sv_cheats")) {
+    PM_Message(client, ".god requires sv_cheats to be enabled.");
+    return Plugin_Handled;
+  }
+
+  FakeClientCommand(client, "god");
+  return Plugin_Handled;
+}
+
+public Action Command_EndRound(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  if (!GetCvarIntSafe("sv_cheats")) {
+    PM_Message(client, ".endround requires sv_cheats to be enabled.");
+    return Plugin_Handled;
+  }
+
+  ServerCommand("endround");
+  return Plugin_Handled;
+}

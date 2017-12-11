@@ -479,6 +479,12 @@ public void OnPluginStart() {
 
     RegConsoleCmd("sm_disablesetting", Command_Disable);
     PM_AddChatAlias(".disable", "sm_disablesetting");
+
+    RegConsoleCmd("sm_god", Command_God);
+    PM_AddChatAlias(".god", "sm_god");
+
+    RegConsoleCmd("sm_endround", Command_EndRound);
+    PM_AddChatAlias(".endround", "sm_endround");
   }
 
   // New Plugin cvars
