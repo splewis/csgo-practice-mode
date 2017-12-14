@@ -184,6 +184,9 @@ Handle g_LeaveNadeMenuOpenCookie = INVALID_HANDLE;
 #define NO_GRENADE_TRAJECTORY_DEFAULT false
 Handle g_NoGrenadeTrajectoryCookie = INVALID_HANDLE;
 
+#define USE_GRENADE_ON_NADE_MENU_SELECT_DEFAULT true
+Handle g_UseGrenadeOnNadeMenuSelectCookie = INVALID_HANDLE;
+
 // Forwards
 Handle g_OnGrenadeSaved = INVALID_HANDLE;
 Handle g_OnPracticeModeDisabled = INVALID_HANDLE;
@@ -556,6 +559,9 @@ public void OnPluginStart() {
   g_NoGrenadeTrajectoryCookie =
       RegClientCookie("practicemode_no_traject", "Whether to whether show grenade trajectories",
                       CookieAccess_Public);
+  g_UseGrenadeOnNadeMenuSelectCookie = RegClientCookie(
+      "practicemode_use_ade", "Whether to auto switch to a nade when selected in .nades",
+      CookieAccess_Public);
 
   // Remove cheats so sv_cheats isn't required for this:
   RemoveCvarFlag(g_GrenadeTrajectoryCvar, FCVAR_CHEAT);

@@ -87,6 +87,8 @@ public bool TeleportToSavedGrenadePosition(int client, const char[] id) {
   char category[GRENADE_CATEGORY_LENGTH];
   bool success = false;
   float delay = 0.0;
+  char typeString[32];
+  GrenadeType type = GrenadeType_None;
 
   // Update the client's current grenade id.
   g_CurrentSavedGrenadeId[client] = StringToInt(id);
@@ -101,6 +103,8 @@ public bool TeleportToSavedGrenadePosition(int client, const char[] id) {
     g_GrenadeLocationsKv.GetString("name", grenadeName, sizeof(grenadeName));
     g_GrenadeLocationsKv.GetString("description", description, sizeof(description));
     g_GrenadeLocationsKv.GetString("categories", category, sizeof(category));
+    g_GrenadeLocationsKv.GetString("grenadeType", typeString, sizeof(typeString));
+    type = GrenadeTypeFromString(typeString);
     delay = g_GrenadeLocationsKv.GetFloat("delay");
     TeleportEntity(client, origin, angles, velocity);
     SetEntityMoveType(client, MOVETYPE_WALK);
@@ -121,6 +125,22 @@ public bool TeleportToSavedGrenadePosition(int client, const char[] id) {
 
     if (delay > 0.0) {
       PM_Message(client, "Grenade delay: %.1f seconds", delay);
+    }
+
+    if (type != GrenadeType_None && GetCookieBool(client, g_UseGrenadeOnNadeMenuSelectCookie,
+                                                  USE_GRENADE_ON_NADE_MENU_SELECT_DEFAULT)) {
+      char weaponName[64];
+      GetGrenadeWeapon(type, weaponName, sizeof(weaponName));
+      FakeClientCommand(client, "use %s", weaponName);
+
+      // This is a dirty hack since saved nade data doesn't differentiate between a inc and molotov
+      // grenade. See the problem in GrenadeFromProjectileName in csutils.inc. If that is fixed this
+      // can be removed.
+      if (type == GrenadeType_Molotov) {
+        FakeClientCommand(client, "use weapon_incgrenade");
+      } else if (type == GrenadeType_Incendiary) {
+        FakeClientCommand(client, "use weapon_molotov");
+      }
     }
 
     g_GrenadeLocationsKv.Rewind();

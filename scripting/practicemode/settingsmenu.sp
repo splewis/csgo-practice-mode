@@ -12,6 +12,8 @@ public void GiveSettingsMenu(int client) {
       GetCookieBool(client, g_LeaveNadeMenuOpenCookie, LEAVE_NADE_MENU_OPEN_SELECT_DEFAULT);
   bool noGrenadeTrajectory =
       GetCookieBool(client, g_NoGrenadeTrajectoryCookie, NO_GRENADE_TRAJECTORY_DEFAULT);
+  bool useNadeOnSelect = GetCookieBool(client, g_UseGrenadeOnNadeMenuSelectCookie,
+                                       USE_GRENADE_ON_NADE_MENU_SELECT_DEFAULT);
 
   char buffer[128];
   Format(buffer, sizeof(buffer), "Show grenade airtime: %s",
@@ -25,6 +27,10 @@ public void GiveSettingsMenu(int client) {
   Format(buffer, sizeof(buffer), "Disable grenade trajectories: %s",
          noGrenadeTrajectory ? "enabled" : "disabled");
   menu.AddItem("grenade_trajectory", buffer);
+
+  Format(buffer, sizeof(buffer), "Switch to nade on .nades select: %s",
+         useNadeOnSelect ? "enabled" : "disabled");
+  menu.AddItem("use_on_nade_select", buffer);
 
   menu.Display(client, MENU_TIME_FOREVER);
 }
@@ -47,6 +53,10 @@ public int SettingsMenuHandler(Menu menu, MenuAction action, int param1, int par
       SetCookieBool(
           client, g_NoGrenadeTrajectoryCookie,
           !GetCookieBool(client, g_NoGrenadeTrajectoryCookie, NO_GRENADE_TRAJECTORY_DEFAULT));
+    } else if (StrEqual(buffer, "use_on_nade_select")) {
+      SetCookieBool(client, g_UseGrenadeOnNadeMenuSelectCookie,
+                    !GetCookieBool(client, g_UseGrenadeOnNadeMenuSelectCookie,
+                                   USE_GRENADE_ON_NADE_MENU_SELECT_DEFAULT));
     } else {
       LogError("SettingsMenuHandler uknown option: %s", buffer);
     }
