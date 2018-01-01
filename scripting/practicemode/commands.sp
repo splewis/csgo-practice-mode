@@ -447,3 +447,17 @@ public Action Command_EndRound(int client, int args) {
   ServerCommand("endround");
   return Plugin_Handled;
 }
+
+public Action Command_Break(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  int ent = -1;
+  while ((ent = FindEntityByClassname(ent, "func_breakable")) != -1) {
+    AcceptEntityInput(ent, "Break");
+  }
+
+  PM_MessageToAll("Broke all func_breakable entities.");
+  return Plugin_Handled;
+}

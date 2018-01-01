@@ -97,6 +97,7 @@ All of the following commands can only be used on _your_ grenades. They will app
 - ``.savepos``: temporarily saves a position so you can ``.back`` to it (this adds the position to the list of grenade positions you've thrown)
 - ``.god``: toggles god mode (alias for the ``god`` command in console; requires sv_cheats to be on)
 - ``.endround``: ends the round (alias for the ``endround`` command in console; requires sv_cheats to be on)
+- ``.break``: breaks all func_breakable entities (most windows)
 
 Also see the [notes for power users](https://github.com/splewis/csgo-practice-mode/wiki/Notes-for-power-users) for more detail on using these commands effectively.
 
