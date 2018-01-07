@@ -1005,6 +1005,7 @@ public void LaunchPracticeMode() {
   ServerCommand("exec sourcemod/practicemode_start.cfg");
 
   g_InPracticeMode = true;
+  ReadPracticeSettings();
   for (int i = 0; i < g_BinaryOptionNames.Length; i++) {
     ChangeSetting(i, PM_IsSettingEnabled(i), false, true);
   }
