@@ -197,6 +197,7 @@ Handle g_OnPracticeModeSettingsRead = INVALID_HANDLE;
 #include "practicemode/grenadeiterators.sp"
 
 #include "practicemode/bots.sp"
+#include "practicemode/botsmenu.sp"
 #include "practicemode/commands.sp"
 #include "practicemode/grenadebackups.sp"
 #include "practicemode/grenadecommands.sp"
@@ -354,6 +355,15 @@ public void OnPluginStart() {
     PM_AddChatAlias(".kickbots", "sm_removebots");
     PM_AddChatAlias(".clearbots", "sm_removebots");
     PM_AddChatAlias(".nobots", "sm_removebots");
+
+    RegConsoleCmd("sm_savebots", Command_SaveBots);
+    PM_AddChatAlias(".savebots", "sm_savebots");
+
+    RegConsoleCmd("sm_loadbots", Command_LoadBots);
+    PM_AddChatAlias(".loadbots", "sm_loadbots");
+
+    RegConsoleCmd("sm_botsmenu", Command_BotsMenu);
+    PM_AddChatAlias(".bots", "sm_botsmenu");
   }
 
   // Saved grenade location commands
@@ -647,9 +657,10 @@ public void OnMapStart() {
   g_KnownNadeCategories.Clear();
 
   EnforceDirectoryExists("data/practicemode");
+  EnforceDirectoryExists("data/practicemode/bots");
   EnforceDirectoryExists("data/practicemode/grenades");
-  EnforceDirectoryExists("data/practicemode/spawns");
   EnforceDirectoryExists("data/practicemode/grenades/backups");
+  EnforceDirectoryExists("data/practicemode/spawns");
 
   // This supports backwards compatability for grenades saved in the old location
   // data/practicemode_grenades. The data is transferred to the new

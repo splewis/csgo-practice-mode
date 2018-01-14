@@ -69,12 +69,15 @@ All of the following commands can only be used on _your_ grenades. They will app
 - ``.noflash``: makes it so no flashbangs will blind you (they still blind others)
 
 ### Bot commands
+- ``.bots``: opens the bot menu for easier access to most of the below commands
 - ``.bot``: adds a bot where you're standing (or crouching!); ``.crouchbot`` to force a crouching bot
 - ``.botplace``: adds a bot at the point you're looking at (similar to the ``bot_place`` command)
 - ``.boost``: spawns a bot boosting you (crouch-boosting if you're crouching); ``.crouchboost`` to force a crouching bot
 - ``.movebot``: moves the last bot you placed to your current position
-- ``.nobot``: removes a bot you've added with ``.bot`` (can also use ``.kickbot`` or ``.removebot``)
+- ``.nobot``: removes the bot you're aiming at (can also use ``.kickbot`` or ``.removebot``)
 - ``.nobots``: clears all bots (``.clearbots``, ``.removebots``, ``.kickbots`` also work)
+- ``.savebots``: saves all current bots to a file
+- ``.loadbots``: loads bots from the file (written by the last ``.savebots``)
 
 ### Spawn commands
 - ``.respawn``: makes you respawn at the spot you are standing (``.stop`` to cancel)

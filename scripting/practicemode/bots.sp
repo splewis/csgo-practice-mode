@@ -1,12 +1,17 @@
-stock int CreateBot(int client, bool forceCrouch = false) {
+stock int CreateBot(int client, bool forceCrouch, const char[] providedName = "") {
   int numBots = g_ClientBots[client].Length;
-  char name[64];
-  GetClientName(client, name, sizeof(name));
-  StrCat(name, sizeof(name), " ");
-  if (numBots >= 1) {
-    char buf[16];
-    Format(buf, sizeof(buf), "%d ", numBots + 1);
-    StrCat(name, sizeof(name), buf);
+
+  char name[MAX_NAME_LENGTH + 1];
+  if (StrEqual(providedName, "")) {
+    GetClientName(client, name, sizeof(name));
+    StrCat(name, sizeof(name), " ");
+    if (numBots >= 1) {
+      char buf[MAX_NAME_LENGTH + 1];
+      Format(buf, sizeof(buf), "%d ", numBots + 1);
+      StrCat(name, sizeof(name), buf);
+    }
+  } else {
+    Format(name, sizeof(name), "%s ", providedName);
   }
 
   int bot = CreateFakeClient(name);
@@ -17,7 +22,6 @@ stock int CreateBot(int client, bool forceCrouch = false) {
 
   g_ClientBots[client].Push(bot);
   g_IsPMBot[bot] = true;
-  PM_Message(client, "Created bot, use .nobot to remove it.");
 
   int botTeam = GetClientTeam(client) == CS_TEAM_CT ? CS_TEAM_T : CS_TEAM_CT;
   ChangeClientTeam(bot, botTeam);
@@ -62,6 +66,15 @@ public int GetBotsOwner(int bot) {
   for (int i = 0; i <= MaxClients; i++) {
     ArrayList list = g_ClientBots[i];
     if (list.FindValue(bot) >= 0) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+public int FindBotIndex(int client, int bot) {
+  for (int i = 0; i < g_ClientBots[client].Length; i++) {
+    if (g_ClientBots[client].Get(i) == bot) {
       return i;
     }
   }
@@ -117,7 +130,12 @@ public Action Command_Bot(int client, int args) {
     return Plugin_Handled;
   }
 
-  int bot = CreateBot(client);
+  char name[64];
+  if (args >= 1) {
+    GetCmdArgString(name, sizeof(name));
+  }
+
+  int bot = CreateBot(client, false, name);
   if (bot <= 0) {
     return Plugin_Handled;
   }
@@ -128,6 +146,7 @@ public Action Command_Bot(int client, int args) {
   GiveBotParams(bot);
 
   SetEntityMoveType(client, MOVETYPE_NOCLIP);
+  PM_Message(client, "Created bot, use .nobot to remove it.");
   return Plugin_Handled;
 }
 
@@ -150,13 +169,17 @@ public Action Command_MoveBot(int client, int args) {
   return Plugin_Handled;
 }
 
-// TODO: Add # arg to edit an existing bot index
 public Action Command_CrouchBot(int client, int args) {
   if (!g_InPracticeMode) {
     return Plugin_Handled;
   }
 
-  int bot = CreateBot(client, true);
+  char name[64];
+  if (args >= 1) {
+    GetCmdArgString(name, sizeof(name));
+  }
+
+  int bot = CreateBot(client, true, name);
   if (bot <= 0) {
     return Plugin_Handled;
   }
@@ -167,6 +190,7 @@ public Action Command_CrouchBot(int client, int args) {
   GiveBotParams(bot);
 
   SetEntityMoveType(client, MOVETYPE_NOCLIP);
+  PM_Message(client, "Created bot, use .nobot to remove it.");
   return Plugin_Handled;
 }
 
@@ -174,7 +198,7 @@ public Action Command_CrouchBot(int client, int args) {
 public Action Command_BotPlace(int client, int args) {
   // Based on Franc1sco's bot_spawner plugin:
   // https://github.com/Franc1sco/BotSpawner/blob/master/bot_spawner.sp
-  int bot = CreateBot(client);
+  int bot = CreateBot(client, false);
   if (bot <= 0) {
     return Plugin_Handled;
   }
@@ -196,6 +220,7 @@ public Action Command_BotPlace(int client, int args) {
     GiveBotParams(bot);
   }
 
+  PM_Message(client, "Created bot, use .nobot to remove it.");
   return Plugin_Handled;
 }
 
@@ -204,7 +229,7 @@ public Action Command_Boost(int client, int args) {
     return Plugin_Handled;
   }
 
-  int bot = CreateBot(client);
+  int bot = CreateBot(client, false);
   if (bot <= 0) {
     return Plugin_Handled;
   }
@@ -219,6 +244,7 @@ public Action Command_Boost(int client, int args) {
 
   origin[2] += PLAYER_HEIGHT + 4.0;
   TeleportEntity(client, origin, NULL_VECTOR, NULL_VECTOR);
+  PM_Message(client, "Created bot, use .nobot to remove it.");
   return Plugin_Handled;
 }
 
@@ -242,6 +268,7 @@ public Action Command_CrouchBoost(int client, int args) {
 
   origin[2] += PLAYER_HEIGHT + 4.0;
   TeleportEntity(client, origin, NULL_VECTOR, NULL_VECTOR);
+  PM_Message(client, "Created bot, use .nobot to remove it.");
   return Plugin_Handled;
 }
 
@@ -249,15 +276,24 @@ public bool RayDontHitSelf(int entity, int contentsMask, any data) {
   return entity != data;
 }
 
-// TODO: Add # arg to remove an existing bot index
 public Action Command_RemoveBot(int client, int args) {
   if (!g_InPracticeMode) {
     return Plugin_Handled;
   }
 
-  if (KickClientBot(client)) {
-    PM_Message(client, "Removed your last-placed bot.");
+  int target = GetClientAimTarget(client, true);
+  if (IsPMBot(target)) {
+    int botIndex = FindBotIndex(client, target);
+    if (botIndex >= 0) {
+      KickClientBot(client, botIndex);
+      return Plugin_Handled;
+    } else {
+      PM_Message(client, "You can only kick your own bots.");
+    }
+  } else {
+    PM_Message(client, "No bot found. Aim at the bot you want to remove.");
   }
+
   return Plugin_Handled;
 }
 
@@ -313,4 +349,85 @@ public void KillFlashEffect(int serial) {
   int client = GetClientFromSerial(serial);
   // Idea used from SAMURAI16 @ https://forums.alliedmods.net/showthread.php?p=685111
   SetEntDataFloat(client, FindSendPropInfo("CCSPlayer", "m_flFlashMaxAlpha"), 0.5);
+}
+
+public Action Command_SaveBots(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  bool hasCurrentBots = IsPMBot(GetClientBot(client));
+  if (!hasCurrentBots) {
+    // This is mostly just to prevent accidental deletion.
+    PM_Message(client, "You can't save bots when you have none added.");
+    return Plugin_Handled;
+  }
+
+  char mapName[PLATFORM_MAX_PATH];
+  GetCleanMapName(mapName, sizeof(mapName));
+  char path[PLATFORM_MAX_PATH];
+  BuildPath(Path_SM, path, sizeof(path), "data/practicemode/bots/%s.cfg", mapName);
+  KeyValues botsKv = new KeyValues("Bots");
+
+  int output_index = 0;
+  for (int i = 1; i <= MaxClients; i++) {
+    if (IsPMBot(i)) {
+      char sBuf[32];
+      IntToString(output_index, sBuf, sizeof(sBuf));
+      output_index++;
+      botsKv.JumpToKey(sBuf, true);
+      botsKv.SetVector("origin", g_BotSpawnOrigin[i]);
+      botsKv.SetVector("angle", g_BotSpawnAngles[i]);
+      botsKv.SetString("weapon", g_BotSpawnWeapon[i]);
+      botsKv.SetNum("crouching", g_BotCrouching[i]);
+
+      char name[MAX_NAME_LENGTH + 1];
+      GetClientName(i, name, sizeof(name));
+      botsKv.SetString("name", name);
+
+      botsKv.GoBack();
+    }
+  }
+
+  DeleteFile(path);
+  botsKv.ExportToFile(path);
+  delete botsKv;
+
+  PM_MessageToAll("Saved bot spawns.");
+  return Plugin_Handled;
+}
+
+public Action Command_LoadBots(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  char mapName[PLATFORM_MAX_PATH];
+  GetCleanMapName(mapName, sizeof(mapName));
+  char path[PLATFORM_MAX_PATH];
+  BuildPath(Path_SM, path, sizeof(path), "data/practicemode/bots/%s.cfg", mapName);
+
+  KeyValues botsKv = new KeyValues("Bots");
+  botsKv.ImportFromFile(path);
+  botsKv.GotoFirstSubKey();
+
+  do {
+    char name[MAX_NAME_LENGTH + 1];
+    botsKv.GetString("name", name, sizeof(name));
+    bool crouching = !!botsKv.GetNum("crouching");
+
+    int bot = CreateBot(client, crouching, name);
+    if (bot <= 0) {
+      return Plugin_Handled;
+    }
+    botsKv.GetVector("origin", g_BotSpawnOrigin[bot], NULL_VECTOR);
+    botsKv.GetVector("angle", g_BotSpawnAngles[bot], NULL_VECTOR);
+    botsKv.GetString("weapon", g_BotSpawnWeapon[bot], 64);
+    g_BotCrouching[bot] = crouching;
+    GiveBotParams(bot);
+  } while (botsKv.GotoNextKey());
+
+  delete botsKv;
+  PM_MessageToAll("Loaded bot spawns.");
+  return Plugin_Handled;
 }
