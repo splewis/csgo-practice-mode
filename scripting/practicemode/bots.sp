@@ -1,15 +1,16 @@
 stock int CreateBot(int client, bool forceCrouch, const char[] providedName = "") {
-  int numBots = g_ClientBots[client].Length;
-
   char name[MAX_NAME_LENGTH + 1];
+  int botNumberTaken = -1;
   if (StrEqual(providedName, "")) {
     GetClientName(client, name, sizeof(name));
     StrCat(name, sizeof(name), " ");
-    if (numBots >= 1) {
+    botNumberTaken = SelectBotNumber(client);
+    if (botNumberTaken > 1) {
       char buf[MAX_NAME_LENGTH + 1];
-      Format(buf, sizeof(buf), "%d ", numBots + 1);
+      Format(buf, sizeof(buf), "%d ", botNumberTaken);
       StrCat(name, sizeof(name), buf);
     }
+
   } else {
     Format(name, sizeof(name), "%s ", providedName);
   }
@@ -18,6 +19,10 @@ stock int CreateBot(int client, bool forceCrouch, const char[] providedName = ""
   if (bot <= 0) {
     PM_Message(client, "Failed to create bot :(");
     return -1;
+  }
+
+  if (botNumberTaken > 0) {
+    g_BotNameNumber[bot] = botNumberTaken;
   }
 
   g_ClientBots[client].Push(bot);
@@ -31,6 +36,29 @@ stock int CreateBot(int client, bool forceCrouch, const char[] providedName = ""
 
   CS_RespawnPlayer(bot);
   return bot;
+}
+
+public int SelectBotNumber(int client) {
+  if (g_ClientBots[client].Length == 0) {
+    return 1;
+  }
+
+  for (int i = 1; i <= MaxClients; i++) {
+    bool numberTaken = false;
+    for (int j = 0; j < g_ClientBots[client].Length; j++) {
+      int bot = g_ClientBots[client].Get(j);
+      if (g_BotNameNumber[bot] == i) {
+        numberTaken = true;
+        break;
+      }
+    }
+
+    if (!numberTaken) {
+      return i;
+    }
+  }
+
+  return -1;
 }
 
 bool IsPMBot(int client) {

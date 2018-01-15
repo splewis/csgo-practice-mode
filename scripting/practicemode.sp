@@ -121,6 +121,7 @@ float g_BotSpawnOrigin[MAXPLAYERS + 1][3];
 float g_BotSpawnAngles[MAXPLAYERS + 1][3];
 char g_BotSpawnWeapon[MAXPLAYERS + 1][64];
 bool g_BotCrouching[MAXPLAYERS + 1];
+int g_BotNameNumber[MAXPLAYERS + 1];
 
 #define PLAYER_HEIGHT 72.0
 #define CLASS_LENGTH 64
@@ -350,6 +351,7 @@ public void OnPluginStart() {
     PM_AddChatAlias(".kickbot", "sm_removebot");
     PM_AddChatAlias(".clearbot", "sm_removebot");
     PM_AddChatAlias(".nobot", "sm_removebot");
+    PM_AddChatAlias(".deletebot", "sm_removebot");
 
     RegConsoleCmd("sm_removebots", Command_RemoveBots);
     PM_AddChatAlias(".kickbots", "sm_removebots");
