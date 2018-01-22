@@ -990,12 +990,13 @@ public void ReadPracticeSettings() {
 
   char map[PLATFORM_MAX_PATH + 1];
   if (kv.JumpToKey("maps")) {
-    if (kv.GotoFirstSubKey()) {
+    if (kv.GotoFirstSubKey(false)) {
       do {
-        kv.GetString(NULL_STRING, map, sizeof(map));
+        kv.GetSectionName(map, sizeof(map));
         g_MapList.PushString(map);
       } while (kv.GotoNextKey());
     }
+    kv.GoBack();
   }
   if (g_MapList.Length == 0) {
     g_MapList.PushString("de_cache");
