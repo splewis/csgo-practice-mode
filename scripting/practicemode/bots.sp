@@ -21,10 +21,7 @@ stock int CreateBot(int client, bool forceCrouch, const char[] providedName = ""
     return -1;
   }
 
-  if (botNumberTaken > 0) {
-    g_BotNameNumber[bot] = botNumberTaken;
-  }
-
+  g_BotNameNumber[bot] = botNumberTaken;
   g_ClientBots[client].Push(bot);
   g_IsPMBot[bot] = true;
 
@@ -409,9 +406,11 @@ public Action Command_SaveBots(int client, int args) {
       botsKv.SetString("weapon", g_BotSpawnWeapon[i]);
       botsKv.SetNum("crouching", g_BotCrouching[i]);
 
-      char name[MAX_NAME_LENGTH + 1];
-      GetClientName(i, name, sizeof(name));
-      botsKv.SetString("name", name);
+      if (g_BotNameNumber[i] == -1) {
+        char name[MAX_NAME_LENGTH + 1];
+        GetClientName(i, name, sizeof(name));
+        botsKv.SetString("name", name);
+      }
 
       botsKv.GoBack();
     }
