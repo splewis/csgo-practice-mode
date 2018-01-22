@@ -994,7 +994,7 @@ public void ReadPracticeSettings() {
       do {
         kv.GetSectionName(map, sizeof(map));
         g_MapList.PushString(map);
-      } while (kv.GotoNextKey());
+      } while (kv.GotoNextKey(false));
     }
     kv.GoBack();
   }
