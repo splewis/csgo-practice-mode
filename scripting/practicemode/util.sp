@@ -3,7 +3,7 @@
 
 #tryinclude "manual_version.sp"
 #if !defined PLUGIN_VERSION
-#define PLUGIN_VERSION "1.2.2"
+#define PLUGIN_VERSION "1.2.3-dev"
 #endif
 
 static char _colorNames[][] = {"{NORMAL}", "{DARK_RED}",    "{PINK}",      "{GREEN}",
