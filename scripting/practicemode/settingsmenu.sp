@@ -20,7 +20,7 @@ public void GiveSettingsMenu(int client) {
          showingAirtime ? "enabled" : "disabled");
   menu.AddItem("airtime", buffer);
 
-  Format(buffer, sizeof(buffer), "Leave .nade menu open after selection: %s",
+  Format(buffer, sizeof(buffer), "Leave .nades menu open after selection: %s",
          leaveNadeMenuOpen ? "enabled" : "disabled");
   menu.AddItem("leave_menu_open", buffer);
 
