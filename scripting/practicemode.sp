@@ -340,6 +340,10 @@ public void OnPluginStart() {
     PM_AddChatAlias(".botplace", "sm_botplace");
     PM_AddChatAlias(".bot2", "sm_botplace");
 
+    RegConsoleCmd("sm_swapbot", Command_SwapBot);
+    PM_AddChatAlias(".swapbot", "sm_swapbot");
+    PM_AddChatAlias(".botswap", "sm_swapbot");
+
     RegConsoleCmd("sm_boost", Command_Boost);
     PM_AddChatAlias(".boost", "sm_boost");
 

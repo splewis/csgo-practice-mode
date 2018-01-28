@@ -149,7 +149,6 @@ void GiveBotParams(int bot) {
 
 // Commands.
 
-// TODO: Add # arg to edit an existing bot index
 public Action Command_Bot(int client, int args) {
   if (!g_InPracticeMode) {
     return Plugin_Handled;
@@ -219,7 +218,6 @@ public Action Command_CrouchBot(int client, int args) {
   return Plugin_Handled;
 }
 
-// TODO: Add # arg to edit an existing bot index
 public Action Command_BotPlace(int client, int args) {
   // Based on Franc1sco's bot_spawner plugin:
   // https://github.com/Franc1sco/BotSpawner/blob/master/bot_spawner.sp
@@ -457,4 +455,40 @@ public Action Command_LoadBots(int client, int args) {
   delete botsKv;
   PM_MessageToAll("Loaded bot spawns.");
   return Plugin_Handled;
+}
+
+public Action Command_SwapBot(int client, int args) {
+  int target = GetClientAimTarget(client, true);
+  if (!IsPMBot(target)) {
+    target = FindClosestBot(client);
+  }
+
+  if (IsPMBot(target)) {
+    float origin[3];
+    float angles[3];
+    GetClientAbsOrigin(client, origin);
+    GetClientEyeAngles(client, angles);
+    TeleportEntity(client, g_BotSpawnOrigin[target], g_BotSpawnAngles[target], NULL_VECTOR);
+    TeleportEntity(target, origin, angles, NULL_VECTOR);
+  }
+
+  return Plugin_Handled;
+}
+
+public int FindClosestBot(int client) {
+  float origin[3];
+  GetClientAbsOrigin(client, origin);
+  float minDist = 0.0;
+  int minBot = -1;
+  for (int i = 1; i <= MaxClients; i++) {
+    if (IsPMBot(i)) {
+      float dist = GetVectorDistance(origin, g_BotSpawnOrigin[i]);
+      if (minBot == -1 || dist < minDist) {
+        minBot = i;
+        minDist = dist;
+      }
+    }
+  }
+
+  return minBot;
 }

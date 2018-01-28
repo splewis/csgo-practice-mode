@@ -73,6 +73,7 @@ All of the following commands can only be used on _your_ grenades. They will app
 - ``.bot``: adds a bot where you're standing (or crouching!); ``.crouchbot`` to force a crouching bot
 - ``.botplace``: adds a bot at the point you're looking at (similar to the ``bot_place`` command)
 - ``.boost``: spawns a bot boosting you (crouch-boosting if you're crouching); ``.crouchboost`` to force a crouching bot
+- ``.swapbot``: swaps your position with the nearest bot (temporarily, the bot will respawn in the original spot still)
 - ``.movebot``: moves the last bot you placed to your current position
 - ``.nobot``: removes the bot you're aiming at (can also use ``.kickbot`` or ``.removebot``)
 - ``.nobots``: clears all bots (``.clearbots``, ``.removebots``, ``.kickbots`` also work)
