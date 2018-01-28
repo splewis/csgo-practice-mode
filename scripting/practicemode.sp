@@ -63,6 +63,7 @@ int g_BeamSprite = -1;
 int g_ClientColors[MAXPLAYERS + 1][4];
 ConVar g_PatchGrenadeTrajectoryCvar;
 ConVar g_GrenadeTrajectoryClientColorCvar;
+ConVar g_RandomGrenadeTrajectoryCvar;
 
 ConVar g_AllowNoclipCvar;
 ConVar g_GrenadeTrajectoryCvar;
@@ -545,6 +546,9 @@ public void OnPluginStart() {
   g_GrenadeTrajectoryClientColorCvar =
       CreateConVar("sm_grenade_trajectory_use_player_color", "0",
                    "Whether to use client colors when drawing grenade trajectories");
+  g_RandomGrenadeTrajectoryCvar =
+      CreateConVar("sm_grenade_trajectory_random_color", "0",
+                   "Whether to randomize all grenade trajectory colors");
 
   // Patched builtin cvars
   g_GrenadeTrajectoryCvar = GetCvar("sv_grenade_trajectory");
@@ -1177,14 +1181,20 @@ public int OnEntitySpawned(int entity) {
           float time = (GetClientTeam(i) == CS_TEAM_SPECTATOR) ? g_GrenadeSpecTimeCvar.FloatValue
                                                                : g_GrenadeTimeCvar.FloatValue;
 
-          int coloringClient = client;
-          if (g_GrenadeTrajectoryClientColorCvar.IntValue == 0 || !IsPlayer(client)) {
-            coloringClient = 0;
+          int colors[4];
+          if (g_RandomGrenadeTrajectoryCvar.IntValue > 0) {
+            colors[0] = GetRandomInt(0, 255);
+            colors[1] = GetRandomInt(0, 255);
+            colors[2] = GetRandomInt(0, 255);
+            colors[3] = 255;
+          } else if (g_GrenadeTrajectoryClientColorCvar.IntValue > 0 && IsPlayer(client)) {
+            colors = g_ClientColors[client];
+          } else {
+            colors = g_ClientColors[0];
           }
 
           TE_SetupBeamFollow(entity, g_BeamSprite, 0, time, g_GrenadeThicknessCvar.FloatValue * 5,
-                             g_GrenadeThicknessCvar.FloatValue * 5, 1,
-                             g_ClientColors[coloringClient]);
+                             g_GrenadeThicknessCvar.FloatValue * 5, 1, colors);
           TE_SendToClient(i);
         }
       }
