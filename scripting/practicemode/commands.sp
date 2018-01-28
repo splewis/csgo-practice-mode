@@ -187,7 +187,7 @@ public Action Command_FastForward(int client, int args) {
   }
 
   // Smokes last around 18 seconds.
-  SetCvar("host_timescale", 20);
+  SetCvar("host_timescale", 10);
   CreateTimer(20.0, Timer_ResetTimescale);
 
   return Plugin_Handled;
