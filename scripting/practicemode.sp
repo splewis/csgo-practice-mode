@@ -447,6 +447,9 @@ public void OnPluginStart() {
 
     RegConsoleCmd("sm_stoprespawn", Command_Respawn);
     PM_AddChatAlias(".stoprespawn", "sm_stoprespawn");
+
+    RegConsoleCmd("sm_spec", Command_Spec);
+    PM_AddChatAlias(".spec", "sm_spec");
   }
 
   // Other commands

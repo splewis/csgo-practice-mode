@@ -152,6 +152,7 @@ public Action Command_Respawn(int client, int args) {
   return Plugin_Handled;
 }
 
+
 public Action Command_StopRespawn(int client, int args) {
   if (!g_InPracticeMode) {
     return Plugin_Handled;
@@ -159,6 +160,15 @@ public Action Command_StopRespawn(int client, int args) {
 
   g_SavedRespawnActive[client] = false;
   PM_Message(client, "Cancelled respawning at your saved position.");
+  return Plugin_Handled;
+}
+
+public Action Command_Spec(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  CS_SwitchTeam(client, CS_TEAM_SPECTATOR);
   return Plugin_Handled;
 }
 
