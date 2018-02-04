@@ -138,6 +138,11 @@ public Action Command_Respawn(int client, int args) {
     return Plugin_Handled;
   }
 
+  if (!IsPlayerAlive(client)) {
+    CS_RespawnPlayer(client);
+    return Plugin_Handled;
+  }
+
   g_SavedRespawnActive[client] = true;
   GetClientAbsOrigin(client, g_SavedRespawnOrigin[client]);
   GetClientEyeAngles(client, g_SavedRespawnAngles[client]);
@@ -327,7 +332,7 @@ public int ChangeMapHandler(Menu menu, MenuAction action, int param1, int param2
   }
 }
 
-static void DisableSettingById(const char[] id) {
+public void DisableSettingById(const char[] id) {
   for (int i = 0; i < g_BinaryOptionIds.Length; i++) {
     char name[OPTION_NAME_LENGTH];
     g_BinaryOptionIds.GetString(i, name, sizeof(name));
