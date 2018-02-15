@@ -304,6 +304,12 @@ public Action Command_RemoveBot(int client, int args) {
     return Plugin_Handled;
   }
 
+  if (g_ClientBots[client].Length == 1) {
+    int bot = g_ClientBots[client].Get(0);
+    KickClient(bot);
+    return Plugin_Handled;
+  }
+
   int target = GetClientAimTarget(client, true);
   if (IsPMBot(target)) {
     int botIndex = FindBotIndex(client, target);
