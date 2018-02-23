@@ -472,7 +472,10 @@ public Action Command_Break(int client, int args) {
   while ((ent = FindEntityByClassname(ent, "func_breakable")) != -1) {
     AcceptEntityInput(ent, "Break");
   }
+  while ((ent = FindEntityByClassname(ent, "prop_dynamic")) != -1) {
+    AcceptEntityInput(ent, "Break");
+  }
 
-  PM_MessageToAll("Broke all func_breakable entities.");
+  PM_MessageToAll("Broke all breakable entities.");
   return Plugin_Handled;
 }
