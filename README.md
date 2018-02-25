@@ -2,6 +2,7 @@ csgo-practice-mode
 ===========================
 
 [![Build status](http://ci.splewis.net/job/csgo-practice-mode/badge/icon)](http://ci.splewis.net/job/csgo-practice-mode/)
+[![GitHub Downloads](https://img.shields.io/github/downloads/splewis/csgo-practice-mode/total.svg?style=flat-square&label=Downloads)](https://github.com/splewis/csgo-practice-mode/releases/latest)
 
 Practice Mode is a sourcemod plugin for helping players/teams run practices. See this [YouTube video](https://www.youtube.com/watch?v=ua_I30DTggQ) for a demonstration.
 
