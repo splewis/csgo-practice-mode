@@ -152,7 +152,6 @@ public Action Command_Respawn(int client, int args) {
   return Plugin_Handled;
 }
 
-
 public Action Command_StopRespawn(int client, int args) {
   if (!g_InPracticeMode) {
     return Plugin_Handled;

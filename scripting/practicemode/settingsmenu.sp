@@ -1,3 +1,22 @@
+public void RegisterUserSetting(UserSetting setting, const char[] cookieName, bool defaultSetting,
+                         const char[] display) {
+  g_UserSettingCookies[setting] = RegClientCookie(cookieName, "", CookieAccess_Public);
+  g_UserSettingDefaults[setting] = defaultSetting;
+  strcopy(g_UserSettingDisplayName[setting], USERSETTING_DISPLAY_LENGTH, display);
+}
+
+public bool GetSetting(int client, UserSetting setting) {
+  return GetCookieBool(client, g_UserSettingCookies[setting], g_UserSettingDefaults[setting]);
+}
+
+public void SetSetting(int client, UserSetting setting, bool value) {
+  SetCookieBool(client, g_UserSettingCookies[setting], value);
+}
+
+public void ToggleSetting(int client, UserSetting setting) {
+  SetSetting(client, setting, !GetSetting(client, setting));
+}
+
 public Action Command_Settings(int client, int args) {
   GiveSettingsMenu(client);
   return Plugin_Handled;
@@ -7,30 +26,12 @@ public void GiveSettingsMenu(int client) {
   Menu menu = new Menu(SettingsMenuHandler);
   menu.SetTitle("User settings:");
 
-  bool showingAirtime = GetCookieBool(client, g_ShowGrenadeAirtimeCookie, SHOW_AIRTIME_DEFAULT);
-  bool leaveNadeMenuOpen =
-      GetCookieBool(client, g_LeaveNadeMenuOpenCookie, LEAVE_NADE_MENU_OPEN_SELECT_DEFAULT);
-  bool noGrenadeTrajectory =
-      GetCookieBool(client, g_NoGrenadeTrajectoryCookie, NO_GRENADE_TRAJECTORY_DEFAULT);
-  bool useNadeOnSelect = GetCookieBool(client, g_UseGrenadeOnNadeMenuSelectCookie,
-                                       USE_GRENADE_ON_NADE_MENU_SELECT_DEFAULT);
-
-  char buffer[128];
-  Format(buffer, sizeof(buffer), "Show grenade airtime: %s",
-         showingAirtime ? "enabled" : "disabled");
-  menu.AddItem("airtime", buffer);
-
-  Format(buffer, sizeof(buffer), "Leave .nades menu open after selection: %s",
-         leaveNadeMenuOpen ? "enabled" : "disabled");
-  menu.AddItem("leave_menu_open", buffer);
-
-  Format(buffer, sizeof(buffer), "Disable grenade trajectories: %s",
-         noGrenadeTrajectory ? "enabled" : "disabled");
-  menu.AddItem("grenade_trajectory", buffer);
-
-  Format(buffer, sizeof(buffer), "Switch to nade on .nades select: %s",
-         useNadeOnSelect ? "enabled" : "disabled");
-  menu.AddItem("use_on_nade_select", buffer);
+  for (int i = 0; i < view_as<int>(UserSetting_NumSettings); i++) {
+    char buffer[128];
+    Format(buffer, sizeof(buffer), "%s: %s", g_UserSettingDisplayName[i],
+           GetSetting(client, view_as<UserSetting>(i)) ? "enabled" : "disabled");
+    AddMenuInt(menu, i, buffer);
+  }
 
   menu.Display(client, MENU_TIME_FOREVER);
 }
@@ -38,29 +39,8 @@ public void GiveSettingsMenu(int client) {
 public int SettingsMenuHandler(Menu menu, MenuAction action, int param1, int param2) {
   if (action == MenuAction_Select && g_InPracticeMode) {
     int client = param1;
-    char buffer[128];
-    menu.GetItem(param2, buffer, sizeof(buffer));
-    if (StrEqual(buffer, "airtime")) {
-      SetCookieBool(client, g_ShowGrenadeAirtimeCookie,
-                    !GetCookieBool(client, g_ShowGrenadeAirtimeCookie, SHOW_AIRTIME_DEFAULT));
-
-    } else if (StrEqual(buffer, "leave_menu_open")) {
-      SetCookieBool(
-          client, g_LeaveNadeMenuOpenCookie,
-          !GetCookieBool(client, g_LeaveNadeMenuOpenCookie, LEAVE_NADE_MENU_OPEN_SELECT_DEFAULT));
-
-    } else if (StrEqual(buffer, "grenade_trajectory")) {
-      SetCookieBool(
-          client, g_NoGrenadeTrajectoryCookie,
-          !GetCookieBool(client, g_NoGrenadeTrajectoryCookie, NO_GRENADE_TRAJECTORY_DEFAULT));
-    } else if (StrEqual(buffer, "use_on_nade_select")) {
-      SetCookieBool(client, g_UseGrenadeOnNadeMenuSelectCookie,
-                    !GetCookieBool(client, g_UseGrenadeOnNadeMenuSelectCookie,
-                                   USE_GRENADE_ON_NADE_MENU_SELECT_DEFAULT));
-    } else {
-      LogError("SettingsMenuHandler uknown option: %s", buffer);
-    }
-
+    UserSetting setting = view_as<UserSetting>(GetMenuInt(menu, param2));
+    ToggleSetting(client, setting);
     GiveSettingsMenu(client);
 
   } else if (action == MenuAction_End) {

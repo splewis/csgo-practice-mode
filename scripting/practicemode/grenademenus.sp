@@ -248,7 +248,7 @@ public int Grenade_NadeHandler(Menu menu, MenuAction action, int param1, int par
     int client = param1;
     g_ClientLastMenuPos[client] = GetMenuSelectionPosition();
     HandleGrenadeSelected(client, menu, param2);
-    if (GetCookieBool(client, g_LeaveNadeMenuOpenCookie, LEAVE_NADE_MENU_OPEN_SELECT_DEFAULT)) {
+    if (GetSetting(client, UserSetting_LeaveNadeMenuOpen)) {
       GiveGrenadeMenu(client, g_ClientLastMenuType[client], g_ClientLastMenuPos[client],
                       g_ClientLastMenuData[client]);
     }

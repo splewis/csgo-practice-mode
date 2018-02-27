@@ -177,17 +177,17 @@ ArrayList g_CTSpawns = null;
 ArrayList g_TSpawns = null;
 KeyValues g_NamedSpawnsKv = null;
 
-#define SHOW_AIRTIME_DEFAULT true
-Handle g_ShowGrenadeAirtimeCookie = INVALID_HANDLE;
-
-#define LEAVE_NADE_MENU_OPEN_SELECT_DEFAULT false
-Handle g_LeaveNadeMenuOpenCookie = INVALID_HANDLE;
-
-#define NO_GRENADE_TRAJECTORY_DEFAULT false
-Handle g_NoGrenadeTrajectoryCookie = INVALID_HANDLE;
-
-#define USE_GRENADE_ON_NADE_MENU_SELECT_DEFAULT true
-Handle g_UseGrenadeOnNadeMenuSelectCookie = INVALID_HANDLE;
+enum UserSetting {
+  UserSetting_ShowAirtime,
+  UserSetting_LeaveNadeMenuOpen,
+  UserSetting_NoGrenadeTrajectory,
+  UserSetting_SwitchToNadeOnSelect,
+  UserSetting_NumSettings,
+};
+#define USERSETTING_DISPLAY_LENGTH 128
+Handle g_UserSettingCookies[UserSetting_NumSettings];
+bool g_UserSettingDefaults[UserSetting_NumSettings];
+char g_UserSettingDisplayName[UserSetting_NumSettings][USERSETTING_DISPLAY_LENGTH];
 
 // Forwards
 Handle g_OnGrenadeSaved = INVALID_HANDLE;
@@ -576,18 +576,14 @@ public void OnPluginStart() {
   g_KnownNadeCategories = new ArrayList(GRENADE_CATEGORY_LENGTH);
 
   // Create client cookies.
-  g_ShowGrenadeAirtimeCookie =
-      RegClientCookie("practicemode_grenade_airtime",
-                      "Whether to display airtime of grenades in chat", CookieAccess_Public);
-  g_LeaveNadeMenuOpenCookie = RegClientCookie(
-      "practicemode_leave_menu_open", "Whether to leave the .nades menu open after slecting a nade",
-      CookieAccess_Public);
-  g_NoGrenadeTrajectoryCookie =
-      RegClientCookie("practicemode_no_traject", "Whether to whether show grenade trajectories",
-                      CookieAccess_Public);
-  g_UseGrenadeOnNadeMenuSelectCookie = RegClientCookie(
-      "practicemode_use_ade", "Whether to auto switch to a nade when selected in .nades",
-      CookieAccess_Public);
+  RegisterUserSetting(UserSetting_ShowAirtime, "practicemode_grenade_airtime", true,
+                      "Show grenade airtime");
+  RegisterUserSetting(UserSetting_LeaveNadeMenuOpen, "practicemode_leave_menu_open", false,
+                      "Leave .nades menu open after selection");
+  RegisterUserSetting(UserSetting_NoGrenadeTrajectory, "practicemode_no_traject", false,
+                      "Disable grenade trajectories");
+  RegisterUserSetting(UserSetting_SwitchToNadeOnSelect, "practicemode_use_ade", true,
+                      "Switch to nade on .nades select");
 
   // Remove cheats so sv_cheats isn't required for this:
   RemoveCvarFlag(g_GrenadeTrajectoryCvar, FCVAR_CHEAT);
@@ -1179,7 +1175,7 @@ public int OnEntitySpawned(int entity) {
             continue;
           }
 
-          if (GetCookieBool(client, g_NoGrenadeTrajectoryCookie, NO_GRENADE_TRAJECTORY_DEFAULT)) {
+          if (GetSetting(client, UserSetting_NoGrenadeTrajectory)) {
             continue;
           }
 
@@ -1268,7 +1264,7 @@ public void GrenadeDetonateTimerHelper(Event event, const char[] grenadeName) {
       if (g_ClientGrenadeThrowTimes[client].Get(i, 0) == entity) {
         float dt = GetEngineTime() - view_as<float>(g_ClientGrenadeThrowTimes[client].Get(i, 1));
         g_ClientGrenadeThrowTimes[client].Erase(i);
-        if (GetCookieBool(client, g_ShowGrenadeAirtimeCookie, SHOW_AIRTIME_DEFAULT)) {
+        if (GetSetting(client, UserSetting_ShowAirtime)) {
           PM_Message(client, "Airtime of %s: %.1f seconds", grenadeName, dt);
         }
         break;
