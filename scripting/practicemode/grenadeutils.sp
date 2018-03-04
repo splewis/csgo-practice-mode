@@ -148,7 +148,7 @@ public bool TeleportToSavedGrenadePosition(int client, const char[] id) {
   return success;
 }
 
-stock bool ThrowGrenade(const char[] id, float delay = 0.0) {
+stock bool ThrowGrenade(int client, const char[] id, float delay = 0.0) {
   if (!g_CSUtilsLoaded) {
     return false;
   }
@@ -174,7 +174,7 @@ stock bool ThrowGrenade(const char[] id, float delay = 0.0) {
         if (delay > 0.1) {
           CSU_DelayThrowGrenade(delay, 0, type, grenadeOrigin, grenadeVelocity);
         } else {
-          CSU_ThrowGrenade(0, type, grenadeOrigin, grenadeVelocity);
+          CSU_ThrowGrenade(client, type, grenadeOrigin, grenadeVelocity);
         }
       }
       g_GrenadeLocationsKv.GoBack();

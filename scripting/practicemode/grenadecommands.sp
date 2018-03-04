@@ -462,7 +462,7 @@ public Action Command_ClearThrow(int client, int args) {
 }
 
 static void ClientThrowGrenade(int client, const char[] id, float delay = 0.0) {
-  if (!ThrowGrenade(id, delay)) {
+  if (!ThrowGrenade(client, id, delay)) {
     PM_Message(
         client,
         "No grenade parameters found for %s. Try \".goto %s\", throw the nade, and \".update\" and try again.",
