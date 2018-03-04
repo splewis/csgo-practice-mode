@@ -6,6 +6,10 @@ public void RegisterUserSetting(UserSetting setting, const char[] cookieName, bo
 }
 
 public bool GetSetting(int client, UserSetting setting) {
+  if (!IsPlayer(client)) {
+    return g_UserSettingDefaults[setting];
+  }
+
   return GetCookieBool(client, g_UserSettingCookies[setting], g_UserSettingDefaults[setting]);
 }
 
