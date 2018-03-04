@@ -13,12 +13,11 @@ enum GrenadeType {
   GrenadeType_Incendiary = 6,
 };
 
-// Core grenade functions.
-// client is currently unused.
+// Throws a grenade, setting the grenade owner to client.
 native int CSU_ThrowGrenade(int client, GrenadeType grenadeType, const float origin[3],
                             const float velocity[3]);
 
-// When a client throws a grenade.
+// Called when a client throws a grenade.
 // This is *not* called when the grenade came from the CSU_ThrowGrenade native.
 forward void CSU_OnThrowGrenade(int client, int entity, GrenadeType grenadeType,
                                 const float origin[3], const float velocity[3]);
