@@ -26,20 +26,21 @@ stock bool IsGrenade(GrenadeType g) {
   return g != GrenadeType_None;
 }
 
-stock GrenadeType GrenadeFromProjectileName(const char[] projectileName) {
+stock GrenadeType GrenadeFromProjectileName(const char[] projectileName, int entity = 0) {
   if (StrEqual(projectileName, "smokegrenade_projectile")) {
     return GrenadeType_Smoke;
   } else if (StrEqual(projectileName, "flashbang_projectile")) {
     return GrenadeType_Flash;
   } else if (StrEqual(projectileName, "hegrenade_projectile")) {
     return GrenadeType_HE;
-  } else if (StrEqual(projectileName, "molotov_projectile")) {
-    return GrenadeType_Molotov;
   } else if (StrEqual(projectileName, "decoy_projectile")) {
     return GrenadeType_Decoy;
   } else if (StrEqual(projectileName, "molotov_projectile")) {
-    // TODO: try to find a way to differentiate the molotov from incendiary.
-    return GrenadeType_Incendiary;
+    if (IsValidEntity(entity)) {
+      int isInc = GetEntData(entity, FindSendPropInfo("CMolotovProjectile", "m_bIsIncGrenade"), 1);
+      return isInc ? GrenadeType_Incendiary : GrenadeType_Molotov;
+    }
+    return GrenadeType_Molotov;
   } else {
     return GrenadeType_None;
   }
@@ -56,9 +57,8 @@ stock void GetProjectileName(GrenadeType type, char[] buffer, int length) {
     case GrenadeType_Molotov:
       Format(buffer, length, "molotov_projectile");
     case GrenadeType_Decoy:
-      Format(buffer, length, "decoy_projectile");  // ???
+      Format(buffer, length, "decoy_projectile");
     case GrenadeType_Incendiary:
-      // TODO: try to find a way to differentiate the molotov from incendiary.
       Format(buffer, length, "molotov_projectile");
     default:
       LogError("Unknown grenade type: %d", type);

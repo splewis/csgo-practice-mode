@@ -1165,7 +1165,8 @@ public int DelayedOnEntitySpawned(int entity) {
   if (IsGrenadeProjectile(className)) {
     // Get the cl_color value for the client that threw this grenade.
     int client = Entity_GetOwner(entity);
-    if (IsPlayer(client) && g_InPracticeMode && StrEqual(className, "smokegrenade_projectile")) {
+    if (IsPlayer(client) && g_InPracticeMode &&
+        GrenadeFromProjectileName(className) == GrenadeType_Smoke) {
       int index = g_ClientGrenadeThrowTimes[client].Push(entity);
       g_ClientGrenadeThrowTimes[client].Set(index, view_as<int>(GetEngineTime()), 1);
     }
@@ -1207,7 +1208,7 @@ public int DelayedOnEntitySpawned(int entity) {
 
       // If the user recently indicated they are testing a flash (.flash),
       // teleport to that spot.
-      if (StrEqual(className, "flashbang_projectile") && g_TestingFlash[client]) {
+      if (GrenadeFromProjectileName(className) == GrenadeType_Flash && g_TestingFlash[client]) {
         float delay = g_TestFlashTeleportDelayCvar.FloatValue;
         if (delay <= 0.0) {
           delay = 0.1;

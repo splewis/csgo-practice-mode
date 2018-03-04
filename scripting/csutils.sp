@@ -115,6 +115,11 @@ public int Native_ThrowGrenade(Handle plugin, int numParams) {
   Entity_SetOwner(entity, client);
   SetEntPropEnt(entity, Prop_Send, "m_hThrower", client);
 
+  if (grenadeType == GrenadeType_Incendiary) {
+    SetEntProp(entity, Prop_Send, "m_bIsIncGrenade", true, 1);
+    SetEntityModel(entity, "models/weapons/w_eq_incendiarygrenade_dropped.mdl");
+  }
+
   return entity;
 }
 
@@ -185,7 +190,7 @@ public Action KillNade(Handle timer, int ref) {
 }
 
 public void OnEntityCreated(int entity, const char[] className) {
-  if (GrenadeFromProjectileName(className) != GrenadeType_None) {
+  if (GrenadeFromProjectileName(className, entity) != GrenadeType_None) {
     SDKHook(entity, SDKHook_SpawnPost, OnGrenadeProjectileSpawned);
   }
 }
@@ -201,8 +206,7 @@ public void GetGrenadeParameters(int entity) {
 
   char className[128];
   GetEntityClassname(entity, className, sizeof(className));
-  GrenadeType grenadeType = GrenadeFromProjectileName(className);
-  // TODO: try checking m_bIsIncGrenade
+  GrenadeType grenadeType = GrenadeFromProjectileName(className, entity);
 
   int client = Entity_GetOwner(entity);
   float origin[3];
@@ -220,7 +224,7 @@ public void GetGrenadeParameters(int entity) {
 }
 
 public void CheckGrenadeType(GrenadeType type) {
-  if (view_as<int>(type) < 0 || type == GrenadeType_None) {
+  if (type  <= GrenadeType_None) {
     ThrowNativeError(SP_ERROR_PARAM, "Invalid grenade type %d", type);
   }
 }
