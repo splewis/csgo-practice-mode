@@ -38,14 +38,14 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 }
 
 public void OnPluginStart() {
-  PrecacheSound(SMOKE_EMIT_SOUND);
-
   g_OnGrenadeThrownForward = CreateGlobalForward(
       "CSU_OnThrowGrenade", ET_Ignore, Param_Cell, Param_Cell, Param_Cell,
       Param_Array, Param_Array, Param_Array,Param_Array);
 }
 
 public void OnMapStart() {
+  PrecacheSound(SMOKE_EMIT_SOUND);
+
   delete g_NadeList;
   g_NadeList = new ArrayList(8);
 
