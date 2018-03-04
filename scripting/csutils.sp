@@ -12,23 +12,8 @@
 #pragma newdecls required
 
 Handle g_OnGrenadeThrownForward = INVALID_HANDLE;
-
-// The idea for grenade throwing / hooking is from ofir's executes plugin at
-// https://forums.alliedmods.net/showthread.php?t=287710
-int g_NadeBot;
-int g_NadeBotStage = -1;
-int g_iNextAttackOffset = -1;
-bool g_PendingNadeTeleport = false;
-
-ArrayList g_GrenadeQueue = null;
-
-// Current grenade parameters being used.
-GrenadeType g_ActiveGrenadeType;
-float g_ActiveGrenadeOrigin[3];
-float g_ActiveGrenadeVelocity[3];
-
-float g_BotSpawnPoint[3];
-int g_ConnectedOffset;
+ArrayList g_NadeList;
+ArrayList g_SmokeList;
 
 // clang-format off
 public Plugin myinfo = {
@@ -49,98 +34,42 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 
 public void OnPluginStart() {
   g_OnGrenadeThrownForward = CreateGlobalForward(
-      "CSU_OnThrowGrenade", ET_Ignore, Param_Cell, Param_Cell, Param_Array,
-      Param_Array);
-  HookEvent("player_death", Event_PlayerDeath, EventHookMode_Pre);
-  HookEvent("player_spawn", Event_PlayerSpawn);
-
-  g_iNextAttackOffset = FindSendPropInfo("CCSPlayer", "m_flNextAttack");
-  g_ConnectedOffset = FindSendPropInfo("CCSPlayerResource", "m_bConnected");
-  CreateTimer(0.1, Timer_Test, _, TIMER_REPEAT);
-}
-
-public bool KeepBotDead() {
-  ConVar cvar = FindConVar("mp_respawn_on_death_t");
-  return !cvar.BoolValue;
-}
-
-public void CleanupBot() {
-  if (KeepBotDead() && GrenadeQueueLength() == 0 && IsNadeBot(g_NadeBot) && IsPlayerAlive(g_NadeBot)) {
-    ForcePlayerSuicide(g_NadeBot);
-  }
-}
-
-public Action Timer_Test(Handle timer) {
-  CleanupBot();
-  return Plugin_Continue;
-}
-
-public void OnPluginEnd() {
-  CSU_ClearGrenades();
+      "CSU_OnThrowGrenade", ET_Ignore, Param_Cell, Param_Cell, Param_Cell,
+      Param_Array, Param_Array, Param_Array,Param_Array);
 }
 
 public void OnMapStart() {
-  InitGrenadeQueue();
-  g_NadeBotStage = -1;
-  g_PendingNadeTeleport = false;
-  GetBotSpawnPoint();
+  delete g_NadeList;
+  g_NadeList = new ArrayList(8);
+
+  delete g_SmokeList;
+  g_SmokeList = new ArrayList();
 }
 
-public void OnConfigsExecuted() {
-  SDKHookEx(GetPlayerResourceEntity(), SDKHook_ThinkPost, OnResourceThink);
-}
-
-public void OnClientPutInServer(int client) {
-  if (client != g_NadeBot) {
-    SetEntData(GetPlayerResourceEntity(), g_ConnectedOffset + (g_NadeBot * 4), false, 1);
+public void AddNade(
+  int entRef, GrenadeType type,
+  const float[3] origin, const float[3] velocity) {
+  int index = g_NadeList.Push(entRef);
+  g_NadeList.Set(index, type, 1);
+  for (int i = 0; i < 3; i++) {
+    g_NadeList.Set(index, view_as<int>(origin[i]), 2 + i);
+    g_NadeList.Set(index, view_as<int>(velocity[i]), 2 + 3 + i);
   }
 }
 
-public void OnClientDisconnect(int client) {
-  if (IsNadeBot(client)) {
-    g_NadeBot = -1;
-  }
-}
-
-public void OnResourceThink(int entity) {
-  if (g_NadeBot == -1) {
-    return;
-  }
-
-  // Make players think g_NadeBot is not connected.
-  SetEntData(entity, g_ConnectedOffset + (g_NadeBot * 4), false, 1);
-}
-
-public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast) {
-  int client = GetClientOfUserId(event.GetInt("userid"));
-  if (IsNadeBot(client)) {
-    g_NadeBotStage = -1;
-    TeleportNadeBot(client);
-    CleanupBot();
-  }
-}
-
-public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast) {
-  int victim = GetClientOfUserId(event.GetInt("userid"));
-  if (IsNadeBot(victim)) {
-    event.BroadcastDisabled = true;
-    return Plugin_Stop;
-  }
-
-  return Plugin_Continue;
-}
-
-static void TeleportNadeBot(int client) {
-  TeleportEntity(client, g_BotSpawnPoint, NULL_VECTOR, NULL_VECTOR);
-}
-
-static void CheckGrenadeType(GrenadeType type) {
-  if (view_as<int>(type) < 0 || type == GrenadeType_None) {
-    ThrowNativeError(SP_ERROR_PARAM, "Invalid grenade type %d", type);
+public void GetNade(int index, int& entRef, GrenadeType& type,
+  float origin[3], float velocity[3]) {
+  entRef = g_NadeList.Get(index, 0);
+  type = g_NadeList.Get(index, 1);
+  for (int i = 0; i < 3; i++) {
+    origin[i] =  g_NadeList.Get(index, 2 + i);
+    velocity[i] =  g_NadeList.Get(index, 2 + 3 + i);
   }
 }
 
 public int Native_ThrowGrenade(Handle plugin, int numParams) {
+  int client = GetNativeCell(1);
+
   GrenadeType grenadeType = view_as<GrenadeType>(GetNativeCell(2));
   CheckGrenadeType(grenadeType);
 
@@ -150,230 +79,143 @@ public int Native_ThrowGrenade(Handle plugin, int numParams) {
   float velocity[3];
   GetNativeArray(4, velocity, sizeof(velocity));
 
-  AddGrenadeToQueue(grenadeType, origin, velocity);
+  char classname[64];
+  GetProjectileName(grenadeType, classname, sizeof(classname));
 
-  if (!g_PendingNadeTeleport) {
-    MaybeStartGrenadeThrow();
-  }
-  return 0;
-}
-
-public int Native_ClearGrenades(Handle plugin, int numParams) {
-  g_GrenadeQueue.Clear();
-  if (IsNadeBot(g_NadeBot)) {
-    KickClient(g_NadeBot);
-  }
-}
-
-bool IsNadeBot(int client) {
-  return client > 0 && IsClientInGame(client) && IsFakeClient(client) &&
-      !IsClientSourceTV(client) && client == g_NadeBot;
-}
-
-static void GetBotName(char[] name, int len) {
-  ArrayList choices = new ArrayList(len);
-  choices.PushString("BOT splewis");
-  choices.PushString("BOT Eley");
-  choices.PushString("BOT Drone");
-  choices.PushString("BOT iannn");
-  choices.PushString("BOT Otoris!");
-  int index = GetRandomInt(0, choices.Length - 1);
-  choices.GetString(index, name, len);
-  delete choices;
-}
-
-int GetOrCreateNadeBot() {
-  if (!IsNadeBot(g_NadeBot)) {
-    char name[MAX_NAME_LENGTH + 1];
-    GetBotName(name, sizeof(name));
-    g_NadeBot = CreateFakeClient(name);
-    SDKHook(g_NadeBot, SDKHook_SetTransmit, Hook_SetTransmit);
+  int entity = CreateEntityByName(classname);
+  if (entity == -1) {
+    LogError("Could not create nade %s", classname);
+    return -1;
   }
 
-  CS_SwitchTeam(g_NadeBot, CS_TEAM_T);
-  if (!IsPlayerAlive(g_NadeBot)) {
-    CS_RespawnPlayer(g_NadeBot);
-  }
-  TeleportNadeBot(g_NadeBot);
+  AddNade(EntIndexToEntRef(entity), grenadeType, origin, velocity);
+  TeleportEntity(entity, origin, NULL_VECTOR, velocity);
 
-  return g_NadeBot;
+  DispatchSpawn(entity);
+  DispatchKeyValue(entity, "globalname", "custom");
+
+  SetEntPropEnt(entity, Prop_Data, "m_hThrower", client);
+  if (IsValidClient(client)) {
+    SetEntProp(entity, Prop_Data, "m_iTeamNum", GetClientTeam(client));
+  }
+  AcceptEntityInput(entity, "InitializeSpawnFromWorld");
+  AcceptEntityInput(entity, "FireUser1", client, client);
+  SetEntPropFloat(entity, Prop_Data, "m_flElasticity", 0.45);
+  SetEntPropFloat(entity, Prop_Data, "m_flGravity", 0.4);
+  SetEntPropFloat(entity, Prop_Data, "m_flFriction", 0.2);
+  Entity_SetOwner(entity, client);
+  SetEntPropEnt(entity, Prop_Send, "m_hThrower", client);
+
+  return entity;
 }
 
- public Action Hook_SetTransmit(int entity, int client) {
-     return entity == g_NadeBot ? Plugin_Handled : Plugin_Continue;
- }
+public void OnGameFrame() {
+  for (int i = 0; i < g_SmokeList.Length; i++) {
+    int ref = g_SmokeList.Get(i);
+    int ent = EntRefToEntIndex(ref);
 
-public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3],
-                      float angles[3], int &weapon, int &subtype, int &cmdnum,
-                      int &tickcount, int &seed, int mouse[2]) {
-  if (g_NadeBotStage >= 1 && IsFakeClient(client) && g_NadeBot == client && g_NadeBotStage > 0 && IsPlayerAlive(g_NadeBot)) {
-    switch (g_NadeBotStage) {
-      case 1: {
-        Client_RemoveAllWeapons(client);
-        g_NadeBotStage++;
-      }
-      case 2: {
-        char weaponName[128];
-        GetGrenadeWeapon(g_ActiveGrenadeType, weaponName, sizeof(weaponName));
-        GivePlayerItem(client, weaponName);
-        g_NadeBotStage++;
-      }
-      case 3: {
-        SetEntData(client, g_iNextAttackOffset, GetGameTime());
-        g_NadeBotStage++;
-      }
-      case 4: {
-        SetEntData(client, g_iNextAttackOffset, GetGameTime());
-        g_NadeBotStage++;
-      }
-      case 5: {
-        float origin[3];
-        Entity_GetAbsOrigin(client, origin);
-        float velocity[3];
-        float grenadeAngles[3];
-        TeleportEntity(client, origin, grenadeAngles, velocity);
-        buttons = IN_ATTACK;
-        g_NadeBotStage++;
-      }
-      case 6: {
-        float origin[3];
-        Entity_GetAbsOrigin(client, origin);
-        float velocity[3];
-        float grenadeAngles[3];
-        TeleportEntity(client, origin, grenadeAngles, velocity);
-        buttons = 0;
-        g_NadeBotStage++;
-      }
-      case 7: {
-        g_NadeBotStage = -1;
-      }
+    if (ent == INVALID_ENT_REFERENCE) {
+      g_SmokeList.Erase(i);
+      i--;
+      continue;
     }
+
+    float vel[3];
+    GetEntPropVector(ent, Prop_Data, "m_vecVelocity", vel);
+    if (GetVectorLength(vel) <= 0.1) {
+      SetEntProp(ent, Prop_Send, "m_nSmokeEffectTickBegin", GetGameTickCount() + 1);
+      EmitSoundToAll("weapons/smokegrenade/smoke_emit.wav", ent, 6);
+      CreateTimer(15.0, KillNade, ref);
+      g_SmokeList.Erase(i);
+      i--;
+    }
+  }
+}
+
+public bool HandleNativeRequestedNade(int entity) {
+  int ref = EntIndexToEntRef(entity);
+
+  for (int i = 0; i < g_NadeList.Length; i++) {
+    if (g_NadeList.Get(i, 0) == ref) {
+      int entRef;
+      GrenadeType type;
+      float origin[3];
+      float velocity[3];
+      GetNade(i, entRef, type, origin, velocity);
+
+      float angVelocity[3];
+      angVelocity[0] = GetRandomFloat(-1000.0, 1000.0);
+      angVelocity[1] = 0.0;
+      angVelocity[2] = 600.0;
+
+      SetEntPropFloat(entity, Prop_Data, "m_flElasticity", 0.45);
+      SetEntPropFloat(entity, Prop_Data, "m_flGravity", 0.4);
+      SetEntPropFloat(entity, Prop_Data, "m_flFriction", 0.2);
+
+      SetEntPropVector(entity, Prop_Data, "m_vecOrigin", origin);
+      SetEntPropVector(entity, Prop_Data, "m_vecVelocity", velocity);
+      // This would be nice to set, but causes crashes?
+      // SetEntPropVector(entity, Prop_Send, "m_vInitialVelocity", velocity);
+      SetEntPropVector(entity, Prop_Data, "m_vecAngVelocity", angVelocity);
+      TeleportEntity(entity, origin, NULL_VECTOR, velocity);
+      g_NadeList.Erase(i);
+      if (type == GrenadeType_Smoke) {
+        g_SmokeList.Push(ref);
+      }
+      return true;
+    }
+  }
+  return false;
+}
+
+public Action KillNade(Handle timer, int ref) {
+  int ent = EntRefToEntIndex(ref);
+  if (ent != INVALID_ENT_REFERENCE) {
+    AcceptEntityInput(ent, "kill");
   }
 }
 
 public void OnEntityCreated(int entity, const char[] className) {
   if (GrenadeFromProjectileName(className) != GrenadeType_None) {
-    RequestFrame(OnGrenadeProjectileCreated, entity);
+    SDKHook(entity, SDKHook_SpawnPost, OnGrenadeProjectileSpawned);
   }
 }
 
-public void OnGrenadeProjectileCreated(int entity) {
+public void OnGrenadeProjectileSpawned(int entity) {
+  RequestFrame(GetGrenadeParameters, entity);
+}
+
+public void GetGrenadeParameters(int entity) {
+  if (HandleNativeRequestedNade(entity)) {
+    return;
+  }
+
   char className[128];
   GetEntityClassname(entity, className, sizeof(className));
   GrenadeType grenadeType = GrenadeFromProjectileName(className);
-  // TODO: try checking  m_bIsIncGrenade
+  // TODO: try checking m_bIsIncGrenade
 
   int client = Entity_GetOwner(entity);
-  if (client > 0 && IsClientInGame(client)) {
-    if (IsNadeBot(client)) {
-      TeleportEntity(entity, g_ActiveGrenadeOrigin, NULL_VECTOR, g_ActiveGrenadeVelocity);
-      g_PendingNadeTeleport = false;
-      RemoveGrenadeFromQueue();
-      if (!MaybeStartGrenadeThrow()) {
-        CleanupBot();
-      }
-    } else {
-      float origin[3];
-      float velocity[3];
-      Entity_GetAbsOrigin(entity, origin);
-      Entity_GetLocalVelocity(entity, velocity);
+  float origin[3];
+  float velocity[3];
+  GetEntPropVector(entity, Prop_Data, "m_vecOrigin", origin);
+  GetEntPropVector(entity, Prop_Data, "m_vecVelocity", velocity);
 
-      Call_StartForward(g_OnGrenadeThrownForward);
-      Call_PushCell(client);
-      Call_PushCell(grenadeType);
-      Call_PushArray(origin, 3);
-      Call_PushArray(velocity, 3);
-      Call_Finish();
-    }
+  Call_StartForward(g_OnGrenadeThrownForward);
+  Call_PushCell(client);
+  Call_PushCell(entity);
+  Call_PushCell(grenadeType);
+  Call_PushArray(origin, 3);
+  Call_PushArray(velocity, 3);
+  Call_Finish();
+}
+
+public void CheckGrenadeType(GrenadeType type) {
+  if (view_as<int>(type) < 0 || type == GrenadeType_None) {
+    ThrowNativeError(SP_ERROR_PARAM, "Invalid grenade type %d", type);
   }
 }
 
-public bool MaybeStartGrenadeThrow() {
-  if (GrenadeQueueLength() == 0) {
-    return false;
-  }
-  if (g_NadeBotStage != -1) {
-    return false;
-  }
-  if (!GetActiveGrenade(g_ActiveGrenadeType, g_ActiveGrenadeOrigin, g_ActiveGrenadeVelocity)) {
-    return false;
-  }
-
-  // Yay! we can start now!
-  if (!IsNadeBot(g_NadeBot)) {
-    GetOrCreateNadeBot();
-  }
-  if (!IsPlayerAlive(g_NadeBot)) {
-    CS_RespawnPlayer(g_NadeBot);
-  }
-
-  g_NadeBotStage = 1;
-  g_PendingNadeTeleport = true;
-  return true;
-}
-
-public void GetBotSpawnPoint() {
-  // A reasonable default.
-  g_BotSpawnPoint[0] = 0.0;
-  g_BotSpawnPoint[1] = 0.0;
-  g_BotSpawnPoint[2] = -7000.0;
-
-  char path[PLATFORM_MAX_PATH + 1];
-  BuildPath(Path_SM, path, sizeof(path), "configs/csutils.cfg");
-
-  KeyValues kv = new KeyValues("csutils");
-  if (kv.ImportFromFile(path)) {
-    char mapName[PLATFORM_MAX_PATH];
-    GetCurrentMap(mapName, sizeof(mapName));
-    kv.GetVector(mapName, g_BotSpawnPoint);
-  }
-  delete kv;
-}
-
-// Grenade queue functionality.
-
-void InitGrenadeQueue() {
-  if (g_GrenadeQueue == null) {
-    g_GrenadeQueue = new ArrayList(7);
-  }
-  g_GrenadeQueue.Clear();
-}
-
-// Returns number of entires in the queue.
-int AddGrenadeToQueue(GrenadeType grenadeType, float origin[3], float velocity[3]) {
-  int index = g_GrenadeQueue.Push(grenadeType);
-  g_GrenadeQueue.Set(index, origin[0], 1);
-  g_GrenadeQueue.Set(index, origin[1], 2);
-  g_GrenadeQueue.Set(index, origin[2], 3);
-  g_GrenadeQueue.Set(index, velocity[0], 4);
-  g_GrenadeQueue.Set(index, velocity[1], 5);
-  g_GrenadeQueue.Set(index, velocity[2], 6);
-  return index + 1;
-}
-
-bool GetActiveGrenade(GrenadeType& grenadeType, float origin[3], float velocity[3]) {
-  if (g_GrenadeQueue.Length == 0) {
-    return false;
-  }
-  grenadeType = g_GrenadeQueue.Get(0, 0);
-  origin[0] = view_as<float>(g_GrenadeQueue.Get(0, 1));
-  origin[1] = view_as<float>(g_GrenadeQueue.Get(0, 2));
-  origin[2] = view_as<float>(g_GrenadeQueue.Get(0, 3));
-  velocity[0] = view_as<float>(g_GrenadeQueue.Get(0, 4));
-  velocity[1] = view_as<float>(g_GrenadeQueue.Get(0, 5));
-  velocity[2] = view_as<float>(g_GrenadeQueue.Get(0, 6));
-
-  return true;
-}
-
-int GrenadeQueueLength() {
-  return g_GrenadeQueue.Length;
-}
-
-void RemoveGrenadeFromQueue() {
-  if (g_GrenadeQueue.Length == 0) {
-    LogError("Can't remove a grenade from queue when it's empty");
-    return;
-  }
-  g_GrenadeQueue.Erase(0);
+public int Native_ClearGrenades(Handle plugin, int numParams) {
+  return 0;
 }

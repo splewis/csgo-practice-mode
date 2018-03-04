@@ -18,13 +18,10 @@ enum GrenadeType {
 native int CSU_ThrowGrenade(int client, GrenadeType grenadeType, const float origin[3],
                             const float velocity[3]);
 
-// Removes any grenades in the throw queue and any nade bot connected.
-native bool CSU_ClearGrenades();
-
 // When a client throws a grenade.
 // This is *not* called when the grenade came from the CSU_ThrowGrenade native.
-forward void CSU_OnThrowGrenade(int client, GrenadeType grenadeType, const float origin[3],
-                                const float velocity[3]);
+forward void CSU_OnThrowGrenade(int client, int entity, GrenadeType grenadeType,
+                                const float origin[3], const float velocity[3]);
 
 stock bool IsGrenade(GrenadeType g) {
   return g != GrenadeType_None;
@@ -46,6 +43,26 @@ stock GrenadeType GrenadeFromProjectileName(const char[] projectileName) {
     return GrenadeType_Incendiary;
   } else {
     return GrenadeType_None;
+  }
+}
+
+stock void GetProjectileName(GrenadeType type, char[] buffer, int length) {
+  switch (type) {
+    case GrenadeType_Smoke:
+      Format(buffer, length, "smokegrenade_projectile");
+    case GrenadeType_Flash:
+      Format(buffer, length, "flashbang_projectile");
+    case GrenadeType_HE:
+      Format(buffer, length, "hegrenade_projectile");
+    case GrenadeType_Molotov:
+      Format(buffer, length, "molotov_projectile");
+    case GrenadeType_Decoy:
+      Format(buffer, length, "decoy_projectile");  // ???
+    case GrenadeType_Incendiary:
+      // TODO: try to find a way to differentiate the molotov from incendiary.
+      Format(buffer, length, "molotov_projectile");
+    default:
+      LogError("Unknown grenade type: %d", type);
   }
 }
 
@@ -140,6 +157,10 @@ public Action __csutils__DelayThrowGrenade(Handle timer, DataPack data) {
   return Plugin_Handled;
 }
 
+// No longer needed since there's no csutils bot or a grenade queue.
+#pragma deprecated
+native bool CSU_ClearGrenades();
+
 public SharedPlugin __pl_csutils = {
     name = "csutils", file = "csutils.smx",
 #if defined REQUIRE_PLUGIN
@@ -152,5 +173,6 @@ public SharedPlugin __pl_csutils = {
 #if !defined REQUIRE_PLUGIN
 public __pl_csutils_SetNTVOptional() {
   MarkNativeAsOptional("CSU_ThrowGrenade");
+  MarkNativeAsOptional("CSU_ClearGrenades");
 }
 #endif

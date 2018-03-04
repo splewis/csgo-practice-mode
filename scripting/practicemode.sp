@@ -1122,10 +1122,6 @@ public void ExitPracticeMode() {
     }
   }
 
-  if (g_CSUtilsLoaded) {
-    CSU_ClearGrenades();
-  }
-
   ServerCommand("exec sourcemod/practicemode_end.cfg");
   PM_MessageToAll("Practice mode is now disabled.");
 }
@@ -1151,7 +1147,14 @@ public void OnEntityCreated(int entity, const char[] className) {
   SDKHook(entity, SDKHook_SpawnPost, OnEntitySpawned);
 }
 
+// We artifically delay the work here in OnEntitySpawned because the csutils
+// plugin will spawn grenades and set the owner on spawn, and we want to be sure
+// the owner is set by the time practicemode gets to the grenade.
 public int OnEntitySpawned(int entity) {
+  RequestFrame(DelayedOnEntitySpawned, entity);
+}
+
+public int DelayedOnEntitySpawned(int entity) {
   if (!IsValidEdict(entity)) {
     return;
   }
@@ -1161,7 +1164,7 @@ public int OnEntitySpawned(int entity) {
 
   if (IsGrenadeProjectile(className)) {
     // Get the cl_color value for the client that threw this grenade.
-    int client = GetEntPropEnt(entity, Prop_Data, "m_hOwnerEntity");
+    int client = Entity_GetOwner(entity);
     if (IsPlayer(client) && g_InPracticeMode && StrEqual(className, "smokegrenade_projectile")) {
       int index = g_ClientGrenadeThrowTimes[client].Push(entity);
       g_ClientGrenadeThrowTimes[client].Set(index, view_as<int>(GetEngineTime()), 1);
@@ -1400,7 +1403,7 @@ bool CanStartPracticeMode(int client) {
   return CheckCommandAccess(client, "sm_prac", ADMFLAG_CHANGEMAP);
 }
 
-public void CSU_OnThrowGrenade(int client, GrenadeType grenadeType, const float origin[3],
+public void CSU_OnThrowGrenade(int client, int entity, GrenadeType grenadeType, const float origin[3],
                         const float velocity[3]) {
   g_LastGrenadeType[client] = grenadeType;
   g_LastGrenadeOrigin[client] = origin;
