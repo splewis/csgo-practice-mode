@@ -1,3 +1,6 @@
+// Much of the work for this plugin is credited to Deathknife,
+// whose help in getting nades thrown in a working manner wouldn't be possible without.
+
 #include <cstrike>
 #include <sdkhooks>
 #include <sdktools>
@@ -18,8 +21,8 @@ ArrayList g_SmokeList;
 // clang-format off
 public Plugin myinfo = {
   name = "csutils",
-  author = "splewis",
-  description = "",
+  author = "splewis/Deathknife",
+  description = "Grenade throwing natives/forwards",
   version = PLUGIN_VERSION,
   url = "https://github.com/splewis"
 };
