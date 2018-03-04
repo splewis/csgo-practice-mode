@@ -35,6 +35,36 @@ stock int CreateBot(int client, bool forceCrouch, const char[] providedName = ""
   return bot;
 }
 
+public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast) {
+  int victim = GetClientOfUserId(event.GetInt("userid"));
+  if (IsPMBot(victim)) {
+    g_BotDeathTime[victim] = GetGameTime();
+  }
+}
+
+public Action Timer_RespawnBots(Handle timer) {
+  if (!g_InPracticeMode) {
+    return Plugin_Continue;
+  }
+
+  for (int i = 1; i <= MaxClients; i++) {
+    if (IsPMBot(i) && !IsPlayerAlive(i)) {
+      bool respawn = true;
+      if (GetClientTeam(i) == CS_TEAM_CT) {
+        respawn = !!GetCvarIntSafe("mp_respawn_on_death_ct", true);
+      } else if (GetClientTeam(i) == CS_TEAM_T) {
+        respawn = !!GetCvarIntSafe("mp_respawn_on_death_t", true);
+      }
+
+      float dt = GetGameTime() - g_BotDeathTime[i];
+      if (respawn && dt >= g_BotRespawnTimeCvar.FloatValue) {
+        CS_RespawnPlayer(i);
+      }
+    }
+  }
+  return Plugin_Continue;
+}
+
 public int SelectBotNumber(int client) {
   if (g_ClientBots[client].Length == 0) {
     return 1;

@@ -49,6 +49,7 @@ ArrayList g_ChatAliasesCommands;
 // Plugin cvars
 ConVar g_AlphabetizeNadeMenusCvar;
 ConVar g_AutostartCvar;
+ConVar g_BotRespawnTimeCvar;
 ConVar g_DryRunFreezeTimeCvar;
 ConVar g_MaxGrenadesSavedCvar;
 ConVar g_MaxHistorySizeCvar;
@@ -123,6 +124,7 @@ float g_BotSpawnAngles[MAXPLAYERS + 1][3];
 char g_BotSpawnWeapon[MAXPLAYERS + 1][64];
 bool g_BotCrouching[MAXPLAYERS + 1];
 int g_BotNameNumber[MAXPLAYERS + 1];
+float g_BotDeathTime[MAXPLAYERS + 1];
 
 #define PLAYER_HEIGHT 72.0
 #define CLASS_LENGTH 64
@@ -254,6 +256,7 @@ public void OnPluginStart() {
   HookEvent("flashbang_detonate", Event_FlashDetonate);
   HookEvent("smokegrenade_detonate", Event_SmokeDetonate);
   HookEvent("player_blind", Event_PlayerBlind);
+  HookEvent("player_death", Event_PlayerDeath);
 
   for (int i = 0; i <= MAXPLAYERS; i++) {
     g_GrenadeHistoryPositions[i] = new ArrayList(3);
@@ -516,6 +519,8 @@ public void OnPluginStart() {
   // New Plugin cvars
   g_AlphabetizeNadeMenusCvar = CreateConVar("sm_practicemode_alphabetize_nades", "0",
                                             "Whether menus of grenades are alphabetized by name.");
+  g_BotRespawnTimeCvar = CreateConVar("sm_practicemode_bot_respawn_time", "3.0",
+                                      "How long it should take bots placed with .bot to respawn");
   g_AutostartCvar = CreateConVar("sm_practicemode_autostart", "0",
                                  "Whether the plugin is automatically started on mapstart");
   g_DryRunFreezeTimeCvar = CreateConVar("sm_practicemode_dry_run_freeze_time", "10",
@@ -591,11 +596,13 @@ public void OnPluginStart() {
   HookEvent("server_cvar", Event_CvarChanged, EventHookMode_Pre);
   HookEvent("player_spawn", Event_PlayerSpawn);
   HookEvent("player_hurt", Event_DamageDealtEvent, EventHookMode_Pre);
+  HookEvent("player_death", Event_PlayerDeath);
 
   g_PugsetupLoaded = LibraryExists("pugsetup");
   g_CSUtilsLoaded = LibraryExists("csutils");
 
   CreateTimer(1.0, Timer_GivePlayersMoney, _, TIMER_REPEAT);
+  CreateTimer(0.1, Timer_RespawnBots, _, TIMER_REPEAT);
 }
 
 public void OnPluginEnd() {
