@@ -18,6 +18,8 @@ Handle g_OnGrenadeThrownForward = INVALID_HANDLE;
 ArrayList g_NadeList;
 ArrayList g_SmokeList;
 
+#define SMOKE_EMIT_SOUND "weapons/smokegrenade/smoke_emit.wav"
+
 // clang-format off
 public Plugin myinfo = {
   name = "csutils",
@@ -36,6 +38,8 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 }
 
 public void OnPluginStart() {
+  PrecacheSound(SMOKE_EMIT_SOUND);
+
   g_OnGrenadeThrownForward = CreateGlobalForward(
       "CSU_OnThrowGrenade", ET_Ignore, Param_Cell, Param_Cell, Param_Cell,
       Param_Array, Param_Array, Param_Array,Param_Array);
@@ -98,8 +102,10 @@ public int Native_ThrowGrenade(Handle plugin, int numParams) {
   DispatchKeyValue(entity, "globalname", "custom");
 
   SetEntPropEnt(entity, Prop_Data, "m_hThrower", client);
+  int team = -1;
   if (IsValidClient(client)) {
-    SetEntProp(entity, Prop_Data, "m_iTeamNum", GetClientTeam(client));
+    team = GetClientTeam(client);
+    SetEntProp(entity, Prop_Data, "m_iTeamNum", team);
   }
   AcceptEntityInput(entity, "InitializeSpawnFromWorld");
   AcceptEntityInput(entity, "FireUser1", client, client);
@@ -127,7 +133,7 @@ public void OnGameFrame() {
     GetEntPropVector(ent, Prop_Data, "m_vecVelocity", vel);
     if (GetVectorLength(vel) <= 0.1) {
       SetEntProp(ent, Prop_Send, "m_nSmokeEffectTickBegin", GetGameTickCount() + 1);
-      EmitSoundToAll("weapons/smokegrenade/smoke_emit.wav", ent, 6);
+      EmitSoundToAll(SMOKE_EMIT_SOUND, ent, 6, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, SNDPITCH_NORMAL);
       CreateTimer(15.0, KillNade, ref);
       g_SmokeList.Erase(i);
       i--;
