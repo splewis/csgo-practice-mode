@@ -167,7 +167,7 @@ public Action Command_Spec(int client, int args) {
     return Plugin_Handled;
   }
 
-  CS_SwitchTeam(client, CS_TEAM_SPECTATOR);
+  FakeClientCommand(client, "jointeam 1");
   return Plugin_Handled;
 }
 
