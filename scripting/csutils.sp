@@ -101,18 +101,16 @@ public int Native_ThrowGrenade(Handle plugin, int numParams) {
   DispatchSpawn(entity);
   DispatchKeyValue(entity, "globalname", "custom");
 
-  SetEntPropEnt(entity, Prop_Data, "m_hThrower", client);
-  int team = -1;
+  int team = CS_TEAM_T;
   if (IsValidClient(client)) {
     team = GetClientTeam(client);
-    SetEntProp(entity, Prop_Data, "m_iTeamNum", team);
   }
+
   AcceptEntityInput(entity, "InitializeSpawnFromWorld");
-  AcceptEntityInput(entity, "FireUser1", client, client);
-  SetEntPropFloat(entity, Prop_Data, "m_flElasticity", 0.45);
-  SetEntPropFloat(entity, Prop_Data, "m_flGravity", 0.4);
-  SetEntPropFloat(entity, Prop_Data, "m_flFriction", 0.2);
-  Entity_SetOwner(entity, client);
+  AcceptEntityInput(entity, "FireUser1", client);
+
+  SetEntProp(entity, Prop_Send, "m_iTeamNum", team);
+  SetEntPropEnt(entity, Prop_Send, "m_hOwnerEntity", client);
   SetEntPropEnt(entity, Prop_Send, "m_hThrower", client);
 
   if (grenadeType == GrenadeType_Incendiary) {
@@ -165,12 +163,18 @@ public bool HandleNativeRequestedNade(int entity) {
       SetEntPropFloat(entity, Prop_Data, "m_flElasticity", 0.45);
       SetEntPropFloat(entity, Prop_Data, "m_flGravity", 0.4);
       SetEntPropFloat(entity, Prop_Data, "m_flFriction", 0.2);
-
       SetEntPropVector(entity, Prop_Data, "m_vecOrigin", origin);
       SetEntPropVector(entity, Prop_Data, "m_vecVelocity", velocity);
+
       // This would be nice to set, but causes crashes?
       // SetEntPropVector(entity, Prop_Send, "m_vInitialVelocity", velocity);
+
       SetEntPropVector(entity, Prop_Data, "m_vecAngVelocity", angVelocity);
+      if (type == GrenadeType_HE) {
+        SetEntPropFloat(entity, Prop_Data, "m_flDamage",  99.0);
+        SetEntPropFloat(entity, Prop_Data, "m_DmgRadius", 350.0);
+      }
+
       TeleportEntity(entity, origin, NULL_VECTOR, velocity);
       g_NadeList.Erase(i);
       if (type == GrenadeType_Smoke) {
@@ -190,8 +194,31 @@ public Action KillNade(Handle timer, int ref) {
 }
 
 public void OnEntityCreated(int entity, const char[] className) {
-  if (GrenadeFromProjectileName(className, entity) != GrenadeType_None) {
-    SDKHook(entity, SDKHook_SpawnPost, OnGrenadeProjectileSpawned);
+  // Happening before OnMapStart.
+  if (g_NadeList == null) {
+    return;
+  }
+
+  GrenadeType type = GrenadeFromProjectileName(className, entity);
+  if (type == GrenadeType_None) {
+    return;
+  }
+
+  // For "normal" nades, we'll save their parameters so we can fire the forward.
+  // For nades we know came through a call of the CSU_ThrowNade native we'll set some props onit.
+  SDKHook(entity, SDKHook_SpawnPost, OnGrenadeProjectileSpawned);
+
+  // For some reason, collisions for other nade-types because they crash when they
+  // hit players.
+  if (type != GrenadeType_Molotov && type != GrenadeType_HE) {
+    SDKHook(entity, SDKHook_StartTouch, OnTouch);
+  }
+}
+
+public Action OnTouch(int entity, int other) {
+  if (IsValidClient(other)) {
+    SetEntPropEnt(entity, Prop_Data, "m_hThrower", other);
+    SetEntProp(entity, Prop_Send, "m_iTeamNum", GetClientTeam(other));
   }
 }
 
@@ -229,6 +256,7 @@ public void CheckGrenadeType(GrenadeType type) {
   }
 }
 
+// Deprecated, unused native now.
 public int Native_ClearGrenades(Handle plugin, int numParams) {
   return 0;
 }
