@@ -165,11 +165,9 @@ public bool HandleNativeRequestedNade(int entity) {
       SetEntPropFloat(entity, Prop_Data, "m_flFriction", 0.2);
       SetEntPropVector(entity, Prop_Data, "m_vecOrigin", origin);
       SetEntPropVector(entity, Prop_Data, "m_vecVelocity", velocity);
-
-      // This would be nice to set, but causes crashes?
-      // SetEntPropVector(entity, Prop_Send, "m_vInitialVelocity", velocity);
-
+      SetEntPropVector(entity, Prop_Send, "m_vInitialVelocity", velocity);
       SetEntPropVector(entity, Prop_Data, "m_vecAngVelocity", angVelocity);
+
       if (type == GrenadeType_HE) {
         SetEntPropFloat(entity, Prop_Data, "m_flDamage",  99.0);
         SetEntPropFloat(entity, Prop_Data, "m_DmgRadius", 350.0);
