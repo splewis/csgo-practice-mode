@@ -210,7 +210,7 @@ public void OnEntityCreated(int entity, const char[] className) {
 
   // For some reason, collisions for other nade-types because they crash when they
   // hit players.
-  if (type != GrenadeType_Molotov && type != GrenadeType_HE) {
+  if (type != GrenadeType_Molotov && type != GrenadeType_Incendiary && type != GrenadeType_HE) {
     SDKHook(entity, SDKHook_StartTouch, OnTouch);
   }
 }
