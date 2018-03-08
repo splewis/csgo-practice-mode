@@ -5,9 +5,6 @@ Package(name='csutils',
         plugins=['csutils'],
         configs=None,
         data=None,
-        filegroups={
-            'addons/sourcemod/configs': ['configs/csutils.cfg'],
-        }
 )
 
 Package(name='practicemode',
