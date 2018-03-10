@@ -45,6 +45,8 @@ public void OnPluginStart() {
   g_OnGrenadeExplodeForward = CreateGlobalForward(
     "CSU_OnGrenadeExplode", ET_Ignore, Param_Cell, Param_Cell, Param_Cell,
       Param_Array);
+
+  HookEvent("smokegrenade_detonate", Event_SmokeDetonate, EventHookMode_Pre);
 }
 
 public void OnMapStart() {
@@ -249,12 +251,21 @@ public void OnEntityDestroyed(int entity) {
   float origin[3];
   GetEntPropVector(entity, Prop_Data, "m_vecOrigin", origin);
 
-  Call_StartForward(g_OnGrenadeExplodeForward);
-  Call_PushCell(client);
-  Call_PushCell(entity);
-  Call_PushCell(type);
-  Call_PushArray(origin, 3);
-  Call_Finish();
+
+  // We handle smokes differently here because the OnEntityDestroyed forward
+  // won't get called until the smoke effect goes away, which is later than we want.
+  // The smokegrenade_detonate event handler takes care of the forward for smokes.
+  //
+  // Why not do all nades in the *_detonate handlers? The molotov_detonate event
+  // doesn't pass the entityid parameter according to the alliedmods wiki.
+  if (type != GrenadeType_Smoke) {
+    Call_StartForward(g_OnGrenadeExplodeForward);
+    Call_PushCell(client);
+    Call_PushCell(entity);
+    Call_PushCell(type);
+    Call_PushArray(origin, 3);
+    Call_Finish();
+  }
 
   // Erase the ent ref from the global nade list.
   int ref = EntIndexToEntRef(entity);
@@ -304,5 +315,27 @@ public void GetGrenadeParameters(int entity) {
 public void CheckGrenadeType(GrenadeType type) {
   if (type  <= GrenadeType_None) {
     ThrowNativeError(SP_ERROR_PARAM, "Invalid grenade type %d", type);
+  }
+}
+
+public Action Event_SmokeDetonate(Event event, const char[] name, bool dontBroadcast) {
+  int userid = event.GetInt("userid");
+  int entity = event.GetInt("entityid");
+  float origin[3];
+  origin[0] = event.GetFloat("x");
+  origin[1] = event.GetFloat("y");
+  origin[2] = event.GetFloat("z");
+
+  if (!IsValidEntity(entity)) {
+    return;
+  }
+
+  if (!IsManagedNade(entity)) {
+    Call_StartForward(g_OnGrenadeExplodeForward);
+    Call_PushCell(GetClientOfUserId(userid));
+    Call_PushCell(entity);
+    Call_PushCell(GrenadeType_Smoke);
+    Call_PushArray(origin, 3);
+    Call_Finish();
   }
 }
