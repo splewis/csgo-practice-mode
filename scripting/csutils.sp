@@ -74,6 +74,16 @@ public void GetNade(int index, int& entRef, GrenadeType& type,
   }
 }
 
+public bool IsManagedNade(int entity) {
+  int ref = EntIndexToEntRef(entity);
+  for (int i = 0; i < g_NadeList.Length; i++) {
+    if (g_NadeList.Get(i, 0) == ref) {
+      return true;
+    }
+  }
+  return false;
+}
+
 public int Native_ThrowGrenade(Handle plugin, int numParams) {
   int client = GetNativeCell(1);
 
@@ -174,7 +184,6 @@ public bool HandleNativeRequestedNade(int entity) {
       }
 
       TeleportEntity(entity, origin, NULL_VECTOR, velocity);
-      g_NadeList.Erase(i);
       if (type == GrenadeType_Smoke) {
         g_SmokeList.Push(ref);
       }
@@ -213,8 +222,23 @@ public void OnEntityCreated(int entity, const char[] className) {
   }
 }
 
+public void OnEntityDestroyed(int entity) {
+  // Happening before OnMapStart.
+  if (g_NadeList == null) {
+    return;
+  }
+
+  int ref = EntIndexToEntRef(entity);
+  for (int i = 0; i < g_NadeList.Length; i++) {
+    if (g_NadeList.Get(i, 0) == ref) {
+      g_NadeList.Erase(i);
+      break;
+    }
+  }
+}
+
 public Action OnTouch(int entity, int other) {
-  if (IsValidClient(other)) {
+  if (IsValidClient(other) && IsManagedNade(entity)) {
     SetEntPropEnt(entity, Prop_Data, "m_hThrower", other);
     SetEntProp(entity, Prop_Send, "m_iTeamNum", GetClientTeam(other));
   }
