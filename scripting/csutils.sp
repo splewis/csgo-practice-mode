@@ -34,7 +34,6 @@ public Plugin myinfo = {
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max) {
   CreateNative("CSU_ThrowGrenade", Native_ThrowGrenade);
-  CreateNative("CSU_ClearGrenades", Native_ClearGrenades);
   RegPluginLibrary("csutils");
   return APLRes_Success;
 }
@@ -306,9 +305,4 @@ public void CheckGrenadeType(GrenadeType type) {
   if (type  <= GrenadeType_None) {
     ThrowNativeError(SP_ERROR_PARAM, "Invalid grenade type %d", type);
   }
-}
-
-// Deprecated, unused native now.
-public int Native_ClearGrenades(Handle plugin, int numParams) {
-  return 0;
 }

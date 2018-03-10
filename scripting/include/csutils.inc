@@ -162,10 +162,6 @@ public Action __csutils__DelayThrowGrenade(Handle timer, DataPack data) {
   return Plugin_Handled;
 }
 
-// No longer needed since there's no csutils bot or a grenade queue.
-#pragma deprecated
-native bool CSU_ClearGrenades();
-
 public SharedPlugin __pl_csutils = {
     name = "csutils", file = "csutils.smx",
 #if defined REQUIRE_PLUGIN
@@ -178,6 +174,5 @@ public SharedPlugin __pl_csutils = {
 #if !defined REQUIRE_PLUGIN
 public __pl_csutils_SetNTVOptional() {
   MarkNativeAsOptional("CSU_ThrowGrenade");
-  MarkNativeAsOptional("CSU_ClearGrenades");
 }
 #endif
