@@ -228,6 +228,10 @@ public void OnEntityDestroyed(int entity) {
     return;
   }
 
+  if (!IsValidEntity(entity)) {
+    return;
+  }
+
   int ref = EntIndexToEntRef(entity);
   for (int i = 0; i < g_NadeList.Length; i++) {
     if (g_NadeList.Get(i, 0) == ref) {
