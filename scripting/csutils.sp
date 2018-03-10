@@ -15,6 +15,8 @@
 #pragma newdecls required
 
 Handle g_OnGrenadeThrownForward = INVALID_HANDLE;
+Handle g_OnGrenadeExplodeForward = INVALID_HANDLE;
+
 ArrayList g_NadeList;
 ArrayList g_SmokeList;
 
@@ -41,6 +43,9 @@ public void OnPluginStart() {
   g_OnGrenadeThrownForward = CreateGlobalForward(
       "CSU_OnThrowGrenade", ET_Ignore, Param_Cell, Param_Cell, Param_Cell,
       Param_Array, Param_Array, Param_Array,Param_Array);
+  g_OnGrenadeExplodeForward = CreateGlobalForward(
+    "CSU_OnGrenadeExplode", ET_Ignore, Param_Cell, Param_Cell, Param_Cell,
+      Param_Array);
 }
 
 public void OnMapStart() {
@@ -232,6 +237,27 @@ public void OnEntityDestroyed(int entity) {
     return;
   }
 
+  char className[64];
+  GetEntityClassname(entity, className, sizeof(className));
+  GrenadeType type = GrenadeFromProjectileName(className, entity);
+  if (type == GrenadeType_None) {
+    return;
+  }
+
+
+  // Fire the CSU_OnGrenadeExplode forward.
+  int client = Entity_GetOwner(client);
+  float origin[3];
+  GetEntPropVector(entity, Prop_Data, "m_vecOrigin", origin);
+
+  Call_StartForward(g_OnGrenadeExplodeForward);
+  Call_PushCell(client);
+  Call_PushCell(entity);
+  Call_PushCell(type);
+  Call_PushArray(origin, 3);
+  Call_Finish();
+
+  // Erase the ent ref from the global nade list.
   int ref = EntIndexToEntRef(entity);
   for (int i = 0; i < g_NadeList.Length; i++) {
     if (g_NadeList.Get(i, 0) == ref) {

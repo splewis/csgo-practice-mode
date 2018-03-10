@@ -22,6 +22,12 @@ native int CSU_ThrowGrenade(int client, GrenadeType grenadeType, const float ori
 forward void CSU_OnThrowGrenade(int client, int entity, GrenadeType grenadeType,
                                 const float origin[3], const float velocity[3]);
 
+// Called when a client's grenade "pops" or explodes.
+// This is *not* called when the grenade came from the CSU_ThrowGrenade native.
+// origin is the position the grenade exploded/popped.
+forward void CSU_OnGrenadeExplode(int client, int entity, GrenadeType grenade,
+                                  const float origin[3]);
+
 stock bool IsGrenade(GrenadeType g) {
   return g != GrenadeType_None;
 }
