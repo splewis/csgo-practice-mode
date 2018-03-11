@@ -24,6 +24,7 @@ before_script:
     - PATH+=":$PWD"
     - cd include
     - wget https://raw.githubusercontent.com/splewis/csgo-pug-setup/master/scripting/include/pugsetup.inc
+    - wget https://raw.githubusercontent.com/peace-maker/botmimic/master/scripting/include/botmimic.inc
     - wget https://bitbucket.org/GoD_Tony/updater/raw/12181277db77d6117052b8ddf5810c7681745156/include/updater.inc
 
     # install smlib
