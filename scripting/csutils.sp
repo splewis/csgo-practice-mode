@@ -177,6 +177,7 @@ public bool HandleNativeRequestedNade(int entity) {
       angVelocity[1] = 0.0;
       angVelocity[2] = 600.0;
 
+      SetEntProp(entity, Prop_Data, "m_CollisionGroup", COLLISION_GROUP_PROJECTILE);
       SetEntPropFloat(entity, Prop_Data, "m_flElasticity", 0.45);
       SetEntPropFloat(entity, Prop_Data, "m_flGravity", 0.4);
       SetEntPropFloat(entity, Prop_Data, "m_flFriction", 0.2);
