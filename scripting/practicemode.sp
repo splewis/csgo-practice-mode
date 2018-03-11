@@ -646,12 +646,7 @@ public void OnPluginStart() {
 }
 
 public void OnPluginEnd() {
-  if (g_InPracticeMode) {
-    ExitPracticeMode();
-  }
-  MaybeWriteNewGrenadeData();
-  Spawns_MapEnd();
-  BotReplay_MapEnd();
+  OnMapEnd();
 }
 
 public void OnLibraryAdded(const char[] name) {
@@ -815,6 +810,7 @@ public void OnMapEnd() {
   }
 
   Spawns_MapEnd();
+  BotReplay_MapEnd();
   delete g_GrenadeLocationsKv;
 }
 
@@ -1469,4 +1465,5 @@ public void CSU_OnThrowGrenade(int client, int entity, GrenadeType grenadeType, 
   g_LastGrenadeType[client] = grenadeType;
   g_LastGrenadeOrigin[client] = origin;
   g_LastGrenadeVelocity[client] = velocity;
+  Replays_OnThrowGrenade(client, entity, grenadeType, origin, velocity);
 }

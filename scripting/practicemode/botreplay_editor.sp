@@ -312,7 +312,12 @@ public int ReplayRoleMenuHandler(Menu menu, MenuAction action, int param1, int p
       GiveReplayRoleMenu(client, role, GetMenuSelectionPosition());
 
     } else if (StrEqual(buffer, "nades")) {
-      GiveReplayRoleNadesMenu(client);
+      if (g_NadeReplayData[client].Length == 0) {
+        PM_Message(client, "This role has no nades saved in it.");
+        GiveReplayRoleMenu(client, role, GetMenuSelectionPosition());
+      } else {
+        GiveReplayRoleNadesMenu(client);
+      }
 
     } else if (StrEqual(buffer, "delete")) {
       DeleteReplayRole(g_ReplayId[client], role);
@@ -441,7 +446,7 @@ stock void StartRecording(int client, int role, bool printCommands = true) {
   }
 
   g_NadeReplayData[client].Clear();
-  g_CurrentRecordingRole[client] = role;
+  g_CurrentEditingRole[client] = role;
   g_CurrentRecordingStartTime[client] = GetGameTime();
 
   char recordName[128];
@@ -456,12 +461,11 @@ stock void StartRecording(int client, int role, bool printCommands = true) {
 
 public Action BotMimic_OnStopRecording(int client, char[] name, char[] category, char[] subdir,
                                 char[] path, bool& save) {
-  if (g_CurrentRecordingRole[client] >= 0) {
+  if (g_CurrentEditingRole[client] >= 0) {
     if (!save) {
       // We only handle the not-saving case here because BotMimic_OnRecordSaved below
       // is handling the saving case.
-      PM_Message(client, "Cancelled recording player role %d", g_CurrentRecordingRole[client] + 1);
-      g_CurrentRecordingRole[client] = -1;
+      PM_Message(client, "Cancelled recording player role %d", g_CurrentEditingRole[client] + 1);
       GiveReplayEditorMenu(client);
     }
   }
@@ -470,12 +474,10 @@ public Action BotMimic_OnStopRecording(int client, char[] name, char[] category,
 }
 
 public void BotMimic_OnRecordSaved(int client, char[] name, char[] category, char[] subdir, char[] file) {
-  if (g_CurrentRecordingRole[client] >= 0) {
-    SetRoleFile(g_ReplayId[client], g_CurrentRecordingRole[client], file);
-    SetRoleNades(g_ReplayId[client], g_CurrentRecordingRole[client], client);
-    PM_Message(client, "Finished recording player role %d", g_CurrentRecordingRole[client] + 1);
-
-    g_CurrentRecordingRole[client] = -1;
+  if (g_CurrentEditingRole[client] >= 0) {
+    SetRoleFile(g_ReplayId[client], g_CurrentEditingRole[client], file);
+    SetRoleNades(g_ReplayId[client], g_CurrentEditingRole[client], client);
+    PM_Message(client, "Finished recording player role %d", g_CurrentEditingRole[client] + 1);
 
     if (!g_RecordingFullReplay || g_RecordingFullReplayClient == client) {
       GiveReplayEditorMenu(client);

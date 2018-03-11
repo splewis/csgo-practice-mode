@@ -21,11 +21,8 @@ bool g_StopBotSignal[MAXPLAYERS + 1];
 float g_CurrentRecordingStartTime[MAXPLAYERS + 1];
 
 // TODO: collapse these into 1 variable
-int g_CurrentRecordingRole[MAXPLAYERS + 1];  // Only set if the client is actively recording.
-int g_CurrentEditingRole[MAXPLAYERS +
-                         1];  // Only set if the client is actively editing (OR recording).
+int g_CurrentEditingRole[MAXPLAYERS + 1];
 
-// TODO: make g_ReplayId per-client
 char g_ReplayId[MAXPLAYERS + 1][REPLAY_ID_LENGTH];
 int g_ReplayBotClients[MAX_REPLAY_CLIENTS];
 
@@ -58,9 +55,9 @@ public void BotReplay_MapEnd() {
   GarbageCollectReplays();
 }
 
-public void Replays_OnThrowGrenade(int entity, int client, GrenadeType grenadeType, const float origin[3],
+public void Replays_OnThrowGrenade(int client, int entity, GrenadeType grenadeType, const float origin[3],
                             const float velocity[3]) {
-  if (g_CurrentRecordingRole[client] >= 0) {
+  if (g_CurrentEditingRole[client] >= 0 && BotMimic_IsPlayerRecording(client)) {
     float delay = GetGameTime() - g_CurrentRecordingStartTime[client];
     float personOrigin[3];
     float personAngles[3];
@@ -161,7 +158,19 @@ public Action Command_Replay(int client, int args) {
     InitReplayFunctions();
   }
 
-  // TODO: if given an arg, set the client's active replay to that id.
+  if (args >= 1) {
+    char arg[128];
+    GetCmdArg(1, arg, sizeof(arg));
+    if (ReplayExists(arg)) {
+      strcopy(g_ReplayId[client], REPLAY_ID_LENGTH, arg);
+      GiveReplayEditorMenu(client);
+    } else {
+      PM_Message(client, "No replay with id %s exists.", arg);
+    }
+
+    return Plugin_Handled;
+  }
+
   if (HasActiveReplay(client)) {
     if (g_CurrentEditingRole[client] >= 0) {
       // Replay-role specific menu.
@@ -304,7 +313,6 @@ public void ResetData() {
     g_StopBotSignal[i] = false;
   }
   for (int i = 0; i <= MaxClients; i++) {
-    g_CurrentRecordingRole[i] = -1;
     g_CurrentEditingRole[i] = -1;
     g_ReplayId[i] = "";
   }
