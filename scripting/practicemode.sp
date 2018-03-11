@@ -1223,7 +1223,7 @@ public int DelayedOnEntitySpawned(int entity) {
     int client = Entity_GetOwner(entity);
     if (IsPlayer(client) && g_InPracticeMode &&
         GrenadeFromProjectileName(className) == GrenadeType_Smoke) {
-      int index = g_ClientGrenadeThrowTimes[client].Push(entity);
+      int index = g_ClientGrenadeThrowTimes[client].Push(EntIndexToEntRef(entity));
       g_ClientGrenadeThrowTimes[client].Set(index, view_as<int>(GetEngineTime()), 1);
     }
 
@@ -1321,7 +1321,8 @@ public void GrenadeDetonateTimerHelper(Event event, const char[] grenadeName) {
 
   if (IsPlayer(client)) {
     for (int i = 0; i < g_ClientGrenadeThrowTimes[client].Length; i++) {
-      if (g_ClientGrenadeThrowTimes[client].Get(i, 0) == entity) {
+      int ref = g_ClientGrenadeThrowTimes[client].Get(i, 0);
+      if (EntRefToEntIndex(ref) == entity) {
         float dt = GetEngineTime() - view_as<float>(g_ClientGrenadeThrowTimes[client].Get(i, 1));
         g_ClientGrenadeThrowTimes[client].Erase(i);
         if (GetSetting(client, UserSetting_ShowAirtime)) {
