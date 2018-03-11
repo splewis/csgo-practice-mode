@@ -10,6 +10,7 @@
 #undef REQUIRE_PLUGIN
 #include "include/csutils.inc"
 
+#include <botmimic>
 #include <pugsetup>
 #include <updater>
 
@@ -23,6 +24,7 @@
 bool g_InPracticeMode = false;
 bool g_PugsetupLoaded = false;
 bool g_CSUtilsLoaded = false;
+bool g_BotMimicLoaded = false;
 
 // These data structures maintain a list of settings for a toggle-able option:
 // the name, the cvar/value for the enabled option, and the cvar/value for the disabled option.
@@ -126,8 +128,14 @@ bool g_BotCrouching[MAXPLAYERS + 1];
 int g_BotNameNumber[MAXPLAYERS + 1];
 float g_BotDeathTime[MAXPLAYERS + 1];
 
+bool g_BotInit = false;
+bool g_InBotReplayMode = false;
+KeyValues g_ReplaysKv;
+
 #define PLAYER_HEIGHT 72.0
 #define CLASS_LENGTH 64
+
+const int kMaxBackupsPerMap = 50;
 
 // These must match the values used by cl_color.
 enum ClientColor {
@@ -198,7 +206,14 @@ Handle g_OnPracticeModeEnabled = INVALID_HANDLE;
 Handle g_OnPracticeModeSettingChanged = INVALID_HANDLE;
 Handle g_OnPracticeModeSettingsRead = INVALID_HANDLE;
 
+#define CHICKEN_MODEL "models/chicken/chicken.mdl"
+
 #include "practicemode/grenadeiterators.sp"
+
+#include "practicemode/botreplay.sp"
+#include "practicemode/botreplay_data.sp"
+#include "practicemode/botreplay_editor.sp"
+#include "practicemode/botreplay_utils.sp"
 
 #include "practicemode/bots.sp"
 #include "practicemode/botsmenu.sp"
@@ -374,6 +389,31 @@ public void OnPluginStart() {
 
     RegConsoleCmd("sm_botsmenu", Command_BotsMenu);
     PM_AddChatAlias(".bots", "sm_botsmenu");
+  }
+
+  // Bot replay commands
+  {
+    AddCommandListener(Command_LookAtWeapon, "+lookatweapon");
+
+    RegConsoleCmd("sm_replay", Command_Replay);
+    RegConsoleCmd("sm_replays", Command_Replays);
+    PM_AddChatAlias(".replay", "sm_replay");
+    PM_AddChatAlias(".replays", "sm_replays");
+
+    RegConsoleCmd("sm_namereplay", Command_NameReplay);
+    PM_AddChatAlias(".namereplay", "sm_namereplay");
+
+    RegConsoleCmd("sm_namerole", Command_NameRole);
+    PM_AddChatAlias(".namerole", "sm_namerole");
+
+    RegConsoleCmd("sm_cancel", Command_Cancel);
+    PM_AddChatAlias(".cancel", "sm_cancel");
+
+    RegConsoleCmd("sm_finishrecording", Command_FinishRecording);
+    PM_AddChatAlias(".finish", "sm_finishrecording");
+
+    RegConsoleCmd("sm_playrecording", Command_PlayRecording);
+    PM_AddChatAlias(".play", "sm_playrecording");
   }
 
   // Saved grenade location commands
@@ -610,11 +650,14 @@ public void OnPluginEnd() {
     ExitPracticeMode();
   }
   MaybeWriteNewGrenadeData();
+  Spawns_MapEnd();
+  BotReplay_MapEnd();
 }
 
 public void OnLibraryAdded(const char[] name) {
   g_PugsetupLoaded = LibraryExists("pugsetup");
   g_CSUtilsLoaded = LibraryExists("csutils");
+  g_BotMimicLoaded = LibraryExists("botmimic");
   if (LibraryExists("updater")) {
     Updater_AddPlugin(UPDATE_URL);
   }
@@ -623,6 +666,7 @@ public void OnLibraryAdded(const char[] name) {
 public void OnLibraryRemoved(const char[] name) {
   g_PugsetupLoaded = LibraryExists("pugsetup");
   g_CSUtilsLoaded = LibraryExists("csutils");
+  g_BotMimicLoaded = LibraryExists("botmimic");
 }
 
 /**
@@ -677,6 +721,8 @@ public void OnMapStart() {
   EnforceDirectoryExists("data/practicemode/grenades");
   EnforceDirectoryExists("data/practicemode/grenades/backups");
   EnforceDirectoryExists("data/practicemode/spawns");
+  EnforceDirectoryExists("data/practicemode/replays");
+  EnforceDirectoryExists("data/practicemode/replays/backups");
 
   // This supports backwards compatability for grenades saved in the old location
   // data/practicemode_grenades. The data is transferred to the new
@@ -708,6 +754,7 @@ public void OnMapStart() {
 
   FindGrenadeCategories();
   Spawns_MapStart();
+  BotReplay_MapStart();
 }
 
 public void OnConfigsExecuted() {
@@ -893,6 +940,12 @@ public Action Command_TeamJoin(int client, const char[] command, int argc) {
     GetCmdArg(1, arg, sizeof(arg));
     int team = StringToInt(arg);
     SwitchPlayerTeam(client, team);
+
+    // Since we force respawns off during bot replay, make teamswitches respawn players.
+    if (g_InBotReplayMode && team != CS_TEAM_SPECTATOR && team != CS_TEAM_NONE) {
+      CS_RespawnPlayer(client);
+    }
+
     return Plugin_Handled;
   }
 

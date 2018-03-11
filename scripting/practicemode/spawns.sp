@@ -52,6 +52,11 @@ public Action Command_GotoSpawn(int client, int args) {
     return Plugin_Handled;
   }
 
+  if (!IsPlayerAlive(client)) {
+    CS_RespawnPlayer(client);
+    return Plugin_Handled;
+  }
+
   if (IsPlayer(client)) {
     ArrayList spawnList = null;
     if (GetClientTeam(client) == CS_TEAM_CT) {

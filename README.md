@@ -69,6 +69,14 @@ All of the following commands can only be used on _your_ grenades. They will app
 - ``.throw [filter]``: automatically throws all grenades matching the filter. With no filter, throws the last grenade you threw.
 - ``.noflash``: makes it so no flashbangs will blind you (they still blind others)
 
+### Spawn commands
+- ``.respawn``: makes you respawn at the spot you are standing (``.stop`` to cancel)
+- ``.spawn``: same as ``.bestspawn`` (closest spawn)
+- ``.spawn <number>``: teleports you to a spawn # for the maps's spawns
+- ``.namespawn <name>``: saves the closest spawn to you under a name, which can then be gone to via ``.spawn <name>``
+- ``.bestspawn``: teleports you to your team's closest spawn from your current position
+- ``.worstspawn``: teleports you to your team's furthest spawn from your current position
+
 ### Bot commands
 - ``.bots``: opens the bot menu for easier access to most of the below commands
 - ``.bot``: adds a bot where you're standing (or crouching!); ``.crouchbot`` to force a crouching bot
@@ -81,13 +89,15 @@ All of the following commands can only be used on _your_ grenades. They will app
 - ``.savebots``: saves all current bots to a file
 - ``.loadbots``: loads bots from the file (written by the last ``.savebots``)
 
-### Spawn commands
-- ``.respawn``: makes you respawn at the spot you are standing (``.stop`` to cancel)
-- ``.spawn``: same as ``.bestspawn`` (closest spawn)
-- ``.spawn <number>``: teleports you to a spawn # for the maps's spawns
-- ``.namespawn <name>``: saves the closest spawn to you under a name, which can then be gone to via ``.spawn <name>``
-- ``.bestspawn``: teleports you to your team's closest spawn from your current position
-- ``.worstspawn``: teleports you to your team's furthest spawn from your current position
+### Bot replay commands
+**Note: bot replay support is currently a work in progress. It's not ready for general use yet.**
+- ``.replays``: opens replay mode menu
+- ``.replay``: opens the replay mode menu, or the last replay/role menu you had open
+- ``.namereplay``
+- ``.namerole``
+- ``.finish``
+- ``.cancel``
+- ``.play``
 
 ### Miscellaneous commands
 - ``.timer``: starts a timer when you start moving in any direction, and stops it when you stop moving, telling you the duration of time between starting/stopping

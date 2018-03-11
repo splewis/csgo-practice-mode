@@ -1,5 +1,3 @@
-const int kMaxBackupsPerMap = 30;
-
 public void BackupGrenadeData(KeyValues kv) {
   char map[PLATFORM_MAX_PATH + 1];
   GetCleanMapName(map, sizeof(map));

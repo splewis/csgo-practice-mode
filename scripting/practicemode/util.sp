@@ -1,6 +1,8 @@
 #include <cstrike>
 #include <sdktools>
 
+#define DEFAULT_MENU_LENGTH 128
+
 #tryinclude "manual_version.sp"
 #if !defined PLUGIN_VERSION
 #define PLUGIN_VERSION "1.2.3-dev"
@@ -31,7 +33,7 @@ stock bool IsValidClient(int client) {
 }
 
 stock bool IsPlayer(int client) {
-  return IsValidClient(client) && !IsFakeClient(client);
+  return IsValidClient(client) && !IsFakeClient(client) && !IsClientSourceTV(client);
 }
 
 stock void Colorize(char[] msg, int size, bool stripColor = false) {
@@ -297,7 +299,7 @@ stock void ChangeMap(const char[] map, float delay = 3.0) {
   CreateTimer(delay, Timer_DelayedChangeMap, pack);
 }
 
-public Action Timer_DelayedChangeMap(Handle timer, Handle data) {
+stock Action Timer_DelayedChangeMap(Handle timer, Handle data) {
   char map[PLATFORM_MAX_PATH];
   DataPack pack = view_as<DataPack>(data);
   pack.Reset();
@@ -313,7 +315,7 @@ public Action Timer_DelayedChangeMap(Handle timer, Handle data) {
   return Plugin_Handled;
 }
 
-public int GetMapIdFromString(const char[] map) {
+stock int GetMapIdFromString(const char[] map) {
   char buffers[4][PLATFORM_MAX_PATH];
   ExplodeString(map, "/", buffers, sizeof(buffers), PLATFORM_MAX_PATH);
   return StringToInt(buffers[1]);
@@ -327,8 +329,20 @@ stock void AddMenuInt(Menu menu, int value, const char[] display, any:...) {
   menu.AddItem(buffer, formattedDisplay);
 }
 
+stock void AddMenuIntStyle(Menu menu, int value, int style, const char[] display, any:...) {
+  char formattedDisplay[128];
+  VFormat(formattedDisplay, sizeof(formattedDisplay), display, 5);
+  char buffer[32];
+  IntToString(value, buffer, sizeof(buffer));
+  menu.AddItem(buffer, formattedDisplay, style);
+}
+
 stock int GetMenuInt(Menu menu, int param2) {
   char buffer[32];
   menu.GetItem(param2, buffer, sizeof(buffer));
   return StringToInt(buffer);
+}
+
+stock int EnabledIf(bool condition) {
+  return condition ? ITEMDRAW_DEFAULT : ITEMDRAW_DISABLED;
 }
