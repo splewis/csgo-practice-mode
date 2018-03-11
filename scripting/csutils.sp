@@ -80,10 +80,11 @@ public void GetNade(int index, int& entRef, GrenadeType& type,
   }
 }
 
-public bool IsManagedNade(int entity) {
+public bool IsManagedNade(int entity, int& index) {
   int ref = EntIndexToEntRef(entity);
   for (int i = 0; i < g_NadeList.Length; i++) {
     if (g_NadeList.Get(i, 0) == ref) {
+      index = i;
       return true;
     }
   }
@@ -251,34 +252,31 @@ public void OnEntityDestroyed(int entity) {
   float origin[3];
   GetEntPropVector(entity, Prop_Data, "m_vecOrigin", origin);
 
-
-  // We handle smokes differently here because the OnEntityDestroyed forward
-  // won't get called until the smoke effect goes away, which is later than we want.
-  // The smokegrenade_detonate event handler takes care of the forward for smokes.
-  //
-  // Why not do all nades in the *_detonate handlers? The molotov_detonate event
-  // doesn't pass the entityid parameter according to the alliedmods wiki.
-  if (type != GrenadeType_Smoke) {
-    Call_StartForward(g_OnGrenadeExplodeForward);
-    Call_PushCell(client);
-    Call_PushCell(entity);
-    Call_PushCell(type);
-    Call_PushArray(origin, 3);
-    Call_Finish();
-  }
-
   // Erase the ent ref from the global nade list.
-  int ref = EntIndexToEntRef(entity);
-  for (int i = 0; i < g_NadeList.Length; i++) {
-    if (g_NadeList.Get(i, 0) == ref) {
-      g_NadeList.Erase(i);
-      break;
+  int index;
+  if (IsManagedNade(entity, index)) {
+    g_NadeList.Erase(index);
+  } else {
+    // We handle smokes differently here because the OnEntityDestroyed forward
+    // won't get called until the smoke effect goes away, which is later than we want.
+    // The smokegrenade_detonate event handler takes care of the forward for smokes.
+    //
+    // Why not do all nades in the *_detonate handlers? The molotov_detonate event
+    // doesn't pass the entityid parameter according to the alliedmods wiki.
+    if (type != GrenadeType_Smoke) {
+      Call_StartForward(g_OnGrenadeExplodeForward);
+      Call_PushCell(client);
+      Call_PushCell(entity);
+      Call_PushCell(type);
+      Call_PushArray(origin, 3);
+      Call_Finish();
     }
   }
 }
 
 public Action OnTouch(int entity, int other) {
-  if (IsValidClient(other) && IsManagedNade(entity)) {
+  int unused;
+  if (IsValidClient(other) && IsManagedNade(entity, unused)) {
     SetEntPropEnt(entity, Prop_Data, "m_hThrower", other);
     SetEntProp(entity, Prop_Send, "m_iTeamNum", GetClientTeam(other));
   }
@@ -330,7 +328,8 @@ public Action Event_SmokeDetonate(Event event, const char[] name, bool dontBroad
     return;
   }
 
-  if (!IsManagedNade(entity)) {
+  int unused;
+  if (!IsManagedNade(entity, unused)) {
     Call_StartForward(g_OnGrenadeExplodeForward);
     Call_PushCell(GetClientOfUserId(userid));
     Call_PushCell(entity);
