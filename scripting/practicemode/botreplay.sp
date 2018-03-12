@@ -171,6 +171,11 @@ public Action Command_Replay(int client, int args) {
     return Plugin_Handled;
   }
 
+  GiveReplayMenuInContext(client);
+  return Plugin_Handled;
+}
+
+void GiveReplayMenuInContext(int client) {
   if (HasActiveReplay(client)) {
     if (g_CurrentEditingRole[client] >= 0) {
       // Replay-role specific menu.
@@ -183,8 +188,6 @@ public Action Command_Replay(int client, int args) {
     // All replays menu.
     GiveMainReplaysMenu(client);
   }
-
-  return Plugin_Handled;
 }
 
 public Action Command_Replays(int client, int args) {
@@ -258,7 +261,7 @@ public Action Command_NameRole(int client, int args) {
   if (StrEqual(buffer, "")) {
     PM_Message(client, "You didn't give a name! Use: .namerole <name>.");
   } else {
-    PM_Message(client, "Saved role %d name.", g_CurrentEditingRole[client]);
+    PM_Message(client, "Saved role %d name.", g_CurrentEditingRole[client] + 1);
     SetRoleName(g_ReplayId[client], g_CurrentEditingRole[client], buffer);
   }
   return Plugin_Handled;

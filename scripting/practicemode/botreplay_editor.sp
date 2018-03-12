@@ -466,7 +466,7 @@ public Action BotMimic_OnStopRecording(int client, char[] name, char[] category,
       // We only handle the not-saving case here because BotMimic_OnRecordSaved below
       // is handling the saving case.
       PM_Message(client, "Cancelled recording player role %d", g_CurrentEditingRole[client] + 1);
-      GiveReplayEditorMenu(client);
+      GiveReplayMenuInContext(client);
     }
   }
 
@@ -480,7 +480,7 @@ public void BotMimic_OnRecordSaved(int client, char[] name, char[] category, cha
     PM_Message(client, "Finished recording player role %d", g_CurrentEditingRole[client] + 1);
 
     if (!g_RecordingFullReplay || g_RecordingFullReplayClient == client) {
-      GiveReplayEditorMenu(client);
+      GiveReplayMenuInContext(client);
     }
 
     g_RecordingFullReplay = false;
