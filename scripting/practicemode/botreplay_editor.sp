@@ -198,8 +198,10 @@ public Action Command_FinishRecording(int client, int args) {
 }
 
 public Action Command_LookAtWeapon(int client, const char[] command, int argc) {
-  // TODO: also hook the noclip command as a way to finish recording.
-  FinishRecording(client, false);
+  if (g_InPracticeMode && g_InBotReplayMode) {
+    // TODO: also hook the noclip command as a way to finish recording.
+    FinishRecording(client, false);
+  }
   return Plugin_Continue;
 }
 
