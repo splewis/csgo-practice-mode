@@ -60,7 +60,9 @@ public void MaybeWriteNewReplayData() {
     char replayFile[PLATFORM_MAX_PATH + 1];
     BuildPath(Path_SM, replayFile, sizeof(replayFile), "data/practicemode/replays/%s.cfg", map);
     DeleteFile(replayFile);
-    g_ReplaysKv.ExportToFile(replayFile);
+    if (!g_ReplaysKv.ExportToFile(replayFile)) {
+      LogError("Failed to write replays to %s", replayFile);
+    }
 
     g_UpdatedReplayKv = false;
   }

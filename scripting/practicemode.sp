@@ -818,7 +818,10 @@ static void MaybeWriteNewGrenadeData() {
   if (g_UpdatedGrenadeKv) {
     g_GrenadeLocationsKv.Rewind();
     BackupGrenadeData(g_GrenadeLocationsKv);
-    g_GrenadeLocationsKv.ExportToFile(g_GrenadeLocationsFile);
+    DeleteFile(g_GrenadeLocationsFile);
+    if (!g_GrenadeLocationsKv.ExportToFile(g_GrenadeLocationsFile)) {
+      LogError("Failed to write grenade data to %s", g_GrenadeLocationsFile);
+    }
     g_UpdatedGrenadeKv = false;
   }
 }

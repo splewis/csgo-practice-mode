@@ -451,7 +451,9 @@ public Action Command_SaveBots(int client, int args) {
   }
 
   DeleteFile(path);
-  botsKv.ExportToFile(path);
+  if (!botsKv.ExportToFile(path)) {
+    LogError("Failed to write bots file to %s", path);
+  }
   delete botsKv;
 
   PM_MessageToAll("Saved bot spawns.");

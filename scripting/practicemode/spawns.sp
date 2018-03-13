@@ -24,7 +24,11 @@ public void Spawns_MapEnd() {
   GetCleanMapName(mapName, sizeof(mapName));
   char path[PLATFORM_MAX_PATH];
   Format(path, sizeof(path), "%s/%s.cfg", dir, mapName);
-  g_NamedSpawnsKv.ExportToFile(path);
+
+  DeleteFile(path);
+  if (!g_NamedSpawnsKv.ExportToFile(path)) {
+    LogError("Failed to write spawn names to %s", path);
+  }
   delete g_NamedSpawnsKv;
 }
 
