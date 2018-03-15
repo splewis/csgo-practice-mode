@@ -8,6 +8,7 @@ public void Spawns_MapStart() {
   char path[PLATFORM_MAX_PATH];
   BuildPath(Path_SM, path, sizeof(path), "data/practicemode/spawns/%s.cfg", mapName);
 
+  delete g_NamedSpawnsKv;
   g_NamedSpawnsKv = new KeyValues("NamedSpawns");
   g_NamedSpawnsKv.ImportFromFile(path);
 }
@@ -29,7 +30,6 @@ public void Spawns_MapEnd() {
   if (!g_NamedSpawnsKv.ExportToFile(path)) {
     LogError("Failed to write spawn names to %s", path);
   }
-  delete g_NamedSpawnsKv;
 }
 
 public Action Command_SaveSpawn(int client, int args) {
