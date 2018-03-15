@@ -346,3 +346,28 @@ stock int GetMenuInt(Menu menu, int param2) {
 stock int EnabledIf(bool condition) {
   return condition ? ITEMDRAW_DEFAULT : ITEMDRAW_DISABLED;
 }
+
+stock void GetPlayerBoundingBox(int client, float min[3], float max[3]) {
+  float clientMin[3];
+  float clientMax[3];
+  float clientOrigin[3];
+  GetClientMins(client, clientMin);
+  GetClientMaxs(client, clientMax);
+  GetClientAbsOrigin(client, clientOrigin);
+  for (int i = 0; i < 3; i++) {
+    min[i] = clientOrigin[i] + clientMin[i];
+    max[i] = clientOrigin[i] + clientMax[i];
+  }
+}
+
+stock bool DoPlayersCollide(int client1, int client2) {
+  float client1Min[3];
+  float client1Max[3];
+  float client2Min[3];
+  float client2Max[3];
+  GetPlayerBoundingBox(client1, client1Min, client1Max);
+  GetPlayerBoundingBox(client2, client2Min, client2Max);
+  return (client1Min[0] <= client2Max[0] && client1Max[0] >= client2Min[0]) &&
+         (client1Min[1] <= client2Max[1] && client1Max[1] >= client2Min[1]) &&
+         (client1Min[2] <= client2Max[2] && client1Max[2] >= client2Min[2]);
+}

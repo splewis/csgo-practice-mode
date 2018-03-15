@@ -198,9 +198,8 @@ public Action Command_Bot(int client, int args) {
   GetClientEyeAngles(client, g_BotSpawnAngles[bot]);
   GetClientWeapon(client, g_BotSpawnWeapon[bot], CLASS_LENGTH);
   GiveBotParams(bot);
-
-  SetEntityMoveType(client, MOVETYPE_NOCLIP);
   PM_Message(client, "Created bot, use .nobot to remove it.");
+  TemporarilyDisableCollisions(client, bot);
   return Plugin_Handled;
 }
 
@@ -219,7 +218,7 @@ public Action Command_MoveBot(int client, int args) {
   GetClientWeapon(client, g_BotSpawnWeapon[bot], CLASS_LENGTH);
   GiveBotParams(bot);
 
-  SetEntityMoveType(client, MOVETYPE_NOCLIP);
+  TemporarilyDisableCollisions(client, bot);
   return Plugin_Handled;
 }
 
@@ -243,7 +242,7 @@ public Action Command_CrouchBot(int client, int args) {
   GetClientWeapon(client, g_BotSpawnWeapon[bot], CLASS_LENGTH);
   GiveBotParams(bot);
 
-  SetEntityMoveType(client, MOVETYPE_NOCLIP);
+  TemporarilyDisableCollisions(client, bot);
   PM_Message(client, "Created bot, use .nobot to remove it.");
   return Plugin_Handled;
 }
@@ -529,4 +528,27 @@ public int FindClosestBot(int client) {
   }
 
   return minBot;
+}
+
+void TemporarilyDisableCollisions(int client1, int client2) {
+  Entity_SetCollisionGroup(client1, COLLISION_GROUP_DEBRIS);
+  Entity_SetCollisionGroup(client2, COLLISION_GROUP_DEBRIS);
+  DataPack pack;
+  CreateDataTimer(0.1, Timer_ResetCollisions, pack, TIMER_REPEAT);
+  pack.WriteCell(client1);
+  pack.WriteCell(client2);
+}
+
+public Action Timer_ResetCollisions(Handle timer, DataPack pack) {
+  pack.Reset();
+  int client1 = pack.ReadCell();
+  int client2 = pack.ReadCell();
+
+  if (DoPlayersCollide(client1, client2)) {
+    return Plugin_Continue;
+  }
+
+  Entity_SetCollisionGroup(client1, COLLISION_GROUP_PLAYER);
+  Entity_SetCollisionGroup(client2, COLLISION_GROUP_PLAYER);
+  return Plugin_Handled;
 }
