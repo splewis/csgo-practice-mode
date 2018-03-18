@@ -334,6 +334,10 @@ public void BackupReplayData(KeyValues kv) {
 }
 
 public void GarbageCollectReplays() {
+  if (!g_BotMimicLoaded) {
+    return;
+  }
+
   ArrayList replaysInUse = new ArrayList(PLATFORM_MAX_PATH + 1);
 
   // Get all replays currently in use.
