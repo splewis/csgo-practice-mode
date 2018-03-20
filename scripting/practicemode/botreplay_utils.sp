@@ -10,15 +10,19 @@ public bool IsPossibleReplayBot(int client) {
 }
 
 public bool IsReplayBot(int client) {
+  return GetReplayRoleNumber(client) >= 0;
+}
+
+public int GetReplayRoleNumber(int client) {
   if (!IsPossibleReplayBot(client)) {
-    return false;
+    return -1;
   }
   for (int i = 0; i < MAX_REPLAY_CLIENTS; i++) {
     if (g_ReplayBotClients[i] == client) {
-      return true;
+      return i;
     }
   }
-  return false;
+  return -1;
 }
 
 public int GetLargestBotUserId() {
@@ -94,6 +98,11 @@ void ReplayRole(const char[] id, int client, int role) {
   GetRoleFile(id, role, filepath, sizeof(filepath));
   GetRoleNades(id, role, client);
 
+  char roleName[REPLAY_ROLE_DESCRIPTION_LENGTH];
+  if (GetRoleName(id, role, roleName, sizeof(roleName))) {
+    SetClientName(client, roleName);
+  }
+
   g_CurrentReplayNadeIndex[client] = 0;
   CS_RespawnPlayer(client);
   DataPack pack = new DataPack();
@@ -133,7 +142,7 @@ public void CancelAllReplays() {
     int bot = g_ReplayBotClients[i];
     if (IsValidClient(bot) && BotMimic_IsPlayerMimicing(bot)) {
       BotMimic_StopPlayerMimic(bot);
-      RequestFrame(Timer_DelayKillBot, GetClientSerial(bot));
+      RequestFrame(Timer_DelayKillBot, GetClientSerial(g_ReplayBotClients[i]));
     }
   }
 }
@@ -142,10 +151,15 @@ public void CancelAllReplays() {
 // TODO: see if we really need this.
 public void Timer_DelayKillBot(int serial) {
   int client = GetClientFromSerial(serial);
-  if (IsValidClient(client) && IsPlayerAlive(client)) {
+  if (IsReplayBot(client)) {
     float zero[3];
     TeleportEntity(client, zero, zero, zero);
     KillBot(client);
+
+    int role = GetReplayRoleNumber(client);
+    char name[64];
+    Format(name, sizeof(name), "Replay Bot %d", role + 1);
+    SetClientName(client, name);
   }
 }
 
