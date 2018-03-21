@@ -543,6 +543,9 @@ public Action Timer_ResetCollisions(Handle timer, DataPack pack) {
   pack.Reset();
   int client1 = pack.ReadCell();
   int client2 = pack.ReadCell();
+  if (!IsValidClient(client1) || !IsValidClient(client2)) {
+    return Plugin_Handled;
+  }
 
   if (DoPlayersCollide(client1, client2)) {
     return Plugin_Continue;
