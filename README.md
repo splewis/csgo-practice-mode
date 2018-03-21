@@ -89,16 +89,6 @@ All of the following commands can only be used on _your_ grenades. They will app
 - ``.savebots``: saves all current bots to a file
 - ``.loadbots``: loads bots from the file (written by the last ``.savebots``)
 
-### Bot replay commands
-**Note: bot replay support is currently a work in progress. It's not ready for general use yet.**
-- ``.replays``: opens replay mode menu
-- ``.replay``: opens the replay mode menu, or the last replay/role menu you had open
-- ``.namereplay``
-- ``.namerole``
-- ``.finish``
-- ``.cancel``
-- ``.play``
-
 ### Miscellaneous commands
 - ``.timer``: starts a timer when you start moving in any direction, and stops it when you stop moving, telling you the duration of time between starting/stopping
 - ``.timer2``: starts a timer immediately and stops it when you type .timer2 again, telling you the duration of time
