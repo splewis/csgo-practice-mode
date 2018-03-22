@@ -20,6 +20,10 @@ before_script:
     - SMPACKAGE="http://sourcemod.net/latest.php?os=linux&version=${SMVERSION}"
     - wget $SMPACKAGE
     - tar xfz $(basename $SMPACKAGE)
+
+    # copy dhooks to system includes
+    - cp scripting/include/dhooks.inc addons/sourcemod/scripting/include
+
     - cd addons/sourcemod/scripting/
     - chmod +x spcomp
     - PATH+=":$PWD"
