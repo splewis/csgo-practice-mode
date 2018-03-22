@@ -21,8 +21,9 @@ before_script:
     - wget $SMPACKAGE
     - tar xfz $(basename $SMPACKAGE)
 
-    # copy dhooks to system includes
+    # copy dhooks & botmimic to system includes
     - cp scripting/include/dhooks.inc addons/sourcemod/scripting/include
+    - cp scripting/include/botmimic.inc addons/sourcemod/scripting/include
 
     - cd addons/sourcemod/scripting/
     - chmod +x spcomp
