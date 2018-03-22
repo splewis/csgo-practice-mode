@@ -1,0 +1,1 @@
+../../botmimic/scripting/include/botmimic.inc

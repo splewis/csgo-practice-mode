@@ -1,0 +1,3 @@
+[submodule "botmimic"]
+	path = botmimic
+	url = https://github.com/peace-maker/botmimic

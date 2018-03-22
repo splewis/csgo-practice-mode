@@ -1,5 +1,6 @@
 Plugin(source='scripting/practicemode.sp')
 Plugin(source='scripting/csutils.sp')
+Plugin(source='botmimic/scripting/botmimic.sp')
 
 Package(name='csutils',
         plugins=['csutils'],
@@ -8,7 +9,7 @@ Package(name='csutils',
 )
 
 Package(name='practicemode',
-        plugins=['practicemode', 'csutils'],
+        plugins=['practicemode', 'csutils', 'botmimic'],
         filegroups={
             '.': ['LICENSE', 'README.md'],
         },

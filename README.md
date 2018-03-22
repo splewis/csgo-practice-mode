@@ -16,9 +16,9 @@ You may also download the [latest development build](http://ci.splewis.net/job/c
 
 ### Installation
 
-Extract all the files in the release archive to the ``csgo`` server directory.
+First make sure you have [SourceMod](http://www.sourcemod.net/downloads.php) and [MetaMod:Source](http://www.sourcemm.net/downloads).
 
-You must have [SourceMod](http://www.sourcemod.net/downloads.php) and [MetaMod:Source](http://www.sourcemm.net/downloads) installed to use this plugin.
+Then take the zip you downloaded above and extract **all** the files in the release zip to the ``csgo`` server directory. If you did it right, you should see a ``practicemode.smx`` file in ``addons/sourcemod/plugins``.
 
 Make sure to [add yourself as a sourcemod admin](https://github.com/splewis/csgo-practice-mode/wiki/Command-access#adding-admins-in-sourcemod) as well. You will need this to start practicemode via the ``.setup`` command. You could also [remove the admin requirement](https://github.com/splewis/csgo-practice-mode/wiki/Command-access#launching-practicemode) for launching practicemode.
 

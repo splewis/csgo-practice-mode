@@ -18,6 +18,8 @@ def main():
     for (dirpath, dirnames, filenames) in os.walk(scripting_path):
         for f in filenames:
             if '.inc' in f or '.sp' in f:
+                if 'botmimic' in f:
+                    continue # don't bother with symlinked botmimic
                 files.append(os.path.join(dirpath, f))
 
     for filename in files:

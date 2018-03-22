@@ -8,9 +8,9 @@
 #include <sourcemod>
 
 #undef REQUIRE_PLUGIN
+#include "include/botmimic.inc"
 #include "include/csutils.inc"
 
-#include <botmimic>
 #include <pugsetup>
 #include <updater>
 
