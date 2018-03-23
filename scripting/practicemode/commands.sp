@@ -30,7 +30,8 @@ public Action Command_NoFlash(int client, int args) {
 
   g_ClientNoFlash[client] = !g_ClientNoFlash[client];
   if (g_ClientNoFlash[client]) {
-    PM_Message(client, "Enabled noflash. Use .noflash again to let flashbangs blind you.");
+    PM_Message(client, "Enabled noflash. Use .noflash again to disable.");
+    RequestFrame(KillFlashEffect, GetClientSerial(client));
   } else {
     PM_Message(client, "Disabled noflash.");
   }
