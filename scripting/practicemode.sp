@@ -218,6 +218,7 @@ Handle g_OnPracticeModeSettingsRead = INVALID_HANDLE;
 #include "practicemode/bots.sp"
 #include "practicemode/botsmenu.sp"
 #include "practicemode/commands.sp"
+#include "practicemode/debug.sp"
 #include "practicemode/grenadebackups.sp"
 #include "practicemode/grenadecommands.sp"
 #include "practicemode/grenadefilters.sp"
@@ -290,6 +291,9 @@ public void OnPluginStart() {
 
     RegAdminCmd("sm_practicemap", Command_Map, ADMFLAG_CHANGEMAP);
     PM_AddChatAlias(".map", "sm_practicemap");
+
+    RegAdminCmd("practicemode_debuginfo", Command_DebugInfo, ADMFLAG_CHANGEMAP,
+                "Dumps debug info to a file (addons/sourcemod/logs/practicemode_debuginfo.txt by default)");
   }
 
   RegAdminCmd("sm_exitpractice", Command_ExitPracticeMode, ADMFLAG_CHANGEMAP,
