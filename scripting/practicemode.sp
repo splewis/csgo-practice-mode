@@ -215,11 +215,11 @@ Handle g_OnPracticeModeSettingsRead = INVALID_HANDLE;
 #include "practicemode/botreplay_editor.sp"
 #include "practicemode/botreplay_utils.sp"
 
+#include "practicemode/backups.sp"
 #include "practicemode/bots.sp"
 #include "practicemode/botsmenu.sp"
 #include "practicemode/commands.sp"
 #include "practicemode/debug.sp"
-#include "practicemode/grenadebackups.sp"
 #include "practicemode/grenadecommands.sp"
 #include "practicemode/grenadefilters.sp"
 #include "practicemode/grenademenus.sp"
@@ -292,8 +292,9 @@ public void OnPluginStart() {
     RegAdminCmd("sm_practicemap", Command_Map, ADMFLAG_CHANGEMAP);
     PM_AddChatAlias(".map", "sm_practicemap");
 
-    RegAdminCmd("practicemode_debuginfo", Command_DebugInfo, ADMFLAG_CHANGEMAP,
-                "Dumps debug info to a file (addons/sourcemod/logs/practicemode_debuginfo.txt by default)");
+    RegAdminCmd(
+        "practicemode_debuginfo", Command_DebugInfo, ADMFLAG_CHANGEMAP,
+        "Dumps debug info to a file (addons/sourcemod/logs/practicemode_debuginfo.txt by default)");
   }
 
   RegAdminCmd("sm_exitpractice", Command_ExitPracticeMode, ADMFLAG_CHANGEMAP,
@@ -717,9 +718,11 @@ public void OnMapStart() {
 
   EnforceDirectoryExists("data/practicemode");
   EnforceDirectoryExists("data/practicemode/bots");
+  EnforceDirectoryExists("data/practicemode/bots/backups");
   EnforceDirectoryExists("data/practicemode/grenades");
   EnforceDirectoryExists("data/practicemode/grenades/backups");
   EnforceDirectoryExists("data/practicemode/spawns");
+  EnforceDirectoryExists("data/practicemode/spawns/backups");
   EnforceDirectoryExists("data/practicemode/replays");
   EnforceDirectoryExists("data/practicemode/replays/backups");
 
@@ -821,7 +824,7 @@ public void OnMapEnd() {
 static void MaybeWriteNewGrenadeData() {
   if (g_UpdatedGrenadeKv) {
     g_GrenadeLocationsKv.Rewind();
-    BackupGrenadeData(g_GrenadeLocationsKv);
+    BackupKeyval(g_GrenadeLocationsKv, "grenades");
     DeleteFile(g_GrenadeLocationsFile);
     if (!g_GrenadeLocationsKv.ExportToFile(g_GrenadeLocationsFile)) {
       LogError("Failed to write grenade data to %s", g_GrenadeLocationsFile);

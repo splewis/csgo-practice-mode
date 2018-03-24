@@ -154,7 +154,6 @@ stock void CleanMapName(const char[] input, char[] buffer, int size) {
   strcopy(buffer, size, input[last_slash]);
 }
 
-
 stock void RemoveCvarFlag(Handle cvar, int flag) {
   SetConVarFlags(cvar, GetConVarFlags(cvar) & ~flag);
 }
