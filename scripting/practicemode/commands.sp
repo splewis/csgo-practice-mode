@@ -319,15 +319,27 @@ public Action Timer_DelayedComand(Handle timer, int serial) {
 }
 
 public Action Command_Map(int client, int args) {
-  char map[PLATFORM_MAX_PATH];
-  if (args >= 1 && GetCmdArg(1, map, sizeof(map))) {
-    ChangeMap(map);
+  char arg[PLATFORM_MAX_PATH];
+  if (args >= 1 && GetCmdArg(1, arg, sizeof(arg))) {
+    // Before trying to change to the arg first, check to see if
+    // there's a clear match in the maplist
+    for (int i = 0; i < g_MapList.Length; i++) {
+      char map[PLATFORM_MAX_PATH];
+      g_MapList.GetString(i, map, sizeof(map));
+      if (StrContains(map, arg) >= 0) {
+        ChangeMap(map);
+        return Plugin_Handled;
+      }
+    }
+    ChangeMap(arg);
+
   } else {
     Menu menu = new Menu(ChangeMapHandler);
     menu.ExitButton = true;
     menu.ExitBackButton = true;
     menu.SetTitle("Select a map:");
     for (int i = 0; i < g_MapList.Length; i++) {
+      char map[PLATFORM_MAX_PATH];
       g_MapList.GetString(i, map, sizeof(map));
       char cleanedMapName[PLATFORM_MAX_PATH];
       CleanMapName(map, cleanedMapName, sizeof(cleanedMapName));
