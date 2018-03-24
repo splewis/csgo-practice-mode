@@ -57,6 +57,10 @@ public void BotReplay_MapEnd() {
 
 public void Replays_OnThrowGrenade(int client, int entity, GrenadeType grenadeType, const float origin[3],
                             const float velocity[3]) {
+  if (g_BotMimicLoaded) {
+    return;
+  }
+
   if (g_CurrentEditingRole[client] >= 0 && BotMimic_IsPlayerRecording(client)) {
     float delay = GetGameTime() - g_CurrentRecordingStartTime[client];
     float personOrigin[3];
