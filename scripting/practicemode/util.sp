@@ -141,14 +141,19 @@ stock int FindStringInList(ArrayList list, int len, const char[] string,
 stock void GetCleanMapName(char[] buffer, int size) {
   char mapName[PLATFORM_MAX_PATH];
   GetCurrentMap(mapName, sizeof(mapName));
+  CleanMapName(mapName, buffer, size);
+}
+
+stock void CleanMapName(const char[] input, char[] buffer, int size) {
   int last_slash = 0;
-  int len = strlen(mapName);
+  int len = strlen(input);
   for (int i = 0; i < len; i++) {
-    if (mapName[i] == '/' || mapName[i] == '\\')
+    if (input[i] == '/' || input[i] == '\\')
       last_slash = i + 1;
   }
-  strcopy(buffer, size, mapName[last_slash]);
+  strcopy(buffer, size, input[last_slash]);
 }
+
 
 stock void RemoveCvarFlag(Handle cvar, int flag) {
   SetConVarFlags(cvar, GetConVarFlags(cvar) & ~flag);

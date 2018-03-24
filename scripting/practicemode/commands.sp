@@ -329,7 +329,9 @@ public Action Command_Map(int client, int args) {
     menu.SetTitle("Select a map:");
     for (int i = 0; i < g_MapList.Length; i++) {
       g_MapList.GetString(i, map, sizeof(map));
-      AddMenuInt(menu, i, map);
+      char cleanedMapName[PLATFORM_MAX_PATH];
+      CleanMapName(map, cleanedMapName, sizeof(cleanedMapName));
+      AddMenuInt(menu, i, cleanedMapName);
     }
     DisplayMenu(menu, client, MENU_TIME_FOREVER);
   }
