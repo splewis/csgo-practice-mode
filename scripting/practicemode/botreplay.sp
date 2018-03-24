@@ -57,7 +57,7 @@ public void BotReplay_MapEnd() {
 
 public void Replays_OnThrowGrenade(int client, int entity, GrenadeType grenadeType, const float origin[3],
                             const float velocity[3]) {
-  if (g_BotMimicLoaded) {
+  if (!g_BotMimicLoaded) {
     return;
   }
 
