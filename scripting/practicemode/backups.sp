@@ -1,7 +1,8 @@
-public void BackupKeyval(KeyValues kv, const char[] data_dir) {
+public void BackupFiles(const char[] data_dir) {
   char map[PLATFORM_MAX_PATH + 1];
   GetCleanMapName(map, sizeof(map));
 
+  // Example: if kMaxBackupsPerMap == 30
   // Delete backups/de_dust2.30.cfg
   // Backup backups/de_dust.29.cfg -> backups/de_dust.30.cfg
   // Backup backups/de_dust.28.cfg -> backups/de_dust.29.cfg

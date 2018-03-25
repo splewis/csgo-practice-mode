@@ -824,7 +824,7 @@ public void OnMapEnd() {
 static void MaybeWriteNewGrenadeData() {
   if (g_UpdatedGrenadeKv) {
     g_GrenadeLocationsKv.Rewind();
-    BackupKeyval(g_GrenadeLocationsKv, "grenades");
+    BackupFiles("grenades");
     DeleteFile(g_GrenadeLocationsFile);
     if (!g_GrenadeLocationsKv.ExportToFile(g_GrenadeLocationsFile)) {
       LogError("Failed to write grenade data to %s", g_GrenadeLocationsFile);

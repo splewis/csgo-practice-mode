@@ -53,7 +53,7 @@ public int ReplaysMenuHandler(Menu menu, MenuAction action, int param1, int para
 public void MaybeWriteNewReplayData() {
   if (g_UpdatedReplayKv) {
     g_ReplaysKv.Rewind();
-    BackupKeyval(g_ReplaysKv, "replays");
+    BackupFiles("replays");
 
     char map[PLATFORM_MAX_PATH];
     GetCleanMapName(map, sizeof(map));
