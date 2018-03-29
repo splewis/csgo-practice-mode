@@ -334,8 +334,7 @@ public Action Command_RemoveBot(int client, int args) {
   }
 
   if (g_ClientBots[client].Length == 1) {
-    int bot = g_ClientBots[client].Get(0);
-    KickClient(bot);
+    KickClientBot(client, 0);
     return Plugin_Handled;
   }
 
