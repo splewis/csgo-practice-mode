@@ -233,7 +233,7 @@ public Action Command_SaveGrenade(int client, int args) {
   GetCmdArgString(name, sizeof(name));
   TrimString(name);
 
-  if (strlen(name) == 0) {
+  if (StrEqual(name, "")) {
     PM_Message(client, "Usage: .save <name>");
     return Plugin_Handled;
   }
@@ -267,6 +267,12 @@ public Action Command_SaveGrenade(int client, int args) {
   float grenadeVelocity[3];
   grenadeOrigin = g_LastGrenadeOrigin[client];
   grenadeVelocity = g_LastGrenadeVelocity[client];
+
+  if (grenadeType != GrenadeType_None && GetVectorDistance(origin, grenadeOrigin) >= 500.0) {
+    PM_Message(
+        client,
+        "{LIGHT_RED}Warning: {NORMAL}your saved grenade lineup is very far from how your last grenade was thrown. If .throw doesn't work, manually throw the grenade at the linup and type .update to fix it.");
+  }
 
   Action ret = Plugin_Continue;
   Call_StartForward(g_OnGrenadeSaved);

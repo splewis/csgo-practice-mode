@@ -72,7 +72,7 @@ public void Replays_OnThrowGrenade(int client, int entity, GrenadeType grenadeTy
     if (delay < 1.27) {  // Takes 1.265625s to pull out a grenade.
       PM_Message(
           client,
-          "Warning: throwing a grenade just after starting a recording may not save the grenade properly. {LIGHT_RED}Wait a second {NORMAL}after you start recording to throw your grenade for better results.");
+          "{LIGHT_RED}Warning: {NORMAL}throwing a grenade just after starting a recording may not save the grenade properly. {LIGHT_RED}Wait a second {NORMAL}after you start recording to throw your grenade for better results.");
     }
   }
 
