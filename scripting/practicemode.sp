@@ -208,7 +208,7 @@ Handle g_OnPracticeModeSettingsRead = INVALID_HANDLE;
 
 #define CHICKEN_MODEL "models/chicken/chicken.mdl"
 
-#include "practicemode/grenadeiterators.sp"
+#include "practicemode/grenade_iterators.sp"
 
 #include "practicemode/botreplay.sp"
 #include "practicemode/botreplay_data.sp"
@@ -217,16 +217,16 @@ Handle g_OnPracticeModeSettingsRead = INVALID_HANDLE;
 
 #include "practicemode/backups.sp"
 #include "practicemode/bots.sp"
-#include "practicemode/botsmenu.sp"
+#include "practicemode/bots_menu.sp"
 #include "practicemode/commands.sp"
 #include "practicemode/debug.sp"
-#include "practicemode/grenadecommands.sp"
-#include "practicemode/grenadefilters.sp"
-#include "practicemode/grenademenus.sp"
-#include "practicemode/grenadeutils.sp"
+#include "practicemode/grenade_commands.sp"
+#include "practicemode/grenade_filters.sp"
+#include "practicemode/grenade_menus.sp"
+#include "practicemode/grenade_utils.sp"
 #include "practicemode/natives.sp"
 #include "practicemode/pugsetup_integration.sp"
-#include "practicemode/settingsmenu.sp"
+#include "practicemode/settings_menu.sp"
 #include "practicemode/spawns.sp"
 
 // clang-format off
