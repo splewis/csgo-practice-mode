@@ -16,13 +16,17 @@ You may also download the [latest development build](http://ci.splewis.net/job/c
 
 ### Installation
 
-First make sure you have [SourceMod](http://www.sourcemod.net/downloads.php) and [MetaMod:Source](http://www.sourcemm.net/downloads).
+First make sure you have [SourceMod](https://www.sourcemod.net/downloads.php) and [MetaMod:Source](https://metamodsource.net/downloads.php).
 
 Then take the zip you downloaded above and extract **all** the files in the release zip to the ``csgo`` server directory. If you did it right, you should see a ``practicemode.smx`` file in ``addons/sourcemod/plugins``.
 
 Make sure to [add yourself as a sourcemod admin](https://github.com/splewis/csgo-practice-mode/wiki/Command-access#adding-admins-in-sourcemod) as well. You will need this to start practicemode via the ``.setup`` command. You could also [remove the admin requirement](https://github.com/splewis/csgo-practice-mode/wiki/Command-access#launching-practicemode) for launching practicemode.
 
 **Note**: access to the .setup requires having the sourcemod admin changemap flag ("g") by default. See [the wiki](https://github.com/splewis/csgo-practice-mode/wiki/Command-access) for more information on changing how admin access works.
+
+### Download and installation for dummies
+
+For a more thorough guide for users new to configuring servers, please see [this wiki page](https://github.com/splewis/csgo-practice-mode/wiki/Step-by-step-installation-guide).
 
 ## Features
 - Draws working grenade trajectories if ``sv_grenade_trajectory`` is on (since it doesn't work on dedicated servers)
