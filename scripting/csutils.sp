@@ -8,6 +8,7 @@
 #include <sourcemod>
 
 #include "include/csutils.inc"
+#include "include/logdebug.inc"
 
 #include "practicemode/util.sp"
 
@@ -39,6 +40,9 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 }
 
 public void OnPluginStart() {
+  InitDebugLog("csutils_debug", "csutils");
+  LogDebug("OnPluginStart version=%s", PLUGIN_VERSION);
+
   g_OnGrenadeThrownForward =
       CreateGlobalForward("CSU_OnThrowGrenade", ET_Ignore, Param_Cell, Param_Cell, Param_Cell,
                           Param_Array, Param_Array, Param_Array, Param_Array);
@@ -98,6 +102,11 @@ public int Native_ThrowGrenade(Handle plugin, int numParams) {
 
   float velocity[3];
   GetNativeArray(4, velocity, sizeof(velocity));
+
+  LogDebug(
+      "CSU_ThrowGrenade client=%d, grenadeType=%d, origin=[%f %f %f], velocity=[%f %f %f]",
+      client, grenadeType, origin[0], origin[1], origin[2], velocity[0], velocity[1],
+      velocity[2]);
 
   char classname[64];
   GetProjectileName(grenadeType, classname, sizeof(classname));
@@ -318,6 +327,11 @@ public void CaptureEntity(int entity) {
   Call_PushArray(origin, 3);
   Call_PushArray(velocity, 3);
   Call_Finish();
+
+  LogDebug(
+      "CSU_OnThrowGrenade client=%d, entity=%d, grenadeType=%d, origin=[%f %f %f], velocity=[%f %f %f]",
+      client, entity, grenadeType, origin[0], origin[1], origin[2], velocity[0], velocity[1],
+      velocity[2]);
 }
 
 public void CheckGrenadeType(GrenadeType type) {
