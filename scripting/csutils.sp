@@ -284,10 +284,23 @@ public void OnGrenadeProjectileSpawned(int entity) {
 }
 
 public void GetGrenadeParameters(int entity) {
+  // For an entity that came for a CSU_ThrowGrenade native call, we'll setup
+  // the grenade properties here.
   if (HandleNativeRequestedNade(entity)) {
     return;
   }
 
+  // For other grenades, we'll wait two frames to capture the properties of the nade.
+  // Why 2 frames? Testing showed that was needed to get accurate explosion spots based
+  // on how the native is implemented. (Accurate replay is the #1 goal of the forward+native).
+  RequestFrame(DelayCaptureEntity, entity);
+}
+
+public void DelayCaptureEntity(int entity) {
+  RequestFrame(CaptureEntity, entity);
+}
+
+public void CaptureEntity(int entity) {
   char className[128];
   GetEntityClassname(entity, className, sizeof(className));
   GrenadeType grenadeType = GrenadeFromProjectileName(className, entity);
