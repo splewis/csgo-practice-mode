@@ -30,7 +30,7 @@ public Plugin myinfo = {
   version = PLUGIN_VERSION,
   url = "https://github.com/splewis"
 };
-// clang-format off
+// clang-format on
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max) {
   CreateNative("CSU_ThrowGrenade", Native_ThrowGrenade);
@@ -39,12 +39,11 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 }
 
 public void OnPluginStart() {
-  g_OnGrenadeThrownForward = CreateGlobalForward(
-      "CSU_OnThrowGrenade", ET_Ignore, Param_Cell, Param_Cell, Param_Cell,
-      Param_Array, Param_Array, Param_Array,Param_Array);
-  g_OnGrenadeExplodeForward = CreateGlobalForward(
-    "CSU_OnGrenadeExplode", ET_Ignore, Param_Cell, Param_Cell, Param_Cell,
-      Param_Array);
+  g_OnGrenadeThrownForward =
+      CreateGlobalForward("CSU_OnThrowGrenade", ET_Ignore, Param_Cell, Param_Cell, Param_Cell,
+                          Param_Array, Param_Array, Param_Array, Param_Array);
+  g_OnGrenadeExplodeForward = CreateGlobalForward("CSU_OnGrenadeExplode", ET_Ignore, Param_Cell,
+                                                  Param_Cell, Param_Cell, Param_Array);
 
   HookEvent("smokegrenade_detonate", Event_SmokeDetonate, EventHookMode_Pre);
 }
@@ -59,9 +58,7 @@ public void OnMapStart() {
   g_SmokeList = new ArrayList();
 }
 
-public void AddNade(
-  int entRef, GrenadeType type,
-  const float[3] origin, const float[3] velocity) {
+public void AddNade(int entRef, GrenadeType type, const float[3] origin, const float[3] velocity) {
   int index = g_NadeList.Push(entRef);
   g_NadeList.Set(index, type, 1);
   for (int i = 0; i < 3; i++) {
@@ -70,13 +67,12 @@ public void AddNade(
   }
 }
 
-public void GetNade(int index, int& entRef, GrenadeType& type,
-  float origin[3], float velocity[3]) {
+public void GetNade(int index, int& entRef, GrenadeType& type, float origin[3], float velocity[3]) {
   entRef = g_NadeList.Get(index, 0);
   type = g_NadeList.Get(index, 1);
   for (int i = 0; i < 3; i++) {
-    origin[i] =  g_NadeList.Get(index, 2 + i);
-    velocity[i] =  g_NadeList.Get(index, 2 + 3 + i);
+    origin[i] = g_NadeList.Get(index, 2 + i);
+    velocity[i] = g_NadeList.Get(index, 2 + 3 + i);
   }
 }
 
@@ -153,7 +149,8 @@ public void OnGameFrame() {
     GetEntPropVector(ent, Prop_Data, "m_vecVelocity", vel);
     if (GetVectorLength(vel) <= 0.1) {
       SetEntProp(ent, Prop_Send, "m_nSmokeEffectTickBegin", GetGameTickCount() + 1);
-      EmitSoundToAll(SMOKE_EMIT_SOUND, ent, 6, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, SNDPITCH_NORMAL);
+      EmitSoundToAll(SMOKE_EMIT_SOUND, ent, 6, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL,
+                     SNDPITCH_NORMAL);
       CreateTimer(15.0, KillNade, ref);
       g_SmokeList.Erase(i);
       i--;
@@ -187,7 +184,7 @@ public bool HandleNativeRequestedNade(int entity) {
       SetEntPropVector(entity, Prop_Data, "m_vecAngVelocity", angVelocity);
 
       if (type == GrenadeType_HE) {
-        SetEntPropFloat(entity, Prop_Data, "m_flDamage",  99.0);
+        SetEntPropFloat(entity, Prop_Data, "m_flDamage", 99.0);
         SetEntPropFloat(entity, Prop_Data, "m_DmgRadius", 350.0);
       }
 
@@ -246,7 +243,6 @@ public void OnEntityDestroyed(int entity) {
   if (type == GrenadeType_None) {
     return;
   }
-
 
   // Fire the CSU_OnGrenadeExplode forward.
   int client = Entity_GetOwner(client);
@@ -312,7 +308,7 @@ public void GetGrenadeParameters(int entity) {
 }
 
 public void CheckGrenadeType(GrenadeType type) {
-  if (type  <= GrenadeType_None) {
+  if (type <= GrenadeType_None) {
     ThrowNativeError(SP_ERROR_PARAM, "Invalid grenade type %d", type);
   }
 }
