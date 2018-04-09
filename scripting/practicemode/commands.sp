@@ -326,7 +326,7 @@ public Action Command_Map(int client, int args) {
     for (int i = 0; i < g_MapList.Length; i++) {
       char map[PLATFORM_MAX_PATH];
       g_MapList.GetString(i, map, sizeof(map));
-      if (StrContains(map, arg) >= 0) {
+      if (StrContains(map, arg, false) >= 0) {
         ChangeMap(map);
         return Plugin_Handled;
       }
