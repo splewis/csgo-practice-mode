@@ -19,10 +19,10 @@ public Action PugSetup_OnSetupMenuOpen(int client, Menu menu, bool displayOnly) 
   if (g_InPracticeMode) {
     GivePracticeMenu(client, style);
     return Plugin_Stop;
-  } else if (CanStartPracticeMode(client)) {
-    AddMenuItem(menu, "launch_practice", "Launch practice mode", style);
-    return Plugin_Continue;
   }
+
+  AddMenuItem(menu, "launch_practice", "Launch practice mode",
+              EnabledIf(CanStartPracticeMode(client)));
 
   return Plugin_Continue;
 }
