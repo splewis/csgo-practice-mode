@@ -94,14 +94,15 @@ All of the following commands can only be used on _your_ grenades. They will app
 - ``.loadbots``: loads bots from the file (written by the last ``.savebots``)
 
 ### Bot replay commands
-**Note: bot replay support is currently a work in progress. It's not ready for general use yet.**
+**Note:** bot replay support is currently a work in progress. It's not ready for general use yet. Installing the [dhooks extension](http://users.alliedmods.net/~drifter/builds/dhooks/2.2/) is also a good idea if you plan using these commands.
+
 - ``.replays``: opens replay mode menu
 - ``.replay``: opens the replay mode menu, or the last replay/role menu you had open
-- ``.namereplay``
-- ``.namerole``
-- ``.finish``
-- ``.cancel``
-- ``.play``
+- ``.namereplay``: names the replay you're currently working on
+- ``.namerole``: names the role you're currently working on
+- ``.finish``: finishes and saves current recording
+- ``.cancel``: cancels current replay/recording
+- ``.play <id> [role]``: plays a replay id (all the roles), or a single role from a replay
 
 ### Miscellaneous commands
 - ``.timer``: starts a timer when you start moving in any direction, and stops it when you stop moving, telling you the duration of time between starting/stopping
