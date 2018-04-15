@@ -77,6 +77,7 @@ ConVar g_GrenadeSpecTimeCvar;
 // Other cvars.
 ConVar g_FlashEffectiveThresholdCvar;
 ConVar g_TestFlashTeleportDelayCvar;
+ConVar g_VersionCvar;
 
 // Saved grenade locations data
 #define GRENADE_DESCRIPTION_LENGTH 256
@@ -587,6 +588,10 @@ public void OnPluginStart() {
   g_TestFlashTeleportDelayCvar =
       CreateConVar("sm_practicemode_test_flash_delay", "0.3",
                    "Seconds to wait before teleporting a player using .flash");
+
+  g_VersionCvar = CreateConVar("sm_practicemode_version", PLUGIN_VERSION,
+                               "Current practicemode version", FCVAR_NOTIFY | FCVAR_DONTRECORD);
+  g_VersionCvar.SetString(PLUGIN_VERSION);
 
   AutoExecConfig(true, "practicemode");
 

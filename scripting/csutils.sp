@@ -15,6 +15,8 @@
 #pragma semicolon 1
 #pragma newdecls required
 
+ConVar g_VersionCvar;
+
 Handle g_OnGrenadeThrownForward = INVALID_HANDLE;
 Handle g_OnGrenadeExplodeForward = INVALID_HANDLE;
 
@@ -42,6 +44,10 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 public void OnPluginStart() {
   InitDebugLog("csutils_debug", "csutils");
   LogDebug("OnPluginStart version=%s", PLUGIN_VERSION);
+
+  g_VersionCvar = CreateConVar("sm_csutils_version", PLUGIN_VERSION, "Current csutils version",
+                               FCVAR_NOTIFY | FCVAR_DONTRECORD);
+  g_VersionCvar.SetString(PLUGIN_VERSION);
 
   g_OnGrenadeThrownForward =
       CreateGlobalForward("CSU_OnThrowGrenade", ET_Ignore, Param_Cell, Param_Cell, Param_Cell,
@@ -103,10 +109,9 @@ public int Native_ThrowGrenade(Handle plugin, int numParams) {
   float velocity[3];
   GetNativeArray(4, velocity, sizeof(velocity));
 
-  LogDebug(
-      "CSU_ThrowGrenade client=%d, grenadeType=%d, origin=[%f %f %f], velocity=[%f %f %f]",
-      client, grenadeType, origin[0], origin[1], origin[2], velocity[0], velocity[1],
-      velocity[2]);
+  LogDebug("CSU_ThrowGrenade client=%d, grenadeType=%d, origin=[%f %f %f], velocity=[%f %f %f]",
+           client, grenadeType, origin[0], origin[1], origin[2], velocity[0], velocity[1],
+           velocity[2]);
 
   char classname[64];
   GetProjectileName(grenadeType, classname, sizeof(classname));

@@ -59,6 +59,9 @@ static void AddVersionInfo(File f) {
   f.WriteLine("Plugin version: %s", PLUGIN_VERSION);
   WriteCvarString(f, "sourcemod_version");
   WriteCvarString(f, "metamod_version");
+  WriteCvarString(f, "sm_csutils_version");
+  WriteCvarString(f, "sm_botmimic_version");
+  WriteCvarString(f, "sm_pugsetup_version");
 }
 
 static void AddInterestingCvars(File f) {
