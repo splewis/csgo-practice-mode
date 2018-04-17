@@ -68,7 +68,6 @@ public void Replays_OnThrowGrenade(int client, int entity, GrenadeType grenadeTy
     GetClientAbsOrigin(client, personOrigin);
     GetClientEyeAngles(client, personAngles);
     AddReplayNade(client, grenadeType, delay, personOrigin, personAngles, origin, velocity);
-    PrintToChatAll("delay = %f", delay);
     if (delay < 1.27) {  // Takes 1.265625s to pull out a grenade.
       PM_Message(
           client,
