@@ -137,8 +137,9 @@ public int ReplayMenuHandler(Menu menu, MenuAction action, int param1, int param
       }
 
       int role = 0;
-      for (int i = 0; i <= MaxClients; i++) {
+      for (int i = 1; i <= MaxClients; i++) {
         if (IsPlayer(i) && !BotMimic_IsPlayerRecording(i) && GetClientTeam(i) == CS_TEAM_T) {
+          g_CurrentEditingRole[i] = role;
           StartRecording(i, role, false);
           role++;
         }
