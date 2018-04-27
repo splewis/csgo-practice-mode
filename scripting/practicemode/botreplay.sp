@@ -297,23 +297,41 @@ public Action Command_PlayRecording(int client, int args) {
   }
 
   GetCmdArg(1, g_ReplayId[client], REPLAY_ID_LENGTH);
+  if (!ReplayExists(g_ReplayId[client])) {
+    PM_Message(client, "No replay with id %s exists.", g_ReplayId[client]);
+    g_ReplayId[client] = "";
+    return Plugin_Handled;
+  }
 
   if (args >= 2) {
-    // Get the role number.
+    // Get the role number(s) and play them.
     char roleBuffer[32];
     GetCmdArg(2, roleBuffer, sizeof(roleBuffer));
-    int role = StringToInt(roleBuffer) - 1;
-    if (role < 0 || role > MAX_REPLAY_CLIENTS) {
-      PM_Message(client, "Invalid role: %d: must be between 1 and %d.", roleBuffer,
-                 MAX_REPLAY_CLIENTS);
-      return Plugin_Handled;
-    }
+    char tmp[32];
+    ArrayList split = SplitStringToList(roleBuffer, ",", sizeof(tmp));
+    for (int i = 0; i < split.Length; i++) {
+      split.GetString(i, tmp, sizeof(tmp));
+      if (StrEqual(tmp, "")) {
+        continue;
+      }
 
-    g_CurrentEditingRole[client] = role;
-    ReplayRole(g_ReplayId[client], g_ReplayBotClients[role], role);
+      int role = StringToInt(tmp) - 1;
+      if (role < 0 || role > MAX_REPLAY_CLIENTS) {
+        PM_Message(client, "Invalid role: %s: must be between 1 and %d.", tmp, MAX_REPLAY_CLIENTS);
+        return Plugin_Handled;
+      }
+
+      ReplayRole(g_ReplayId[client], g_ReplayBotClients[role], role);
+      if (split.Length == 1) {
+        g_CurrentEditingRole[client] = role;
+      }
+    }
+    delete split;
+    PM_MessageToAll("Running roles %s in replay %s.", roleBuffer, g_ReplayId[client]);
 
   } else {
     // Play everything.
+    PM_MessageToAll("Running replay %s.", g_ReplayId[client]);
     RunReplay(g_ReplayId[client]);
   }
 

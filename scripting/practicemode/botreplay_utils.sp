@@ -164,8 +164,12 @@ public void Timer_DelayKillBot(int serial) {
 }
 
 // Returns if a replay is currently playing.
-public bool IsReplayPlaying() {
+stock bool IsReplayPlaying(int role=-1) {
   for (int i = 0; i < MAX_REPLAY_CLIENTS; i++) {
+    if (role != -1 && role != i) {
+      continue;
+    }
+
     int bot = g_ReplayBotClients[i];
     if (IsValidClient(bot) && BotMimic_IsPlayerMimicing(bot)) {
       return true;
