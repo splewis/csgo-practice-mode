@@ -34,8 +34,7 @@ stock void GiveReplayEditorMenu(int client, int pos = 0) {
   menu.AddItem("replay", "Run replay");
 
   /* Page 2 */
-  // Currently broken :(
-  /* menu.AddItem("recordall", "Record all player roles at once"); */
+  menu.AddItem("recordall", "Record all player roles at once");
   menu.AddItem("stop", "Stop current replay");
   menu.AddItem("name", "Name this replay");
   menu.AddItem("copy", "Copy this replay to a new replay");
@@ -140,8 +139,8 @@ public int ReplayMenuHandler(Menu menu, MenuAction action, int param1, int param
       int role = 0;
       for (int i = 1; i <= MaxClients; i++) {
         if (IsPlayer(i) && !BotMimic_IsPlayerRecording(i) && GetClientTeam(i) == CS_TEAM_T) {
-          LogMessage(""):
           g_CurrentEditingRole[i] = role;
+          g_ReplayId[i] = g_ReplayId[client];
           StartRecording(i, role, false);
           role++;
         }
@@ -456,7 +455,9 @@ stock void StartRecording(int client, int role, bool printCommands = true) {
 
   char recordName[128];
   Format(recordName, sizeof(recordName), "Player %d role", role + 1);
-  BotMimic_StartRecording(client, recordName, "practicemode");
+  char roleString[32];
+  Format(roleString, sizeof(roleString), "role%d", role);
+  BotMimic_StartRecording(client, recordName, "practicemode", roleString);
 
   if (printCommands) {
     PM_Message(client, "Started recording player %d role.", role + 1);
@@ -488,9 +489,9 @@ public void BotMimic_OnRecordSaved(int client, char[] name, char[] category, cha
       GiveReplayMenuInContext(client);
     } else {
       if (g_RecordingFullReplayClient == client) {
-        GiveReplayMenuInContext(client);
-        RequestFrame(ResetFullReplayRecording);
+        g_CurrentEditingRole[client] = -1;
         PM_MessageToAll("Finished recording full replay.");
+        RequestFrame(ResetFullReplayRecording, GetClientSerial(client));
       }
     }
 
@@ -498,7 +499,11 @@ public void BotMimic_OnRecordSaved(int client, char[] name, char[] category, cha
   }
 }
 
-public void ResetFullReplayRecording(int data) {
+public void ResetFullReplayRecording(int serial) {
   g_RecordingFullReplay = false;
   g_RecordingFullReplayClient = -1;
+  int client = GetClientFromSerial(serial);
+  if (IsPlayer(client)) {
+    GiveReplayMenuInContext(client);
+  }
 }

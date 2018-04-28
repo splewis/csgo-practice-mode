@@ -20,9 +20,7 @@ bool g_StopBotSignal[MAXPLAYERS + 1];
 
 float g_CurrentRecordingStartTime[MAXPLAYERS + 1];
 
-// TODO: collapse these into 1 variable
 int g_CurrentEditingRole[MAXPLAYERS + 1];
-
 char g_ReplayId[MAXPLAYERS + 1][REPLAY_ID_LENGTH];
 int g_ReplayBotClients[MAX_REPLAY_CLIENTS];
 
