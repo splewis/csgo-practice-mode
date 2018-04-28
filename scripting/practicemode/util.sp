@@ -186,12 +186,7 @@ stock bool SplitOnSpace(const char[] str, char[] buf1, int len1, char[] buf2, in
 stock ArrayList SplitStringToList(const char[] str, const char[] split, int maxlen) {
   ArrayList list = new ArrayList(maxlen);
   int index = 0;
-  int i = 0;
   while (index != -1) {
-    i++;
-    if (i > 20)  {
-      break;
-    }
     char[] buffer = new char[maxlen];
     int ret = SplitString(str[index], split, buffer, maxlen);
     if (ret != -1) {

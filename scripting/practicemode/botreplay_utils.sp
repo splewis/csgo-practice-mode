@@ -164,7 +164,7 @@ public void Timer_DelayKillBot(int serial) {
 }
 
 // Returns if a replay is currently playing.
-stock bool IsReplayPlaying(int role=-1) {
+stock bool IsReplayPlaying(int role = -1) {
   for (int i = 0; i < MAX_REPLAY_CLIENTS; i++) {
     if (role != -1 && role != i) {
       continue;

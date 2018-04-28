@@ -34,7 +34,8 @@ stock void GiveReplayEditorMenu(int client, int pos = 0) {
   menu.AddItem("replay", "Run replay");
 
   /* Page 2 */
-  menu.AddItem("recordall", "Record all player roles at once");
+  // Currently broken :(
+  /* menu.AddItem("recordall", "Record all player roles at once"); */
   menu.AddItem("stop", "Stop current replay");
   menu.AddItem("name", "Name this replay");
   menu.AddItem("copy", "Copy this replay to a new replay");
@@ -139,6 +140,7 @@ public int ReplayMenuHandler(Menu menu, MenuAction action, int param1, int param
       int role = 0;
       for (int i = 1; i <= MaxClients; i++) {
         if (IsPlayer(i) && !BotMimic_IsPlayerRecording(i) && GetClientTeam(i) == CS_TEAM_T) {
+          LogMessage(""):
           g_CurrentEditingRole[i] = role;
           StartRecording(i, role, false);
           role++;
@@ -480,15 +482,23 @@ public void BotMimic_OnRecordSaved(int client, char[] name, char[] category, cha
   if (g_CurrentEditingRole[client] >= 0) {
     SetRoleFile(g_ReplayId[client], g_CurrentEditingRole[client], file);
     SetRoleNades(g_ReplayId[client], g_CurrentEditingRole[client], client);
-    PM_Message(client, "Finished recording player role %d", g_CurrentEditingRole[client] + 1);
 
-    if (!g_RecordingFullReplay || g_RecordingFullReplayClient == client) {
+    if (!g_RecordingFullReplay) {
+      PM_Message(client, "Finished recording player role %d", g_CurrentEditingRole[client] + 1);
       GiveReplayMenuInContext(client);
+    } else {
+      if (g_RecordingFullReplayClient == client) {
+        GiveReplayMenuInContext(client);
+        RequestFrame(ResetFullReplayRecording);
+        PM_MessageToAll("Finished recording full replay.");
+      }
     }
-
-    g_RecordingFullReplay = false;
-    g_RecordingFullReplayClient = -1;
 
     MaybeWriteNewReplayData();
   }
+}
+
+public void ResetFullReplayRecording(int data) {
+  g_RecordingFullReplay = false;
+  g_RecordingFullReplayClient = -1;
 }
