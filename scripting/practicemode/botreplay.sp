@@ -325,7 +325,7 @@ public Action Command_PlayRecording(int client, int args) {
       }
     }
     delete split;
-    PM_MessageToAll("Running roles %s in replay %s.", roleBuffer, g_ReplayId[client]);
+    PM_MessageToAll("Running role(s) %s in replay %s.", roleBuffer, g_ReplayId[client]);
 
   } else {
     // Play everything.
