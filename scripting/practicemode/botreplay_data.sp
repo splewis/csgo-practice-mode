@@ -160,17 +160,8 @@ public void SetReplayName(const char[] id, const char[] newName) {
 }
 
 public bool HasRoleRecorded(const char[] id, int index) {
-  bool ret = false;
-  if (g_ReplaysKv.JumpToKey(id)) {
-    char role[DEFAULT_KEY_LENGTH];
-    GetRoleKeyString(index, role);
-    if (g_ReplaysKv.JumpToKey(role)) {
-      ret = true;
-      g_ReplaysKv.GoBack();
-    }
-    g_ReplaysKv.GoBack();
-  }
-  return ret;
+  char buf[PLATFORM_MAX_PATH];
+  return GetRoleFile(id, index, buf, sizeof(buf));
 }
 
 static bool GetRoleKVString(const char[] id, int index, const char[] key, char[] buffer, int len) {
@@ -210,6 +201,22 @@ public bool GetRoleFile(const char[] id, int index, char[] buffer, int len) {
 
 public bool SetRoleFile(const char[] id, int index, const char[] filepath) {
   return SetRoleKVString(id, index, "file", filepath);
+}
+
+public int GetRoleTeam(const char[] id, int index) {
+  char buffer[64];
+  if (GetRoleKVString(id, index, "team", buffer, sizeof(buffer))) {
+    return StrEqual(buffer, "CT", false) ? CS_TEAM_CT : CS_TEAM_T;
+  }
+  return CS_TEAM_T;
+}
+
+public bool SetRoleTeam(const char[] id, int index, int team) {
+  char teamString[64] = "T";
+  if (team == CS_TEAM_CT) {
+    teamString = "CT";
+  }
+  return SetRoleKVString(id, index, "team", teamString);
 }
 
 public bool GetRoleName(const char[] id, int index, char[] buffer, int len) {

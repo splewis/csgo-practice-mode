@@ -483,6 +483,7 @@ public void BotMimic_OnRecordSaved(int client, char[] name, char[] category, cha
   if (g_CurrentEditingRole[client] >= 0) {
     SetRoleFile(g_ReplayId[client], g_CurrentEditingRole[client], file);
     SetRoleNades(g_ReplayId[client], g_CurrentEditingRole[client], client);
+    SetRoleTeam(g_ReplayId[client], g_CurrentEditingRole[client], GetClientTeam(client));
 
     if (!g_RecordingFullReplay) {
       PM_Message(client, "Finished recording player role %d", g_CurrentEditingRole[client] + 1);

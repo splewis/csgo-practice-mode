@@ -104,6 +104,7 @@ void ReplayRole(const char[] id, int client, int role) {
   }
 
   g_CurrentReplayNadeIndex[client] = 0;
+  CS_SwitchTeam(client, GetRoleTeam(id, role));
   CS_RespawnPlayer(client);
   DataPack pack = new DataPack();
   pack.WriteCell(client);
