@@ -107,7 +107,7 @@ public int ReplayMenuHandler(Menu menu, MenuAction action, int param1, int param
 
     } else if (StrEqual(buffer, "recordall")) {
       int count = 0;
-      for (int i = 0; i <= MaxClients; i++) {
+      for (int i = 1; i <= MaxClients; i++) {
         if (IsPlayer(i) && !BotMimic_IsPlayerRecording(i) && GetClientTeam(i) == CS_TEAM_T) {
           count++;
         }
@@ -116,7 +116,7 @@ public int ReplayMenuHandler(Menu menu, MenuAction action, int param1, int param
         PM_Message(client, "Cannot record a full replay with no players on the T team.");
         return 0;
       }
-      if (count >= MAX_REPLAY_CLIENTS) {
+      if (count > MAX_REPLAY_CLIENTS) {
         PM_Message(
             client,
             "Cannot record a full replay with %d players on the T team. Only up to %d is supported.",
