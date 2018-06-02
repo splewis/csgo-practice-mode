@@ -4,10 +4,16 @@ stock void GivePracticeMenu(int client, int style = ITEMDRAW_DEFAULT, int pos = 
   SetMenuExitButton(menu, true);
 
   if (!g_InPracticeMode) {
-    AddMenuItem(menu, "launch_practice", "Start practice mode");
+    bool canLaunch =
+        CanStartPracticeMode(client) && CheckCommandAccess(client, "sm_prac", ADMFLAG_CHANGEMAP);
+    AddMenuItem(menu, "launch_practice", "Start practice mode", EnabledIf(canLaunch));
     style = ITEMDRAW_DISABLED;
   } else {
     AddMenuItem(menu, "end_menu", "Exit practice mode", style);
+  }
+
+  if (LibraryExists("get5")) {
+    AddMenuItem(menu, "get5", "Get5 options");
   }
 
   for (int i = 0; i < g_BinaryOptionNames.Length; i++) {
@@ -55,10 +61,14 @@ public int PracticeMenuHandler(Menu menu, MenuAction action, int param1, int par
       LaunchPracticeMode();
       GivePracticeMenu(client);
     }
+    if (StrEqual(buffer, "get5")) {
+      FakeClientCommand(client, "sm_get5");
+    }
     if (StrEqual(buffer, "end_menu")) {
       ExitPracticeMode();
-      if (g_PugsetupLoaded)
+      if (g_PugsetupLoaded) {
         PugSetup_GiveSetupMenu(client);
+      }
     }
 
   } else if (action == MenuAction_End) {

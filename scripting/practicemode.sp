@@ -11,6 +11,7 @@
 #include "include/botmimic.inc"
 #include "include/csutils.inc"
 
+#include <get5>
 #include <pugsetup>
 #include <updater>
 
@@ -1162,6 +1163,10 @@ stock bool ChangeSetting(int index, bool enabled, bool print = true, bool force_
 }
 
 public void ExitPracticeMode() {
+  if (!g_InPracticeMode) {
+    return;
+  }
+
   Call_StartForward(g_OnPracticeModeDisabled);
   Call_Finish();
 
@@ -1433,14 +1438,10 @@ public void OnClientSayCommand_Post(int client, const char[] command, const char
 
   if (!g_PugsetupLoaded) {
     if (StrEqual(chatCommand, ".setup")) {
-      if (CanStartPracticeMode(client)) {
+      if (CheckCommandAccess(client, "sm_prac", ADMFLAG_CHANGEMAP)) {
         GivePracticeMenu(client);
       } else {
-        if (!CheckCommandAccess(client, "sm_prac", ADMFLAG_CHANGEMAP)) {
-          PM_Message(client, "You don't have permission to start practicemode.");
-        } else {
-          PM_Message(client, "You cannot use .setup right now.");
-        }
+        PM_Message(client, "You don't have permission to access practicemode.");
       }
     } else if (StrEqual(chatCommand, ".help")) {
       ShowHelpInfo(client);
