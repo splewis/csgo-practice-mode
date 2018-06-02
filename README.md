@@ -134,3 +134,8 @@ You can edit these in the file ``cfg/sourcemod/practicemode.cfg``, which is auto
 - ``sm_allow_noclip``: whether the .noclip command is enabled
 - ``sm_grenade_trajectory_use_player_color``: whether to use cl_color to get nade trajectory color
 - ``sm_practicemode_can_be_started``: whether practicemode can be started
+
+
+### Contributions
+
+Pull requests are welcome. Please follow the general coding formatting style as much as possible. If you're concerned about a pull request not being merged, please feel free to make an [issue](https://github.com/splewis/csgo-practice-mode/issues) and inquire if the feature is worth adding. I greatly appreciate anyone trying to contribute!
