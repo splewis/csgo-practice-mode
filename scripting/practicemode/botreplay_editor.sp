@@ -461,7 +461,13 @@ stock void StartRecording(int client, int role, bool printCommands = true) {
 
   if (printCommands) {
     PM_Message(client, "Started recording player %d role.", role + 1);
-    PM_Message(client, "Use .finish OR your inspect (default:f) bind to stop.");
+
+    if (GetSetting(client, UserSetting_StopsRecordingInspectKey)) {
+      PM_Message(client,
+                 "Use .finish, your inspect (default:f) bind, or .noclip to stop recording.");
+    } else {
+      PM_Message(client, "Use .finish or .noclip to stop recording.");
+    }
   }
 }
 

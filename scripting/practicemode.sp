@@ -194,6 +194,7 @@ enum UserSetting {
   UserSetting_LeaveNadeMenuOpen,
   UserSetting_NoGrenadeTrajectory,
   UserSetting_SwitchToNadeOnSelect,
+  UserSetting_StopsRecordingInspectKey,
   UserSetting_NumSettings,
 };
 #define USERSETTING_DISPLAY_LENGTH 128
@@ -640,6 +641,8 @@ public void OnPluginStart() {
                       "Disable grenade trajectories");
   RegisterUserSetting(UserSetting_SwitchToNadeOnSelect, "practicemode_use_ade", true,
                       "Switch to nade on .nades select");
+  RegisterUserSetting(UserSetting_StopsRecordingInspectKey, "practicemode_stop_inspect", true,
+                      "Stop bot recording on inspect command");
 
   // Remove cheats so sv_cheats isn't required for this:
   RemoveCvarFlag(g_GrenadeTrajectoryCvar, FCVAR_CHEAT);
@@ -654,6 +657,7 @@ public void OnPluginStart() {
 
   CreateTimer(1.0, Timer_GivePlayersMoney, _, TIMER_REPEAT);
   CreateTimer(0.1, Timer_RespawnBots, _, TIMER_REPEAT);
+  CreateTimer(1.0, Timer_CleanupLivingBots, _, TIMER_REPEAT);
 }
 
 public void OnPluginEnd() {
@@ -990,6 +994,11 @@ public void PerformNoclipAction(int client) {
   if (g_LastNoclipCommand[client] == GetGameTickCount() ||
       (g_AllowNoclipCvar.IntValue == 0 && GetCvarIntSafe("sv_cheats") == 0)) {
     return;
+  }
+
+  // Stop recording if we are.
+  if (g_BotMimicLoaded && g_InBotReplayMode) {
+    FinishRecording(client, false);
   }
 
   g_LastNoclipCommand[client] = GetGameTickCount();

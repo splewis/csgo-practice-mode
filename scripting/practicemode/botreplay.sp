@@ -359,3 +359,19 @@ public void BotMimic_OnPlayerMimicLoops(int client) {
     g_StopBotSignal[client] = true;
   }
 }
+
+public Action Timer_CleanupLivingBots(Handle timer) {
+  if (!g_InPracticeMode) {
+    return Plugin_Continue;
+  }
+
+  if (g_InBotReplayMode) {
+    for (int i = 1; i <= MaxClients; i++) {
+      if (IsReplayBot(i) && !BotMimic_IsPlayerMimicing(i)) {
+        KillBot(i);
+      }
+    }
+  }
+
+  return Plugin_Continue;
+}
