@@ -108,18 +108,18 @@ public int ReplayMenuHandler(Menu menu, MenuAction action, int param1, int param
     } else if (StrEqual(buffer, "recordall")) {
       int count = 0;
       for (int i = 1; i <= MaxClients; i++) {
-        if (IsPlayer(i) && !BotMimic_IsPlayerRecording(i) && GetClientTeam(i) == CS_TEAM_T) {
+        if (IsPlayer(i) && !BotMimic_IsPlayerRecording(i)) {
           count++;
         }
       }
       if (count == 0) {
-        PM_Message(client, "Cannot record a full replay with no players on the T team.");
+        PM_Message(client, "Cannot record a full replay with no players on T/CT.");
         return 0;
       }
       if (count > MAX_REPLAY_CLIENTS) {
         PM_Message(
             client,
-            "Cannot record a full replay with %d players on the T team. Only up to %d is supported.",
+            "Cannot record a full replay with %d players. Only up to %d is supported. Other players should move to spectator.",
             count, MAX_REPLAY_CLIENTS);
         return 0;
       }
@@ -138,7 +138,7 @@ public int ReplayMenuHandler(Menu menu, MenuAction action, int param1, int param
 
       int role = 0;
       for (int i = 1; i <= MaxClients; i++) {
-        if (IsPlayer(i) && !BotMimic_IsPlayerRecording(i) && GetClientTeam(i) == CS_TEAM_T) {
+        if (IsPlayer(i) && !BotMimic_IsPlayerRecording(i) && GetClientTeam(i)) {
           g_CurrentEditingRole[i] = role;
           g_ReplayId[i] = g_ReplayId[client];
           StartRecording(i, role, false);
