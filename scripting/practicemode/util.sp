@@ -392,3 +392,7 @@ stock bool DoPlayersCollide(int client1, int client2) {
          (client1Min[1] <= client2Max[1] && client1Max[1] >= client2Min[1]) &&
          (client1Min[2] <= client2Max[2] && client1Max[2] >= client2Min[2]);
 }
+
+stock float GetFlashDuration(int client) {
+  return GetEntDataFloat(client, FindSendPropInfo("CCSPlayer", "m_flFlashDuration"));
+}

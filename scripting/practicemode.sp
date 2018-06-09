@@ -106,6 +106,8 @@ float g_TestingFlashOrigins[MAXPLAYERS + 1][3];
 float g_TestingFlashAngles[MAXPLAYERS + 1][3];
 
 bool g_ClientNoFlash[MAXPLAYERS + 1];
+float g_LastFlashDetonateTime[MAXPLAYERS + 1];
+
 
 bool g_RunningRepeatedCommand[MAXPLAYERS + 1];
 char g_RunningRepeatedCommandArg[MAXPLAYERS][256];
@@ -1375,10 +1377,8 @@ public Action Event_FlashDetonate(Event event, const char[] name, bool dontBroad
     // this frame doesn't work.
     RequestFrame(GetTestingFlashInfo, GetClientSerial(client));
   }
-}
 
-public float GetFlashDuration(int client) {
-  return GetEntDataFloat(client, FindSendPropInfo("CCSPlayer", "m_flFlashDuration"));
+  g_LastFlashDetonateTime[client] = GetGameTime();
 }
 
 public void GetTestingFlashInfo(int serial) {

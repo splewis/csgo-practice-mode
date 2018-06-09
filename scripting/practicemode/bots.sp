@@ -394,6 +394,14 @@ public Action Event_PlayerBlind(Event event, const char[] name, bool dontBroadca
     if (IsPlayer(owner)) {
       PM_Message(owner, "---> %.1f second flash for BOT %N", GetFlashDuration(client), client);
     }
+
+    // Did anyone throw a flash recently? If so, they probably care about this bot being blinded.
+    float now = GetGameTime();
+    for (int i = 1; i <= MaxClients; i++) {
+      if (owner != i && IsPlayer(i) && FloatAbs(now - g_LastFlashDetonateTime[i]) < 0.001) {
+        PM_Message(i, "---> %.1f second flash for BOT %N", GetFlashDuration(client), client);
+      }
+    }
   }
 
   // TODO: move this into another place (has nothing to do with bots!)
