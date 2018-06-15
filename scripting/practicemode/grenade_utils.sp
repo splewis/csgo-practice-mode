@@ -120,7 +120,7 @@ public bool TeleportToSavedGrenadePosition(int client, const char[] id) {
       // an extraneous comma and space.
       // Only do this for strings sufficiently long, since the data may have been changed by users.
       int len = strlen(category);
-      if (len >= 2) {
+      if (len >= 2 && category[len - 2] == ';') {
         category[len - 2] = '\0';
       }
       PM_Message(client, "Categories: %s", category);
