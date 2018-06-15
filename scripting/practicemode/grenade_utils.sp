@@ -118,8 +118,11 @@ public bool TeleportToSavedGrenadePosition(int client, const char[] id) {
       ReplaceString(category, sizeof(category), ";", ", ");
       // Cut off the last two characters of the category string to avoid
       // an extraneous comma and space.
+      // Only do this for strings sufficiently long, since the data may have been changed by users.
       int len = strlen(category);
-      category[len - 2] = '\0';
+      if (len >= 2) {
+        category[len - 2] = '\0';
+      }
       PM_Message(client, "Categories: %s", category);
     }
 
@@ -501,7 +504,7 @@ public bool RemoveGrenadeCategory(int id, const char[] category) {
   return numreplaced > 0;
 }
 
-public void DeleteGrenadeCategory(int client, const char[] category) {
+public int DeleteGrenadeCategory(int client, const char[] category) {
   char auth[AUTH_LENGTH];
   GetClientAuthId(client, AUTH_METHOD, auth, sizeof(auth));
   ArrayList ids = new ArrayList();
@@ -522,9 +525,14 @@ public void DeleteGrenadeCategory(int client, const char[] category) {
     g_GrenadeLocationsKv.GoBack();
   }
 
+  int count = 0;
   for (int i = 0; i < ids.Length; i++) {
-    RemoveGrenadeCategory(ids.Get(i), category);
+    if (RemoveGrenadeCategory(ids.Get(i), category)) {
+      count++;
+    }
   }
+
+  return count;
 }
 
 public bool FindGrenadeTarget(const char[] nameInput, char[] name, int nameLen, char[] auth, int authLen) {

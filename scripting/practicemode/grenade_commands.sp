@@ -637,10 +637,16 @@ public Action Command_RemoveCategory(int client, int args) {
   char category[GRENADE_CATEGORY_LENGTH];
   GetCmdArgString(category, sizeof(category));
 
-  if (RemoveGrenadeCategory(nadeId, category))
+  if (StrEqual(category, "")) {
+    PM_Message(client, "You need to give a category name");
+    return Plugin_Handled;
+  }
+
+  if (RemoveGrenadeCategory(nadeId, category)) {
     PM_Message(client, "Removed grenade category.");
-  else
+  } else {
     PM_Message(client, "Category not found.");
+  }
 
   return Plugin_Handled;
 }
@@ -649,8 +655,16 @@ public Action Command_DeleteCategory(int client, int args) {
   char category[GRENADE_CATEGORY_LENGTH];
   GetCmdArgString(category, sizeof(category));
 
-  DeleteGrenadeCategory(client, category);
-  PM_Message(client, "Removed grenade category.");
+  if (StrEqual(category, "")) {
+    PM_Message(client, "You need to give a category name");
+    return Plugin_Handled;
+  }
+
+  if (DeleteGrenadeCategory(client, category) > 0) {
+    PM_Message(client, "Removed grenade category.");
+  } else {
+    PM_Message(client, "Category not found.");
+  }
   return Plugin_Handled;
 }
 

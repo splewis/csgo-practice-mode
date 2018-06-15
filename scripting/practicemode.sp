@@ -108,7 +108,6 @@ float g_TestingFlashAngles[MAXPLAYERS + 1][3];
 bool g_ClientNoFlash[MAXPLAYERS + 1];
 float g_LastFlashDetonateTime[MAXPLAYERS + 1];
 
-
 bool g_RunningRepeatedCommand[MAXPLAYERS + 1];
 char g_RunningRepeatedCommandArg[MAXPLAYERS][256];
 
