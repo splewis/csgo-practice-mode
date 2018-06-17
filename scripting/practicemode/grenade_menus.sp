@@ -116,7 +116,7 @@ stock void GiveGrenadeMenu(int client, GrenadeMenuType type, int position = 0,
       deleteIds = true;
       char unused[128];
       ids = new ArrayList(GRENADE_ID_LENGTH);
-      FindGrenades(data, ids, unused, sizeof(unused));
+      FindGrenades(data, ids, unused, sizeof(unused), type == GrenadeMenuType_OneCategory);
     }
     count = ids.Length;
     AddIdsToMenu(menu, ids);
