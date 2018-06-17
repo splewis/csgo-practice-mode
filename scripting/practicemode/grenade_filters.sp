@@ -67,14 +67,20 @@ public GrenadeMenuType FindGrenades(const char[] input, ArrayList ids, char[] da
     strcopy(data, len, "all");
     return GrenadeMenuType_OneCategory;
   }
-  if (FindMatchingCategory(input, data, len) && FindCategoryNades(data, ids)) {
-    return GrenadeMenuType_OneCategory;
-  }
 
-  // Then try substring matching.
   if (FindMatchingGrenadesByName(input, ids)) {
     strcopy(data, len, input);
+    // Also try doing category matching if we are doing name matching.
+    char category[GRENADE_CATEGORY_LENGTH];
+    if (FindMatchingCategory(input, category, sizeof(category))) {
+      FindCategoryNades(category, ids);
+      RemoveDuplicates(ids, len);
+    }
     return GrenadeMenuType_MatchingName;
+  }
+
+  if (FindMatchingCategory(input, data, len) && FindCategoryNades(data, ids)) {
+    return GrenadeMenuType_OneCategory;
   }
 
   return GrenadeMenuType_Invalid;

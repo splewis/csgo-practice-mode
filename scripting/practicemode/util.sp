@@ -396,3 +396,21 @@ stock bool DoPlayersCollide(int client1, int client2) {
 stock float GetFlashDuration(int client) {
   return GetEntDataFloat(client, FindSendPropInfo("CCSPlayer", "m_flFlashDuration"));
 }
+
+stock int RemoveDuplicates(ArrayList list, int stringLength) {
+  // Yeah it's really inefficient.
+  int count = 0;
+  for (int i = list.Length - 1; i > 0; i--) {
+    char[] buf = new char[stringLength];
+    list.GetString(i, buf, stringLength);
+
+    // Remove all duplicates that come before i.
+    int found;
+    while ((found = list.FindString(buf)) != i) {
+      list.Erase(found);
+      i--;
+      count++;
+    }
+  }
+  return count;
+}
