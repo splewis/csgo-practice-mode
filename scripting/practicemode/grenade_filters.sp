@@ -27,20 +27,8 @@ public bool FindGrenade(const char[] input, char id[GRENADE_ID_LENGTH]) {
 
 // Generic utility to find all grenades matching user input.
 // Returns the filter type if found, otherwise GrenadeMenuType_Invalid.
-stock GrenadeMenuType FindGrenades(const char[] input, ArrayList ids, char[] data, int len,
-                                   bool forceCategoryMatch = false) {
+stock GrenadeMenuType FindGrenades(const char[] input, ArrayList ids, char[] data, int len) {
   char id[GRENADE_ID_LENGTH];
-
-  // The specific case of selecting a single-category (e.g. .cats and picking one)
-  // will go through here, and we want to be sure we don't also add matching-name nades in
-  // that case. So we handle this one special case before proceeding generally.
-  if (forceCategoryMatch) {
-    if (FindMatchingCategory(input, data, len) && FindCategoryNades(data, ids)) {
-      return GrenadeMenuType_OneCategory;
-    }
-    return GrenadeMenuType_Invalid;
-  }
-
   // Try a list of ids.
   int idx = 0;
   int cur_idx = 0;
@@ -79,19 +67,13 @@ stock GrenadeMenuType FindGrenades(const char[] input, ArrayList ids, char[] dat
     return GrenadeMenuType_OneCategory;
   }
 
-  if (FindMatchingGrenadesByName(input, ids)) {
-    strcopy(data, len, input);
-    // Also try doing category matching if we are doing name matching.
-    char category[GRENADE_CATEGORY_LENGTH];
-    if (FindMatchingCategory(input, category, sizeof(category))) {
-      FindCategoryNades(category, ids);
-      RemoveDuplicates(ids, len);
-    }
-    return GrenadeMenuType_MatchingName;
-  }
-
   if (FindMatchingCategory(input, data, len) && FindCategoryNades(data, ids)) {
     return GrenadeMenuType_OneCategory;
+  }
+
+  if (FindMatchingGrenadesByName(input, ids)) {
+    strcopy(data, len, input);
+    return GrenadeMenuType_MatchingName;
   }
 
   return GrenadeMenuType_Invalid;

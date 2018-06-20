@@ -148,7 +148,15 @@ public Action Command_Find(int client, int args) {
 
   char arg[MAX_NAME_LENGTH];
   if (args >= 1 && GetCmdArgString(arg, sizeof(arg))) {
-    GiveGrenadeMenu(client, GrenadeMenuType_MatchingName, 0, arg);
+    // Manually do the grenade search here instead of leaving it to GiveGrenadeMenu.
+    // This is because it uses FindGrenades which could match against filter types
+    // (e.g. player names and categories), and that's not intended.
+    // TODO: Things should really be refactored so the GrenadeMenuType_MatchingName in
+    // GiveGrenadeMenu is passed through to FindGrenades to force that match type.
+    ArrayList ids = new ArrayList(GRENADE_ID_LENGTH);
+    FindMatchingGrenadesByName(arg, ids);
+    GiveGrenadeMenu(client, GrenadeMenuType_MatchingName, 0, arg, ids);
+    delete ids;
   } else {
     PM_Message(client, "Usage: .find <arg>");
   }
