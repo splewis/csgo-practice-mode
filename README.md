@@ -119,6 +119,7 @@ All of the following commands can only be used on _your_ grenades. They will app
 - ``.endround``: ends the round (alias for the ``endround`` command in console; requires sv_cheats to be on)
 - ``.break``: breaks all func_breakable entities (most windows)
 - ``.stop``: cancels a current action (this can stop many things: the .flash command, the .repeat command, and the .timer command)
+- ``.spec``, ``.t``, ``.ct``: joins a team
 
 Also see the [notes for power users](https://github.com/splewis/csgo-practice-mode/wiki/Notes-for-power-users) for more detail on using these commands effectively.
 

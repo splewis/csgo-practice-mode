@@ -502,6 +502,12 @@ public void OnPluginStart() {
 
     RegConsoleCmd("sm_spec", Command_Spec);
     PM_AddChatAlias(".spec", "sm_spec");
+
+    RegConsoleCmd("sm_joint", Command_JoinT);
+    PM_AddChatAlias(".t", "sm_joint");
+
+    RegConsoleCmd("sm_joinct", Command_JoinCT);
+    PM_AddChatAlias(".ct", "sm_joinct");
   }
 
   // Other commands

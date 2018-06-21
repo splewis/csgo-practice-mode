@@ -172,6 +172,24 @@ public Action Command_Spec(int client, int args) {
   return Plugin_Handled;
 }
 
+public Action Command_JoinT(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  FakeClientCommand(client, "jointeam 2");
+  return Plugin_Handled;
+}
+
+public Action Command_JoinCT(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  FakeClientCommand(client, "jointeam 3");
+  return Plugin_Handled;
+}
+
 public Action Command_StopAll(int client, int args) {
   if (!g_InPracticeMode) {
     return Plugin_Handled;
