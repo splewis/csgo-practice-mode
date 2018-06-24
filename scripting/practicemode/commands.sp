@@ -217,6 +217,15 @@ public Action Command_FastForward(int client, int args) {
     return Plugin_Handled;
   }
 
+  if (g_FastfowardRequiresZeroVolumeCvar.IntValue != 0) {
+    for (int i = 1; i <= MaxClients; i++) {
+      if (IsPlayer(i) && g_ClientVolume[i] > 0.01) {
+        PM_Message(client, "All players must turn volume below 0.01 to allow the .ff command.");
+        return Plugin_Handled;
+      }
+    }
+  }
+
   // Freeze clients so its not really confusing.
   for (int i = 1; i <= MaxClients; i++) {
     if (IsPlayer(i)) {
@@ -226,6 +235,7 @@ public Action Command_FastForward(int client, int args) {
   }
 
   // Smokes last around 18 seconds.
+  PM_MessageToAll("Fastforwarding 20 seconds...");
   SetCvar("host_timescale", 10);
   CreateTimer(20.0, Timer_ResetTimescale);
 

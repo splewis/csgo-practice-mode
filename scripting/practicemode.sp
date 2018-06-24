@@ -58,13 +58,17 @@ ConVar g_MaxGrenadesSavedCvar;
 ConVar g_MaxHistorySizeCvar;
 ConVar g_PracModeCanBeStartedCvar;
 ConVar g_SharedAllNadesCvar;
+ConVar g_FastfowardRequiresZeroVolumeCvar;
 
 // Infinite money data
 ConVar g_InfiniteMoneyCvar;
 
+// Client cvars cached
+int g_ClientColors[MAXPLAYERS + 1][4];
+float g_ClientVolume[MAXPLAYERS + 1];
+
 // Grenade trajectory fix data
 int g_BeamSprite = -1;
-int g_ClientColors[MAXPLAYERS + 1][4];
 ConVar g_PatchGrenadeTrajectoryCvar;
 ConVar g_GrenadeTrajectoryClientColorCvar;
 ConVar g_RandomGrenadeTrajectoryCvar;
@@ -598,6 +602,10 @@ public void OnPluginStart() {
       CreateConVar("sm_practicemode_test_flash_delay", "0.3",
                    "Seconds to wait before teleporting a player using .flash");
 
+  g_FastfowardRequiresZeroVolumeCvar = CreateConVar(
+      "sm_practicemode_fastforward_requires_zero_volume", "1",
+      "Whether all players must have a very low volume to allow the .ff command to be used.");
+
   g_VersionCvar = CreateConVar("sm_practicemode_version", PLUGIN_VERSION,
                                "Current practicemode version", FCVAR_NOTIFY | FCVAR_DONTRECORD);
   g_VersionCvar.SetString(PLUGIN_VERSION);
@@ -627,12 +635,13 @@ public void OnPluginStart() {
   g_GrenadeTimeCvar = GetCvar("sv_grenade_trajectory_time");
   g_GrenadeSpecTimeCvar = GetCvar("sv_grenade_trajectory_time_spectator");
 
-  // set default colors to green
+  // Set default client cvars
   for (int i = 0; i <= MAXPLAYERS; i++) {
     g_ClientColors[i][0] = 0;
     g_ClientColors[i][1] = 255;
     g_ClientColors[i][2] = 0;
     g_ClientColors[i][3] = 255;
+    g_ClientVolume[i] = 1.0;
   }
 
   g_CTSpawns = new ArrayList();
@@ -665,6 +674,7 @@ public void OnPluginStart() {
   CreateTimer(1.0, Timer_GivePlayersMoney, _, TIMER_REPEAT);
   CreateTimer(0.1, Timer_RespawnBots, _, TIMER_REPEAT);
   CreateTimer(1.0, Timer_CleanupLivingBots, _, TIMER_REPEAT);
+  CreateTimer(1.0, Timer_UpdateClientCvars, _, TIMER_REPEAT);
 }
 
 public void OnPluginEnd() {
@@ -851,21 +861,31 @@ static void MaybeWriteNewGrenadeData() {
 }
 
 public void OnClientSettingsChanged(int client) {
-  UpdatePlayerColor(client);
+  UpdateClientCvars(client);
 }
 
 public void OnClientPutInServer(int client) {
-  UpdatePlayerColor(client);
+  UpdateClientCvars(client);
 }
 
-public void UpdatePlayerColor(int client) {
+static void UpdateClientCvars(int client) {
+  if (!g_InPracticeMode) {
+    return;
+  }
+
   QueryClientConVar(client, "cl_color", QueryClientColor, client);
+  QueryClientConVar(client, "volume", QueryClientVolume, client);
 }
 
 public void QueryClientColor(QueryCookie cookie, int client, ConVarQueryResult result,
                       const char[] cvarName, const char[] cvarValue) {
   int color = StringToInt(cvarValue);
   GetColor(view_as<ClientColor>(color), g_ClientColors[client]);
+}
+
+public void QueryClientVolume(QueryCookie cookie, int client, ConVarQueryResult result,
+                       const char[] cvarName, const char[] cvarValue) {
+  g_ClientVolume[client] = StringToFloat(cvarValue);
 }
 
 public void GetColor(ClientColor c, int array[4]) {
@@ -1228,6 +1248,15 @@ public Action Timer_GivePlayersMoney(Handle timer) {
     }
   }
 
+  return Plugin_Continue;
+}
+
+public Action Timer_UpdateClientCvars(Handle timer) {
+  for (int i = 1; i <= MaxClients; i++) {
+    if (IsPlayer(i)) {
+      UpdateClientCvars(i);
+    }
+  }
   return Plugin_Continue;
 }
 
