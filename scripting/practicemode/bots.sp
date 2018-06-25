@@ -1,4 +1,5 @@
-stock int CreateBot(int client, bool forceCrouch, const char[] providedName = "") {
+stock int CreateBot(int client, bool forceCrouch, const char[] providedName = "",
+                    int botTeam = CS_TEAM_NONE) {
   char name[MAX_NAME_LENGTH + 1];
   int botNumberTaken = -1;
   if (StrEqual(providedName, "")) {
@@ -25,7 +26,9 @@ stock int CreateBot(int client, bool forceCrouch, const char[] providedName = ""
   g_ClientBots[client].Push(bot);
   g_IsPMBot[bot] = true;
 
-  int botTeam = GetClientTeam(client) == CS_TEAM_CT ? CS_TEAM_T : CS_TEAM_CT;
+  if (botTeam == CS_TEAM_NONE) {
+    botTeam = GetClientTeam(client) == CS_TEAM_CT ? CS_TEAM_T : CS_TEAM_CT;
+  }
   ChangeClientTeam(bot, botTeam);
 
   bool clientCrouching = (GetEntityFlags(client) & FL_DUCKING != 0);
@@ -190,6 +193,54 @@ public Action Command_Bot(int client, int args) {
   }
 
   int bot = CreateBot(client, false, name);
+  if (bot <= 0) {
+    return Plugin_Handled;
+  }
+
+  GetClientAbsOrigin(client, g_BotSpawnOrigin[bot]);
+  GetClientEyeAngles(client, g_BotSpawnAngles[bot]);
+  GetClientWeapon(client, g_BotSpawnWeapon[bot], CLASS_LENGTH);
+  GiveBotParams(bot);
+  PM_Message(client, "Created bot, use .nobot to remove it.");
+  TemporarilyDisableCollisions(client, bot);
+  return Plugin_Handled;
+}
+
+public Action Command_CTBot(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  char name[64];
+  if (args >= 1) {
+    GetCmdArgString(name, sizeof(name));
+  }
+
+  int bot = CreateBot(client, false, name, CS_TEAM_CT);
+  if (bot <= 0) {
+    return Plugin_Handled;
+  }
+
+  GetClientAbsOrigin(client, g_BotSpawnOrigin[bot]);
+  GetClientEyeAngles(client, g_BotSpawnAngles[bot]);
+  GetClientWeapon(client, g_BotSpawnWeapon[bot], CLASS_LENGTH);
+  GiveBotParams(bot);
+  PM_Message(client, "Created bot, use .nobot to remove it.");
+  TemporarilyDisableCollisions(client, bot);
+  return Plugin_Handled;
+}
+
+public Action Command_TBot(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  char name[64];
+  if (args >= 1) {
+    GetCmdArgString(name, sizeof(name));
+  }
+
+  int bot = CreateBot(client, false, name, CS_TEAM_T);
   if (bot <= 0) {
     return Plugin_Handled;
   }

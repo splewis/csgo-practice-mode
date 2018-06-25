@@ -84,6 +84,7 @@ All of the following commands can only be used on _your_ grenades. They will app
 ### Bot commands
 - ``.bots``: opens the bot menu for easier access to most of the below commands
 - ``.bot``: adds a bot where you're standing (or crouching!); ``.crouchbot`` to force a crouching bot
+- ``.ctbot``, ``.tbot``: same as ``.bot``, but forces the bot's team to CT or T
 - ``.botplace``: adds a bot at the point you're looking at (similar to the ``bot_place`` command)
 - ``.boost``: spawns a bot boosting you (crouch-boosting if you're crouching); ``.crouchboost`` to force a crouching bot
 - ``.swapbot``: swaps your position with the nearest bot (temporarily, the bot will respawn in the original spot still)

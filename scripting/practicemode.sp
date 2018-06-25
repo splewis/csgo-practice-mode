@@ -360,6 +360,11 @@ public void OnPluginStart() {
     PM_AddChatAlias(".bot", "sm_bot");
     PM_AddChatAlias(".addbot", "sm_bot");
 
+    RegConsoleCmd("sm_tbot", Command_TBot);
+    PM_AddChatAlias(".tbot", "sm_tbot");
+    RegConsoleCmd("sm_ctbot", Command_CTBot);
+    PM_AddChatAlias(".ctbot", "sm_ctbot");
+
     RegConsoleCmd("sm_movebot", Command_MoveBot);
     PM_AddChatAlias(".movebot", "sm_movebot");
 
