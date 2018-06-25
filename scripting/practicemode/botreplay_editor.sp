@@ -200,7 +200,8 @@ public Action Command_FinishRecording(int client, int args) {
 }
 
 public Action Command_LookAtWeapon(int client, const char[] command, int argc) {
-  if (g_InPracticeMode && g_InBotReplayMode) {
+  if (g_InPracticeMode && g_InBotReplayMode &&
+      GetSetting(client, UserSetting_StopsRecordingInspectKey)) {
     // TODO: also hook the noclip command as a way to finish recording.
     FinishRecording(client, false);
   }
