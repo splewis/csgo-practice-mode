@@ -16,11 +16,11 @@ You may also download the [latest development build](http://ci.splewis.net/job/c
 
 ### Installation
 
-First make sure you have [SourceMod](https://www.sourcemod.net/downloads.php) and [MetaMod:Source](https://metamodsource.net/downloads.php).
+1. Confirm you have [SourceMod](https://www.sourcemod.net/downloads.php) and [MetaMod:Source](https://metamodsource.net/downloads.php).
 
-Then take the zip you downloaded above and extract **all** the files in the release zip to the ``csgo`` server directory. If you did it right, you should see a ``practicemode.smx`` file in ``addons/sourcemod/plugins``.
+2. Extract **all** files in the release zip from above to the ``csgo`` server directory. You should see a ``practicemode.smx`` file in ``addons/sourcemod/plugins``.
 
-Make sure to [add yourself as a sourcemod admin](https://github.com/splewis/csgo-practice-mode/wiki/Command-access#adding-admins-in-sourcemod) as well. You will need this to start practicemode via the ``.setup`` command. You could also [remove the admin requirement](https://github.com/splewis/csgo-practice-mode/wiki/Command-access#launching-practicemode) for launching practicemode.
+3. To start practicemode via the ``.setup`` command, either [add yourself as a sourcemod admin](https://github.com/splewis/csgo-practice-mode/wiki/Command-access#adding-admins-in-sourcemod) or [remove the admin requirement](https://github.com/splewis/csgo-practice-mode/wiki/Command-access#launching-practicemode).
 
 **Note**: access to the .setup requires having the sourcemod admin changemap flag ("g") by default. See [the wiki](https://github.com/splewis/csgo-practice-mode/wiki/Command-access) for more information on changing how admin access works.
 
