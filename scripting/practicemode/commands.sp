@@ -412,7 +412,7 @@ public Action Command_DryRun(int client, int args) {
   ChangeSettingById("cheats", false);
   ChangeSettingById("grenadetrajectory", false);
   ChangeSettingById("infiniteammo", false);
-  ChangeSettingById("infintemoney", false);
+  ChangeSettingById("infinitemoney", false);
   ChangeSettingById("noclip", false);
   ChangeSettingById("respawning", false);
   ChangeSettingById("showimpacts", false);
