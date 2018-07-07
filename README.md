@@ -67,7 +67,7 @@ All of the following commands can only be used on _your_ grenades. They will app
 
 ### Testing grenades
 - ``.last``: teleports you back to where you threw your last grenade from
-- ``.back``: teleports you back a position in your grenade history
+- ``.back``: teleports you back a position in your grenade history (you can also do ``.back 5`` to go to the 5th grenade you threw, for example)
 - ``.forward``: teleports you forward a position in your grenade history
 - ``.flash``:  saves you position to test flashbangs against it. Use this command in a spot you want to try to blind, then move and throw the flashbang; you will be teleported back to the position and see how effective the flashbang is. Use ``.stop`` to cancel.
 - ``.throw [filter]``: automatically throws all grenades matching the filter. With no filter, throws the last grenade you threw.

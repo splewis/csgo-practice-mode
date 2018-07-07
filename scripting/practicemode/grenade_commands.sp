@@ -40,6 +40,21 @@ public Action Command_GrenadeBack(int client, int args) {
     return Plugin_Handled;
   }
 
+  char argString[64];
+  if (args >= 1 && GetCmdArg(1, argString, sizeof(argString))) {
+    int index = StringToInt(argString) - 1;
+    if (index >= 0 && index < g_GrenadeHistoryPositions[client].Length) {
+      g_GrenadeHistoryIndex[client] = index;
+      TeleportToGrenadeHistoryPosition(client, g_GrenadeHistoryIndex[client]);
+      PM_Message(client, "Teleporting back to position %d in grenade history.",
+                 g_GrenadeHistoryIndex[client] + 1);
+    } else {
+      PM_Message(client, "Your grenade history only goes from 1 to %d.",
+                 g_GrenadeHistoryPositions[client].Length);
+    }
+    return Plugin_Handled;
+  }
+
   if (g_GrenadeHistoryPositions[client].Length > 0) {
     g_GrenadeHistoryIndex[client]--;
     if (g_GrenadeHistoryIndex[client] < 0)

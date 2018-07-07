@@ -590,7 +590,7 @@ public void OnPluginStart() {
   g_DryRunFreezeTimeCvar = CreateConVar("sm_practicemode_dry_run_freeze_time", "10",
                                         "Freezetime after running the .dryrun command.");
   g_MaxHistorySizeCvar =
-      CreateConVar("sm_practicemode_max_grenade_history_size", "1000",
+      CreateConVar("sm_practicemode_max_grenade_history_size", "50000",
                    "Maximum number of grenades throws saved in history per-client");
   g_MaxGrenadesSavedCvar = CreateConVar("sm_practicemode_max_grenades_saved", "512",
                                         "Maximum number of grenades saved per-map per-client");
