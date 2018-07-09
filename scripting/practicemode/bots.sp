@@ -593,14 +593,14 @@ void TemporarilyDisableCollisions(int client1, int client2) {
   Entity_SetCollisionGroup(client2, COLLISION_GROUP_DEBRIS);
   DataPack pack;
   CreateDataTimer(0.1, Timer_ResetCollisions, pack, TIMER_REPEAT);
-  pack.WriteCell(client1);
-  pack.WriteCell(client2);
+  pack.WriteCell(GetClientSerial(client1));
+  pack.WriteCell(GetClientSerial(client2));
 }
 
 public Action Timer_ResetCollisions(Handle timer, DataPack pack) {
   pack.Reset();
-  int client1 = pack.ReadCell();
-  int client2 = pack.ReadCell();
+  int client1 = GetClientFromSerial(pack.ReadCell());
+  int client2 = GetClientFromSerial(pack.ReadCell());
   if (!IsValidClient(client1) || !IsValidClient(client2)) {
     return Plugin_Handled;
   }
