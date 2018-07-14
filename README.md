@@ -16,7 +16,7 @@ You may also download the [latest development build](http://ci.splewis.net/job/c
 
 ### Installation
 
-1. Confirm you have [SourceMod](https://www.sourcemod.net/downloads.php) and [MetaMod:Source](https://metamodsource.net/downloads.php).
+1. Confirm you have [SourceMod](https://www.sourcemod.net/downloads.php) and [MetaMod:Source](https://metamodsource.net/downloads.php). You must have a 1.9+ build of sourcemod.
 
 2. Extract **all** files in the release zip from above to the ``csgo`` server directory. You should see a ``practicemode.smx`` file in ``addons/sourcemod/plugins``.
 
