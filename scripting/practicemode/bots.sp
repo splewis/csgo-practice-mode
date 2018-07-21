@@ -414,7 +414,7 @@ public Action Command_RemoveBots(int client, int args) {
   return Plugin_Handled;
 }
 
-public Action Event_DamageDealtEvent(Event event, const char[] name, bool dontBroadcast) {
+public Action Event_BotDamageDealtEvent(Event event, const char[] name, bool dontBroadcast) {
   if (!g_InPracticeMode) {
     return Plugin_Continue;
   }

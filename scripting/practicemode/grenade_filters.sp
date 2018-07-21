@@ -27,53 +27,63 @@ public bool FindGrenade(const char[] input, char id[GRENADE_ID_LENGTH]) {
 
 // Generic utility to find all grenades matching user input.
 // Returns the filter type if found, otherwise GrenadeMenuType_Invalid.
-stock GrenadeMenuType FindGrenades(const char[] input, ArrayList ids, char[] data, int len) {
+stock GrenadeMenuType FindGrenades(const char[] input, ArrayList ids, char[] data, int len,
+                                   GrenadeMenuType forceMatch = GrenadeMenuType_Invalid) {
   char id[GRENADE_ID_LENGTH];
   // Try a list of ids.
-  int idx = 0;
-  int cur_idx = 0;
-  char auth[AUTH_LENGTH];
-  while (idx >= 0) {
-    idx = BreakString(input[cur_idx], id, sizeof(id));
-    cur_idx += idx;
-    if (FindId(id, auth, sizeof(auth))) {
-      ids.PushString(id);
+  if (forceMatch == GrenadeMenuType_Invalid || forceMatch == GrenadeMenuType_MatchingId) {
+    int idx = 0;
+    int cur_idx = 0;
+    char auth[AUTH_LENGTH];
+    while (idx >= 0) {
+      idx = BreakString(input[cur_idx], id, sizeof(id));
+      cur_idx += idx;
+      if (FindId(id, auth, sizeof(auth))) {
+        ids.PushString(id);
+      }
     }
-  }
-  if (ids.Length > 0) {
-    strcopy(data, len, input);
-    return GrenadeMenuType_MatchingId;
+    if (ids.Length > 0) {
+      strcopy(data, len, input);
+      return GrenadeMenuType_MatchingId;
+    }
   }
 
   // Try player name match first, and a steamid search.
   // data = auth.
-  char name[MAX_NAME_LENGTH];
-  if (strlen(input) >= 2 && FindGrenadeTarget(input, name, sizeof(name), data, len) &&
-      FindPlayerNades(data, ids)) {
-    return GrenadeMenuType_OnePlayer;
-  }
-  if (g_GrenadeLocationsKv.JumpToKey(input)) {
-    g_GrenadeLocationsKv.GoBack();
-    if (FindPlayerNades(input, ids)) {
+  if (forceMatch == GrenadeMenuType_Invalid || forceMatch == GrenadeMenuType_MatchingName) {
+    char name[MAX_NAME_LENGTH];
+    if (strlen(input) >= 2 && FindGrenadeTarget(input, name, sizeof(name), data, len) &&
+        FindPlayerNades(data, ids)) {
       return GrenadeMenuType_OnePlayer;
+    }
+    if (g_GrenadeLocationsKv.JumpToKey(input)) {
+      g_GrenadeLocationsKv.GoBack();
+      if (FindPlayerNades(input, ids)) {
+        return GrenadeMenuType_OnePlayer;
+      }
     }
   }
 
   // Then try a category match.
   // data = category name.
-  if (StrEqual(input, "all", false)) {
-    FindCategoryNades("all", ids);
-    strcopy(data, len, "all");
-    return GrenadeMenuType_OneCategory;
+
+  if (forceMatch == GrenadeMenuType_Invalid || forceMatch == GrenadeMenuType_OneCategory) {
+    if (StrEqual(input, "all", false)) {
+      FindCategoryNades("all", ids);
+      strcopy(data, len, "all");
+      return GrenadeMenuType_OneCategory;
+    }
+
+    if (FindMatchingCategory(input, data, len) && FindCategoryNades(data, ids)) {
+      return GrenadeMenuType_OneCategory;
+    }
   }
 
-  if (FindMatchingCategory(input, data, len) && FindCategoryNades(data, ids)) {
-    return GrenadeMenuType_OneCategory;
-  }
-
-  if (FindMatchingGrenadesByName(input, ids)) {
-    strcopy(data, len, input);
-    return GrenadeMenuType_MatchingName;
+  if (forceMatch == GrenadeMenuType_Invalid || forceMatch == GrenadeMenuType_MatchingName) {
+    if (FindMatchingGrenadesByName(input, ids)) {
+      strcopy(data, len, input);
+      return GrenadeMenuType_MatchingName;
+    }
   }
 
   return GrenadeMenuType_Invalid;

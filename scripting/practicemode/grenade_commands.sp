@@ -163,7 +163,8 @@ public Action Command_Find(int client, int args) {
 
   char arg[MAX_NAME_LENGTH];
   if (args >= 1 && GetCmdArgString(arg, sizeof(arg))) {
-    GiveGrenadeMenu(client, GrenadeMenuType_MatchingName, 0, arg);
+    GiveGrenadeMenu(client, GrenadeMenuType_MatchingName, 0, arg, null,
+                    GrenadeMenuType_MatchingName);
   } else {
     PM_Message(client, "Usage: .find <arg>");
   }

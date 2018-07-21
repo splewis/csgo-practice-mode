@@ -79,7 +79,8 @@ public int PracticeMenuHandler(Menu menu, MenuAction action, int param1, int par
 }
 
 stock void GiveGrenadeMenu(int client, GrenadeMenuType type, int position = 0,
-                           const char[] data = "", ArrayList ids = null) {
+                           const char[] data = "", ArrayList ids = null,
+                           GrenadeMenuType forceMatch = GrenadeMenuType_Invalid) {
   g_ClientLastMenuType[client] = type;
   strcopy(g_ClientLastMenuData[client], AUTH_LENGTH, data);
 
@@ -116,7 +117,7 @@ stock void GiveGrenadeMenu(int client, GrenadeMenuType type, int position = 0,
       deleteIds = true;
       char unused[128];
       ids = new ArrayList(GRENADE_ID_LENGTH);
-      FindGrenades(data, ids, unused, sizeof(unused));
+      FindGrenades(data, ids, unused, sizeof(unused), forceMatch);
     }
     count = ids.Length;
     AddIdsToMenu(menu, ids);
@@ -260,7 +261,7 @@ public int Grenade_NadeHandler(Menu menu, MenuAction action, int param1, int par
     HandleGrenadeSelected(client, menu, param2);
     if (GetSetting(client, UserSetting_LeaveNadeMenuOpen)) {
       GiveGrenadeMenu(client, g_ClientLastMenuType[client], g_ClientLastMenuPos[client],
-                      g_ClientLastMenuData[client]);
+                      g_ClientLastMenuData[client], null, g_ClientLastMenuType[client]);
     }
   } else if (action == MenuAction_Cancel && param2 == MenuCancel_ExitBack) {
     int client = param1;

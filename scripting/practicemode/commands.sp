@@ -299,6 +299,84 @@ public Action Timer_RepeatCommand(Handle timer, int serial) {
   return Plugin_Continue;
 }
 
+public Action Command_RoundRepeat(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  if (args < 2) {
+    PM_Message(client,
+               "Usage: .roundrepeat <delay from round start in seconds> <any chat command>");
+    return Plugin_Handled;
+  }
+
+  char timeString[64];
+  char fullString[256];
+  char cmd[256];
+  if (GetCmdArgString(fullString, sizeof(fullString)) &&
+      SplitOnSpace(fullString, timeString, sizeof(timeString), cmd, sizeof(cmd))) {
+    float time = StringToFloat(timeString);
+    if (time < 0.0) {
+      PM_Message(client,
+                 "Usage: .roundrepeat <delay from round start in seconds> <any chat command>");
+      return Plugin_Handled;
+    }
+
+    g_RunningRepeatedCommand[client] = true;
+    PM_Message(client, "Running command every %.1f seconds after round start.", time);
+    PM_Message(client, "Use {GREEN}.stop {NORMAL}when you are done.");
+    g_RunningRoundRepeatedCommandDelay[client].Push(time);
+    g_RunningRoundRepeatedCommandArg[client].PushString(cmd);
+  }
+
+  return Plugin_Handled;
+}
+
+public Action Event_FreezeEnd(Event event, const char[] name, bool dontBroadcast) {
+  // PrintToChatAll("Event_FreezeEnd");
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  for (int i = 1; i <= MaxClients; i++) {
+    if (!IsPlayer(i)) {
+      continue;
+    }
+
+    if (!g_RunningRepeatedCommand[i]) {
+      // PrintToChatAll("not running cmd");
+      continue;
+    }
+
+    for (int j = 0; j < g_RunningRoundRepeatedCommandDelay[i].Length; j++) {
+      float delay = g_RunningRoundRepeatedCommandDelay[i].Get(j);
+      char cmd[256];
+      g_RunningRoundRepeatedCommandArg[i].GetString(j, cmd, sizeof(cmd));
+      DataPack p = new DataPack();
+      p.WriteCell(GetClientSerial(i));
+      p.WriteString(cmd);
+      CreateTimer(delay, Timer_RoundRepeatCommand, p);
+    }
+  }
+
+  return Plugin_Handled;
+}
+
+public Action Timer_RoundRepeatCommand(Handle timer, DataPack p) {
+  // PrintToChatAll("Timer_RoundRepeatCommand");
+  p.Reset();
+  int client = GetClientFromSerial(p.ReadCell());
+  if (!IsPlayer(client) || !g_RunningRepeatedCommand[client]) {
+    // PrintToChatAll("not player || !cmd");
+    return Plugin_Stop;
+  }
+
+  char cmd[256];
+  p.ReadString(cmd, sizeof(cmd));
+  FakeClientCommand(client, "say %s", cmd);
+  return Plugin_Continue;
+}
+
 public Action Command_StopRepeat(int client, int args) {
   if (!g_InPracticeMode) {
     return Plugin_Handled;
@@ -306,6 +384,8 @@ public Action Command_StopRepeat(int client, int args) {
 
   if (g_RunningRepeatedCommand[client]) {
     g_RunningRepeatedCommand[client] = false;
+    g_RunningRoundRepeatedCommandArg[client].Clear();
+    g_RunningRoundRepeatedCommandDelay[client].Clear();
     PM_Message(client, "Cancelled repeating command.");
   }
   return Plugin_Handled;

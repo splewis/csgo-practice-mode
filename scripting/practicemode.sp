@@ -115,6 +115,9 @@ float g_LastFlashDetonateTime[MAXPLAYERS + 1];
 bool g_RunningRepeatedCommand[MAXPLAYERS + 1];
 char g_RunningRepeatedCommandArg[MAXPLAYERS][256];
 
+ArrayList g_RunningRoundRepeatedCommandDelay[MAXPLAYERS + 1]; /* float */
+ArrayList g_RunningRoundRepeatedCommandArg[MAXPLAYERS + 1];   /* char[256] */
+
 GrenadeType g_LastGrenadeType[MAXPLAYERS + 1];
 float g_LastGrenadeOrigin[MAXPLAYERS + 1][3];
 float g_LastGrenadeVelocity[MAXPLAYERS + 1][3];
@@ -287,6 +290,8 @@ public void OnPluginStart() {
     g_GrenadeHistoryAngles[i] = new ArrayList(3);
     g_ClientGrenadeThrowTimes[i] = new ArrayList(2);
     g_ClientBots[i] = new ArrayList();
+    g_RunningRoundRepeatedCommandArg[i] = new ArrayList(256);
+    g_RunningRoundRepeatedCommandDelay[i] = new ArrayList();
   }
 
   {
@@ -561,6 +566,10 @@ public void OnPluginStart() {
     RegConsoleCmd("sm_stopall", Command_StopAll);
     PM_AddChatAlias(".stop", "sm_stopall");
 
+    RegConsoleCmd("sm_roundrepeat", Command_RoundRepeat);
+    PM_AddChatAlias(".roundrepeat", "sm_roundrepeat");
+    PM_AddChatAlias(".rrepeat", "sm_roundrepeat");
+
     RegConsoleCmd("sm_dryrun", Command_DryRun);
     PM_AddChatAlias(".dryrun", "sm_dryrun");
 
@@ -670,8 +679,10 @@ public void OnPluginStart() {
 
   HookEvent("server_cvar", Event_CvarChanged, EventHookMode_Pre);
   HookEvent("player_spawn", Event_PlayerSpawn);
-  HookEvent("player_hurt", Event_DamageDealtEvent, EventHookMode_Pre);
+  HookEvent("player_hurt", Event_BotDamageDealtEvent, EventHookMode_Pre);
+  HookEvent("player_hurt", Event_ReplayBotDamageDealtEvent, EventHookMode_Pre);
   HookEvent("player_death", Event_PlayerDeath);
+  HookEvent("round_freeze_end", Event_FreezeEnd);
 
   g_PugsetupLoaded = LibraryExists("pugsetup");
   g_CSUtilsLoaded = LibraryExists("csutils");
@@ -724,6 +735,13 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
   if (IsPMBot(client)) {
     GiveBotParams(client);
   }
+
+  // TODO: move this elsewhere and save it properly.
+  if (g_InBotReplayMode && g_BotMimicLoaded && IsReplayBot(client)) {
+    Client_SetArmor(client, 100);
+    SetEntData(client, FindSendPropInfo("CCSPlayer", "m_bHasHelmet"), true);
+  }
+
   return Plugin_Continue;
 }
 

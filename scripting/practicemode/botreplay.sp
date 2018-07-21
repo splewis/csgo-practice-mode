@@ -375,3 +375,20 @@ public Action Timer_CleanupLivingBots(Handle timer) {
 
   return Plugin_Continue;
 }
+
+public Action Event_ReplayBotDamageDealtEvent(Event event, const char[] name, bool dontBroadcast) {
+  if (!g_InPracticeMode || !g_InBotReplayMode || !g_BotMimicLoaded) {
+    return Plugin_Continue;
+  }
+
+  int attacker = GetClientOfUserId(event.GetInt("attacker"));
+  int victim = GetClientOfUserId(event.GetInt("userid"));
+
+  if (IsReplayBot(victim) && IsPlayer(attacker) && BotMimic_IsPlayerMimicing(victim)) {
+    int damage = event.GetInt("dmg_health");
+    int postDamageHealth = event.GetInt("health");
+    PM_Message(attacker, "---> %d damage to %N (%d health)", damage, victim, postDamageHealth);
+  }
+
+  return Plugin_Continue;
+}
