@@ -52,6 +52,18 @@ public Action Command_SaveSpawn(int client, int args) {
 }
 
 public Action Command_GotoSpawn(int client, int args) {
+  return SpawnCommandWrapper(client, args, GetClientTeam(client));
+}
+
+public Action Command_GotoSpawnT(int client, int args) {
+  return SpawnCommandWrapper(client, args, CS_TEAM_T);
+}
+
+public Action Command_GotoSpawnCT(int client, int args) {
+  return SpawnCommandWrapper(client, args, CS_TEAM_CT);
+}
+
+public Action SpawnCommandWrapper(int client, int args, int team) {
   if (!g_InPracticeMode) {
     return Plugin_Handled;
   }
@@ -63,7 +75,7 @@ public Action Command_GotoSpawn(int client, int args) {
 
   if (IsPlayer(client)) {
     ArrayList spawnList = null;
-    if (GetClientTeam(client) == CS_TEAM_CT) {
+    if (team == CS_TEAM_CT) {
       spawnList = g_CTSpawns;
     } else {
       spawnList = g_TSpawns;
@@ -76,7 +88,6 @@ public Action Command_GotoSpawn(int client, int args) {
       // If 0, then we use the arg as the user setting or going to a named location
       int argInt = StringToInt(arg);
       if (argInt == 0 && !StrEqual(arg, "0")) {
-        int team = GetClientTeam(client);
         if (DoesNamedSpawnExist(team, arg)) {
           TeleportToNamedSpawn(client, team, arg);
           PM_Message(client, "Moved to spawn \"%s\"", arg);

@@ -345,6 +345,12 @@ public void OnPluginStart() {
     PM_AddChatAlias(".spawn", "sm_gotospawn");
     PM_AddChatAlias(".bestspawn", "sm_gotospawn");
 
+    RegConsoleCmd("sm_gotospawnct", Command_GotoSpawnCT);
+    PM_AddChatAlias(".ctspawn", "sm_gotospawnct");
+
+    RegConsoleCmd("sm_gotospawnt", Command_GotoSpawnT);
+    PM_AddChatAlias(".tspawn", "sm_gotospawnt");
+
     RegConsoleCmd("sm_worstspawn", Command_GotoWorstSpawn);
     PM_AddChatAlias(".worstspawn", "sm_worstspawn");
 

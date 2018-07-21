@@ -76,7 +76,9 @@ All of the following commands can only be used on _your_ grenades. They will app
 ### Spawn commands
 - ``.respawn``: makes you respawn at the spot you are standing (``.stop`` to cancel)
 - ``.spawn``: same as ``.bestspawn`` (closest spawn)
-- ``.spawn <number>``: teleports you to a spawn # for the maps's spawns
+- ``.spawn <number>``: teleports you to a spawn #, using your team's spawns (CT or T)
+- ``.ctspawn <number>``: same as .spawn, but using CT only regardless of what team you are on
+- ``.tspawn <number>``: same as .spawn, but using T only regardless of what team you are on
 - ``.namespawn <name>``: saves the closest spawn to you under a name, which can then be gone to via ``.spawn <name>``
 - ``.bestspawn``: teleports you to your team's closest spawn from your current position
 - ``.worstspawn``: teleports you to your team's furthest spawn from your current position
