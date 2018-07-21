@@ -34,7 +34,7 @@ before_script:
     - wget https://bitbucket.org/GoD_Tony/updater/raw/12181277db77d6117052b8ddf5810c7681745156/include/updater.inc
 
     # install smlib
-    - git clone https://github.com/splewis/smlib
+    - git clone https://github.com/bcserv/smlib
     - cp -r smlib/scripting/include/* .
 
     - cd ../../../..
