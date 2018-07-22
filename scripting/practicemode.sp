@@ -145,6 +145,7 @@ bool g_InBotReplayMode = false;
 KeyValues g_ReplaysKv;
 
 #define PLAYER_HEIGHT 72.0
+#define CROUCH_PLAYER_HEIGHT (PLAYER_HEIGHT - 18.0)
 #define CLASS_LENGTH 64
 
 const int kMaxBackupsPerMap = 50;
