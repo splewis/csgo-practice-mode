@@ -320,29 +320,25 @@ public Action Command_ForceSpawn(int client, int args) {
                "You will always spawn at spawn #%d now. Use {GREEN}.stop {NORMAL}to cancel.",
                spawnIndex + 1);
     g_ForceSpawnIndex[client] = spawnIndex;
+    g_ForceSpawnActive[client] = true;
   }
   return Plugin_Handled;
 }
 
-public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcast) {
-  if (!g_InPracticeMode) {
-    return;
-  }
-
-  for (int i = 1; i <= MaxClients; i++) {
-    if (IsPlayer(i) && g_ForceSpawnIndex[i] >= 0) {
-      int team = GetClientTeam(i);
-      ArrayList spawnList = null;
-      if (team == CS_TEAM_CT) {
-        spawnList = g_CTSpawns;
-      } else {
-        spawnList = g_TSpawns;
-      }
-
-      int ent = spawnList.Get(g_ForceSpawnIndex[i]);
-      TeleportToSpawnEnt(i, ent);
-      PM_Message(i, "Moved to spawn %d (of %d).", g_ForceSpawnIndex[i] + 1, spawnList.Length);
+public void RoundStartForceSpawnCheck(int client) {
+  if (g_ForceSpawnActive[client]) {
+    int team = GetClientTeam(client);
+    ArrayList spawnList = null;
+    if (team == CS_TEAM_CT) {
+      spawnList = g_CTSpawns;
+    } else {
+      spawnList = g_TSpawns;
     }
+
+    int ent = spawnList.Get(g_ForceSpawnIndex[client]);
+    TeleportToSpawnEnt(client, ent);
+    PM_Message(client, "Moved to spawn %d (of %d).", g_ForceSpawnIndex[client] + 1,
+               spawnList.Length);
   }
 }
 
@@ -350,8 +346,8 @@ public Action Command_StopForceSpawn(int client, int args) {
   if (!g_InPracticeMode) {
     return Plugin_Handled;
   }
-  if (g_ForceSpawnIndex[client] >= 0) {
-    g_ForceSpawnIndex[client] = -1;
+  if (g_ForceSpawnActive[client]) {
+    g_ForceSpawnActive[client] = false;
     PM_Message(client, "Stopped forced spawn.");
   }
   return Plugin_Handled;

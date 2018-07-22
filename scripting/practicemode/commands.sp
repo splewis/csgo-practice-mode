@@ -336,7 +336,6 @@ public Action Command_RoundRepeat(int client, int args) {
 }
 
 public Action Event_FreezeEnd(Event event, const char[] name, bool dontBroadcast) {
-  // PrintToChatAll("Event_FreezeEnd");
   if (!g_InPracticeMode) {
     return Plugin_Handled;
   }
@@ -347,7 +346,6 @@ public Action Event_FreezeEnd(Event event, const char[] name, bool dontBroadcast
     }
 
     if (!g_RunningRepeatedCommand[i]) {
-      // PrintToChatAll("not running cmd");
       continue;
     }
 
@@ -366,11 +364,9 @@ public Action Event_FreezeEnd(Event event, const char[] name, bool dontBroadcast
 }
 
 public Action Timer_RoundRepeatCommand(Handle timer, DataPack p) {
-  // PrintToChatAll("Timer_RoundRepeatCommand");
   p.Reset();
   int client = GetClientFromSerial(p.ReadCell());
   if (!IsPlayer(client) || !g_RunningRepeatedCommand[client]) {
-    // PrintToChatAll("not player || !cmd");
     return Plugin_Stop;
   }
 

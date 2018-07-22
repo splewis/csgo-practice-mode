@@ -118,6 +118,7 @@ char g_RunningRepeatedCommandArg[MAXPLAYERS][256];
 ArrayList g_RunningRoundRepeatedCommandDelay[MAXPLAYERS + 1]; /* float */
 ArrayList g_RunningRoundRepeatedCommandArg[MAXPLAYERS + 1];   /* char[256] */
 
+bool g_ForceSpawnActive[MAXPLAYERS + 1];
 int g_ForceSpawnIndex[MAXPLAYERS + 1];
 
 GrenadeType g_LastGrenadeType[MAXPLAYERS + 1];
@@ -776,6 +777,7 @@ public void OnClientConnected(int client) {
   g_RunningRepeatedCommand[client] = false;
   g_RunningRoundRepeatedCommandDelay[client].Clear();
   g_RunningRoundRepeatedCommandArg[client].Clear();
+  g_ForceSpawnActive[client] = false;
   g_ForceSpawnIndex[client] = -1;
   CheckAutoStart();
 }
@@ -1472,6 +1474,28 @@ public void GetTestingFlashInfo(int serial) {
         delay = 0.1;
 
       CreateTimer(delay, Timer_FakeGrenadeBack, GetClientSerial(client));
+    }
+  }
+}
+
+public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcast) {
+  if (!g_InPracticeMode) {
+    return;
+  }
+
+  for (int i = 1; i <= MaxClients; i++) {
+    if (IsPlayer(i)) {
+      RoundStartForceSpawnCheck(i);
+
+      if (g_ClientNoFlash[i]) {
+        g_ClientNoFlash[i] = false;
+        PM_Message(i, "Disabled noflash on round start.");
+      }
+
+      if (GetEntityMoveType(i) == MOVETYPE_NOCLIP) {
+        SetEntityMoveType(i, MOVETYPE_WALK);
+        PM_Message(i, "Disabled noclip on round start.");
+      }
     }
   }
 }
