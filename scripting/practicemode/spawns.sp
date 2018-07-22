@@ -264,3 +264,95 @@ public void TeleportToNamedSpawn(int client, int team, const char[] name) {
     TeleportToSpawnEnt(client, list.Get(index));
   }
 }
+
+public Action Command_ForceSpawn(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  if (!IsPlayerAlive(client)) {
+    CS_RespawnPlayer(client);
+    return Plugin_Handled;
+  }
+
+  int team = GetClientTeam(client);
+
+  // TODO: The below logic should really be de-deuplicated with the normal .spawn command.
+  if (IsPlayer(client)) {
+    ArrayList spawnList = null;
+    if (team == CS_TEAM_CT) {
+      spawnList = g_CTSpawns;
+    } else {
+      spawnList = g_TSpawns;
+    }
+
+    char arg[32];
+    int spawnIndex = -1;
+    if (args >= 1 && GetCmdArg(1, arg, sizeof(arg))) {
+      int argInt = StringToInt(arg);
+      if (argInt == 0 && !StrEqual(arg, "0")) {
+        if (DoesNamedSpawnExist(team, arg)) {
+          if (g_NamedSpawnsKv.JumpToKey(TEAM_STRING(team))) {
+            spawnIndex = g_NamedSpawnsKv.GetNum(arg, -1);
+            g_NamedSpawnsKv.GoBack();
+          }
+        } else {
+          PM_Message(
+              client,
+              "There is no spawn for \"%s\", use .namespawn <name> to add a name for your nearest spawn point",
+              arg);
+        }
+        return Plugin_Handled;
+
+      } else {
+        spawnIndex = argInt - 1;
+      }
+    } else {
+      spawnIndex = FindNearestSpawnIndex(client, spawnList);
+    }
+
+    if (spawnIndex < 0 || spawnIndex >= spawnList.Length) {
+      PM_Message(client, "Spawn number out of range. (%d max)", spawnList.Length);
+      return Plugin_Handled;
+    }
+
+    PM_Message(client,
+               "You will always spawn at spawn #%d now. Use {GREEN}.stop {NORMAL}to cancel.",
+               spawnIndex + 1);
+    g_ForceSpawnIndex[client] = spawnIndex;
+  }
+  return Plugin_Handled;
+}
+
+public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcast) {
+  if (!g_InPracticeMode) {
+    return;
+  }
+
+  for (int i = 1; i <= MaxClients; i++) {
+    if (IsPlayer(i) && g_ForceSpawnIndex[i] >= 0) {
+      int team = GetClientTeam(i);
+      ArrayList spawnList = null;
+      if (team == CS_TEAM_CT) {
+        spawnList = g_CTSpawns;
+      } else {
+        spawnList = g_TSpawns;
+      }
+
+      int ent = spawnList.Get(g_ForceSpawnIndex[i]);
+      TeleportToSpawnEnt(i, ent);
+      PM_Message(i, "Moved to spawn %d (of %d).", g_ForceSpawnIndex[i] + 1, spawnList.Length);
+    }
+  }
+}
+
+public Action Command_StopForceSpawn(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+  if (g_ForceSpawnIndex[client] >= 0) {
+    g_ForceSpawnIndex[client] = -1;
+    PM_Message(client, "Stopped forced spawn.");
+  }
+  return Plugin_Handled;
+}

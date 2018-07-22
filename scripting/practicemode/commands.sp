@@ -209,6 +209,9 @@ public Action Command_StopAll(int client, int args) {
   if (g_BotMimicLoaded && BotMimic_IsPlayerRecording(client)) {
     BotMimic_StopRecording(client, false /* save */);
   }
+  if (g_ForceSpawnIndex[client] >= 0) {
+    Command_StopForceSpawn(client, 0);
+  }
   return Plugin_Handled;
 }
 

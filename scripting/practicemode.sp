@@ -118,6 +118,8 @@ char g_RunningRepeatedCommandArg[MAXPLAYERS][256];
 ArrayList g_RunningRoundRepeatedCommandDelay[MAXPLAYERS + 1]; /* float */
 ArrayList g_RunningRoundRepeatedCommandArg[MAXPLAYERS + 1];   /* char[256] */
 
+int g_ForceSpawnIndex[MAXPLAYERS + 1];
+
 GrenadeType g_LastGrenadeType[MAXPLAYERS + 1];
 float g_LastGrenadeOrigin[MAXPLAYERS + 1][3];
 float g_LastGrenadeVelocity[MAXPLAYERS + 1][3];
@@ -356,6 +358,12 @@ public void OnPluginStart() {
 
     RegConsoleCmd("sm_namespawn", Command_SaveSpawn);
     PM_AddChatAlias(".namespawn", "sm_namespawn");
+
+    RegConsoleCmd("sm_forcespawn", Command_ForceSpawn);
+    PM_AddChatAlias(".forcespawn", "sm_forcespawn");
+
+    RegConsoleCmd("sm_stopforcespawn", Command_StopForceSpawn);
+    PM_AddChatAlias(".stopforcespawn", "sm_stopforcespawn");
   }
 
   // csutils powered nade stuff.
@@ -688,6 +696,7 @@ public void OnPluginStart() {
   HookEvent("player_hurt", Event_BotDamageDealtEvent, EventHookMode_Pre);
   HookEvent("player_hurt", Event_ReplayBotDamageDealtEvent, EventHookMode_Pre);
   HookEvent("player_death", Event_PlayerDeath);
+  HookEvent("round_start", Event_RoundStart);
   HookEvent("round_freeze_end", Event_FreezeEnd);
 
   g_PugsetupLoaded = LibraryExists("pugsetup");
@@ -764,6 +773,9 @@ public void OnClientConnected(int client) {
   g_SavedRespawnActive[client] = false;
   g_LastGrenadeType[client] = GrenadeType_None;
   g_RunningRepeatedCommand[client] = false;
+  g_RunningRoundRepeatedCommandDelay[client].Clear();
+  g_RunningRoundRepeatedCommandArg[client].Clear();
+  g_ForceSpawnIndex[client] = -1;
   CheckAutoStart();
 }
 
