@@ -118,9 +118,6 @@ char g_RunningRepeatedCommandArg[MAXPLAYERS][256];
 ArrayList g_RunningRoundRepeatedCommandDelay[MAXPLAYERS + 1]; /* float */
 ArrayList g_RunningRoundRepeatedCommandArg[MAXPLAYERS + 1];   /* char[256] */
 
-bool g_ForceSpawnActive[MAXPLAYERS + 1];
-int g_ForceSpawnIndex[MAXPLAYERS + 1];
-
 GrenadeType g_LastGrenadeType[MAXPLAYERS + 1];
 float g_LastGrenadeOrigin[MAXPLAYERS + 1][3];
 float g_LastGrenadeVelocity[MAXPLAYERS + 1][3];
@@ -360,12 +357,6 @@ public void OnPluginStart() {
 
     RegConsoleCmd("sm_namespawn", Command_SaveSpawn);
     PM_AddChatAlias(".namespawn", "sm_namespawn");
-
-    RegConsoleCmd("sm_forcespawn", Command_ForceSpawn);
-    PM_AddChatAlias(".forcespawn", "sm_forcespawn");
-
-    RegConsoleCmd("sm_stopforcespawn", Command_StopForceSpawn);
-    PM_AddChatAlias(".stopforcespawn", "sm_stopforcespawn");
   }
 
   // csutils powered nade stuff.
@@ -777,8 +768,6 @@ public void OnClientConnected(int client) {
   g_RunningRepeatedCommand[client] = false;
   g_RunningRoundRepeatedCommandDelay[client].Clear();
   g_RunningRoundRepeatedCommandArg[client].Clear();
-  g_ForceSpawnActive[client] = false;
-  g_ForceSpawnIndex[client] = -1;
   CheckAutoStart();
 }
 
@@ -1485,8 +1474,6 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 
   for (int i = 1; i <= MaxClients; i++) {
     if (IsPlayer(i)) {
-      RoundStartForceSpawnCheck(i);
-
       if (g_ClientNoFlash[i]) {
         g_ClientNoFlash[i] = false;
         PM_Message(i, "Disabled noflash on round start.");
