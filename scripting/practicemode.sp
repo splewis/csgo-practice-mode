@@ -578,6 +578,7 @@ public void OnPluginStart() {
     PM_AddChatAlias(".rrepeat", "sm_roundrepeat");
 
     RegConsoleCmd("sm_dryrun", Command_DryRun);
+    PM_AddChatAlias(".dry", "sm_dryrun");
     PM_AddChatAlias(".dryrun", "sm_dryrun");
 
     RegConsoleCmd("sm_enablesetting", Command_Enable);
@@ -603,7 +604,7 @@ public void OnPluginStart() {
                                       "How long it should take bots placed with .bot to respawn");
   g_AutostartCvar = CreateConVar("sm_practicemode_autostart", "0",
                                  "Whether the plugin is automatically started on mapstart");
-  g_DryRunFreezeTimeCvar = CreateConVar("sm_practicemode_dry_run_freeze_time", "10",
+  g_DryRunFreezeTimeCvar = CreateConVar("sm_practicemode_dry_run_freeze_time", "6",
                                         "Freezetime after running the .dryrun command.");
   g_MaxHistorySizeCvar =
       CreateConVar("sm_practicemode_max_grenade_history_size", "50000",

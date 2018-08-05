@@ -470,11 +470,8 @@ public Action Command_DryRun(int client, int args) {
   SetCvar("mp_freezetime", g_DryRunFreezeTimeCvar.IntValue);
   ChangeSettingById("allradar", false);
   ChangeSettingById("blockroundendings", false);
-  ChangeSettingById("buyanywhere", false);
-  ChangeSettingById("cheats", false);
   ChangeSettingById("grenadetrajectory", false);
   ChangeSettingById("infiniteammo", false);
-  ChangeSettingById("infinitemoney", false);
   ChangeSettingById("noclip", false);
   ChangeSettingById("respawning", false);
   ChangeSettingById("showimpacts", false);

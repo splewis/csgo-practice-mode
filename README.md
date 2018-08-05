@@ -113,7 +113,7 @@ All of the following commands can only be used on _your_ grenades. They will app
 - ``.repeat <interval> <command>``: give a number of seconds and a chat command, the command will automatically repeat at the given interval. For example: ``.repeat 3 .throw`` repeats .throw every 3 seconds
 - ``.delay <duration> <command>``: runs the given chat command after a given duration (in seconds)
 - ``.map``: changes map (you can use a map name like ``.map de_dust2`` or just ``.map`` to get a menu)
-- ``.dryrun``: disables most practicemode settings (leaving infinte money on), restarts the round, and sets freezetime to ``sm_practicemode_dry_run_freeze_time`` (default 10)
+- ``.dryrun``: disables most practicemode settings (leaving infinte money on), restarts the round, and sets freezetime to ``sm_practicemode_dry_run_freeze_time`` (default 6) - you can also use ``.dry``
 - ``.enable <arg>``: enables a partially-named setting, or "all" settings.
 - ``.disable <arg>``: disables a partially-named setting, or "all" settings.
 - ``.savepos``: temporarily saves a position so you can ``.back`` to it (this adds the position to the list of grenade positions you've thrown)
