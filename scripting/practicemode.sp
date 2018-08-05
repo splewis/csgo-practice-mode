@@ -689,7 +689,6 @@ public void OnPluginStart() {
   HookEvent("player_hurt", Event_BotDamageDealtEvent, EventHookMode_Pre);
   HookEvent("player_hurt", Event_ReplayBotDamageDealtEvent, EventHookMode_Pre);
   HookEvent("player_death", Event_PlayerDeath);
-  HookEvent("round_start", Event_RoundStart);
   HookEvent("round_freeze_end", Event_FreezeEnd);
 
   g_PugsetupLoaded = LibraryExists("pugsetup");
@@ -1467,24 +1466,30 @@ public void GetTestingFlashInfo(int serial) {
   }
 }
 
-public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcast) {
+public Action Event_FreezeEnd(Event event, const char[] name, bool dontBroadcast) {
   if (!g_InPracticeMode) {
-    return;
+    return Plugin_Handled;
   }
 
   for (int i = 1; i <= MaxClients; i++) {
-    if (IsPlayer(i)) {
-      if (g_ClientNoFlash[i]) {
-        g_ClientNoFlash[i] = false;
-        PM_Message(i, "Disabled noflash on round start.");
-      }
-
-      if (GetEntityMoveType(i) == MOVETYPE_NOCLIP) {
-        SetEntityMoveType(i, MOVETYPE_WALK);
-        PM_Message(i, "Disabled noclip on round start.");
-      }
+    if (!IsPlayer(i)) {
+      continue;
     }
+
+    if (g_ClientNoFlash[i]) {
+      g_ClientNoFlash[i] = false;
+      PM_Message(i, "Disabled noflash on round start.");
+    }
+
+    if (GetEntityMoveType(i) == MOVETYPE_NOCLIP) {
+      SetEntityMoveType(i, MOVETYPE_WALK);
+      PM_Message(i, "Disabled noclip on round start.");
+    }
+
+    FreezeEnd_RoundRepeat(i);
   }
+
+  return Plugin_Handled;
 }
 
 static bool CheckChatAlias(const char[] alias, const char[] command, const char[] chatCommand,

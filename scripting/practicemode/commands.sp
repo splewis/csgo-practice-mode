@@ -332,32 +332,18 @@ public Action Command_RoundRepeat(int client, int args) {
   return Plugin_Handled;
 }
 
-public Action Event_FreezeEnd(Event event, const char[] name, bool dontBroadcast) {
-  if (!g_InPracticeMode) {
-    return Plugin_Handled;
-  }
-
-  for (int i = 1; i <= MaxClients; i++) {
-    if (!IsPlayer(i)) {
-      continue;
-    }
-
-    if (!g_RunningRepeatedCommand[i]) {
-      continue;
-    }
-
-    for (int j = 0; j < g_RunningRoundRepeatedCommandDelay[i].Length; j++) {
-      float delay = g_RunningRoundRepeatedCommandDelay[i].Get(j);
+public void FreezeEnd_RoundRepeat(int client) {
+  if (g_RunningRepeatedCommand[client]) {
+    for (int i = 0; i < g_RunningRoundRepeatedCommandDelay[client].Length; i++) {
+      float delay = g_RunningRoundRepeatedCommandDelay[client].Get(i);
       char cmd[256];
-      g_RunningRoundRepeatedCommandArg[i].GetString(j, cmd, sizeof(cmd));
+      g_RunningRoundRepeatedCommandArg[client].GetString(i, cmd, sizeof(cmd));
       DataPack p = new DataPack();
-      p.WriteCell(GetClientSerial(i));
+      p.WriteCell(GetClientSerial(client));
       p.WriteString(cmd);
       CreateTimer(delay, Timer_RoundRepeatCommand, p);
     }
   }
-
-  return Plugin_Handled;
 }
 
 public Action Timer_RoundRepeatCommand(Handle timer, DataPack p) {
