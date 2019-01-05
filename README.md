@@ -95,17 +95,6 @@ All of the following commands can only be used on _your_ grenades. They will app
 - ``.savebots``: saves all current bots to a file
 - ``.loadbots``: loads bots from the file (written by the last ``.savebots``)
 
-### Bot replay commands
-**Note:** bot replay support is currently a work in progress. It's not ready for general use yet. Installing the [dhooks extension](http://users.alliedmods.net/~drifter/builds/dhooks/2.2/) is also a good idea if you plan using these commands.
-
-- ``.replays``: opens replay mode menu
-- ``.replay``: opens the replay mode menu, or the last replay/role menu you had open
-- ``.namereplay``: names the replay you're currently working on
-- ``.namerole``: names the role you're currently working on
-- ``.finish``: finishes and saves current recording
-- ``.cancel``: cancels current replay/recording
-- ``.play <id> [role]``: plays a replay id (all the roles), or a single role from a replay
-
 ### Miscellaneous commands
 - ``.timer``: starts a timer when you start moving in any direction, and stops it when you stop moving, telling you the duration of time between starting/stopping
 - ``.timer2``: starts a timer immediately and stops it when you type .timer2 again, telling you the duration of time
@@ -122,6 +111,18 @@ All of the following commands can only be used on _your_ grenades. They will app
 - ``.break``: breaks all func_breakable entities (most windows)
 - ``.stop``: cancels a current action (this can stop many things: the .flash command, the .repeat command, and the .timer command)
 - ``.spec``, ``.t``, ``.ct``: joins a team
+
+### Bot replay commands
+**Note:** bot replay support is currently a work in progress. It's not ready for general use yet. Installing the [dhooks extension](http://users.alliedmods.net/~drifter/builds/dhooks/2.2/) is also a good idea if you plan using these commands. Expect random crashes if you use these.
+
+- ``.replays``: opens replay mode menu
+- ``.replay``: opens the replay mode menu, or the last replay/role menu you had open
+- ``.namereplay``: names the replay you're currently working on
+- ``.namerole``: names the role you're currently working on
+- ``.finish``: finishes and saves current recording
+- ``.cancel``: cancels current replay/recording
+- ``.play <id> [role]``: plays a replay id (all the roles), or a single role from a replay
+
 
 Also see the [notes for power users](https://github.com/splewis/csgo-practice-mode/wiki/Notes-for-power-users) for more detail on using these commands effectively.
 
