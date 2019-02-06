@@ -6,6 +6,7 @@
 #include <sdktools>
 #include <smlib>
 #include <sourcemod>
+#include <dbi>
 
 #undef REQUIRE_PLUGIN
 #include "include/botmimic.inc"
@@ -82,6 +83,7 @@ ConVar g_GrenadeSpecTimeCvar;
 // Other cvars.
 ConVar g_FlashEffectiveThresholdCvar;
 ConVar g_TestFlashTeleportDelayCvar;
+ConVar g_UseDatabaseCvar;
 ConVar g_VersionCvar;
 
 // Saved grenade locations data
@@ -210,6 +212,8 @@ enum UserSetting {
 Handle g_UserSettingCookies[UserSetting_NumSettings];
 bool g_UserSettingDefaults[UserSetting_NumSettings];
 char g_UserSettingDisplayName[UserSetting_NumSettings][USERSETTING_DISPLAY_LENGTH];
+
+Database g_Database = null;
 
 // Forwards
 Handle g_OnGrenadeSaved = INVALID_HANDLE;
@@ -595,6 +599,9 @@ public void OnPluginStart() {
 
     RegConsoleCmd("sm_break", Command_Break);
     PM_AddChatAlias(".break", "sm_break");
+
+    RegConsoleCmd("sm_test_database", Command_TestDatabaseConnection);
+    PM_AddChatAlias(".testdb", "sm_test_database");
   }
 
   // New Plugin cvars
@@ -627,6 +634,9 @@ public void OnPluginStart() {
   g_FastfowardRequiresZeroVolumeCvar = CreateConVar(
       "sm_practicemode_fastforward_requires_zero_volume", "1",
       "Whether all players must have a very low volume to allow the .ff command to be used.");
+
+  g_UseDatabaseCvar = CreateConVar("sm_practicemode_use_database", "0",
+      "When set to 1, enables grenade database import/export menu options.");
 
   g_VersionCvar = CreateConVar("sm_practicemode_version", PLUGIN_VERSION,
                                "Current practicemode version", FCVAR_NOTIFY | FCVAR_DONTRECORD);
@@ -1585,4 +1595,23 @@ public void CSU_OnThrowGrenade(int client, int entity, GrenadeType grenadeType, 
   g_LastGrenadeOrigin[client] = origin;
   g_LastGrenadeVelocity[client] = velocity;
   Replays_OnThrowGrenade(client, entity, grenadeType, origin, velocity);
+}
+
+public void GetDatabaseConnection() {
+  if (g_UseDatabaseCvar.IntValue == 0) {
+    return;
+  }
+
+  char error[255];
+  Database db = SQL_DefConnect(error, sizeof(error));
+   
+  if (db == null)
+  {
+    PrintToServer("Could not connect to 'default' database (sourcemod/config/database.cfg): %s", error);
+  } 
+  else 
+  {
+    PrintToServer("Connected to external database...");
+    g_Database = db;
+  }
 }

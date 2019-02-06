@@ -586,3 +586,18 @@ public Action Command_Break(int client, int args) {
   PM_MessageToAll("Broke all breakable entities.");
   return Plugin_Handled;
 }
+
+public Action Command_TestDatabaseConnection(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  if (!GetCvarIntSafe("sm_practicemode_use_database")) {
+    PM_Message(client, ".testdb requires sm_practicemode_use_database to be enabled.");
+    return Plugin_Handled;
+  }
+
+  GetDatabaseConnection();
+
+  return Plugin_Handled;
+}
