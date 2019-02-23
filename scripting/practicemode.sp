@@ -240,6 +240,7 @@ Handle g_OnPracticeModeSettingsRead = INVALID_HANDLE;
 #include "practicemode/grenade_filters.sp"
 #include "practicemode/grenade_menus.sp"
 #include "practicemode/grenade_utils.sp"
+#include "practicemode/grenade_mysql.sp"
 #include "practicemode/natives.sp"
 #include "practicemode/pugsetup_integration.sp"
 #include "practicemode/settings_menu.sp"
@@ -602,6 +603,12 @@ public void OnPluginStart() {
 
     RegConsoleCmd("sm_test_database", Command_TestDatabaseConnection);
     PM_AddChatAlias(".testdb", "sm_test_database");
+
+    RegConsoleCmd("sm_export_grenades_to_database", Command_ExportGrenadesToDatabase);
+    PM_AddChatAlias(".exportdb", "sm_export_grenades_to_database");
+
+    RegConsoleCmd("sm_import_grenades_from_database", Command_ImportGrenadesFromDatabase);
+    PM_AddChatAlias(".importdb", "sm_import_grenades_from_database");
   }
 
   // New Plugin cvars
@@ -1595,23 +1602,4 @@ public void CSU_OnThrowGrenade(int client, int entity, GrenadeType grenadeType, 
   g_LastGrenadeOrigin[client] = origin;
   g_LastGrenadeVelocity[client] = velocity;
   Replays_OnThrowGrenade(client, entity, grenadeType, origin, velocity);
-}
-
-public void GetDatabaseConnection() {
-  if (g_UseDatabaseCvar.IntValue == 0) {
-    return;
-  }
-
-  char error[255];
-  Database db = SQL_DefConnect(error, sizeof(error));
-   
-  if (db == null)
-  {
-    PrintToServer("Could not connect to 'default' database (sourcemod/config/database.cfg): %s", error);
-  } 
-  else 
-  {
-    PrintToServer("Connected to external database...");
-    g_Database = db;
-  }
 }

@@ -224,6 +224,72 @@ stock int SaveGrenadeToKv(int client, const float origin[3], const float angles[
   return g_NextID - 1;
 }
 
+stock int SaveGrenadeFromDatabase(const char[] idStr, const char[] auth, 
+                                  const char[] clientName, const char[] origin, const char[] angles,
+                                  const char[] grenadeOrigin = "", const char[] grenadeVelocity = "",
+                                  const char[] grenadeTypeString, const char[] name, const char[] description = "",
+                                  const char[] categoryString = "") {
+
+  g_UpdatedGrenadeKv = true;
+
+  g_GrenadeLocationsKv.JumpToKey(auth, true);
+  g_GrenadeLocationsKv.SetString("name", clientName);
+
+  g_GrenadeLocationsKv.JumpToKey(idStr, true);
+
+  g_GrenadeLocationsKv.SetString("name", name);
+
+  char num[3][PLATFORM_MAX_PATH];
+  float pOrigin[3];
+  float pAngles[3]; 
+
+  ExplodeString(origin, " ", num, sizeof(num), PLATFORM_MAX_PATH);
+  pOrigin[0] = StringToFloat(num[0]);
+  pOrigin[1] = StringToFloat(num[1]);
+  pOrigin[2] = StringToFloat(num[2]);
+  g_GrenadeLocationsKv.SetVector("origin", pOrigin);
+
+  ExplodeString(angles, " ", num, sizeof(num), PLATFORM_MAX_PATH);
+  pAngles[0] = StringToFloat(num[0]);
+  pAngles[1] = StringToFloat(num[1]);
+  pAngles[2] = StringToFloat(num[2]);
+  g_GrenadeLocationsKv.SetVector("angles", pAngles);
+  
+  if (!StrEqual(grenadeTypeString, "")) {
+    g_GrenadeLocationsKv.SetString("grenadeType", grenadeTypeString);
+  }
+
+  if (!StrEqual(grenadeOrigin, "")) {
+    float gOrigin[3];
+    ExplodeString(grenadeOrigin, " ", num, sizeof(num), PLATFORM_MAX_PATH);
+    gOrigin[0] = StringToFloat(num[0]);
+    gOrigin[1] = StringToFloat(num[1]);
+    gOrigin[2] = StringToFloat(num[2]);
+    //PrintToServer("%s = grenadeOrigin", grenadeOrigin);
+    //PrintToServer("%s, %s, %s", num[0], num[1], num[2]);
+    //PrintToServer("%.6f, %.6f, %.6f", gOrigin[0], gOrigin[1], gOrigin[2]);
+    g_GrenadeLocationsKv.SetVector("grenadeOrigin", gOrigin);
+  }
+
+  if (!StrEqual(grenadeVelocity, "")) {
+    float gVelocity[3];
+    ExplodeString(grenadeVelocity, " ", num, sizeof(num), PLATFORM_MAX_PATH);
+    gVelocity[0] = StringToFloat(num[0]);
+    gVelocity[1] = StringToFloat(num[1]);
+    gVelocity[2] = StringToFloat(num[2]);
+    g_GrenadeLocationsKv.SetVector("grenadeVelocity", gVelocity);
+  }
+
+  g_GrenadeLocationsKv.SetString("description", description);
+  g_GrenadeLocationsKv.SetString("categories", categoryString);
+
+  g_GrenadeLocationsKv.GoBack();
+  g_GrenadeLocationsKv.GoBack();
+  g_NextID = StringToInt(idStr);
+  g_NextID++;
+  return g_NextID - 1;
+}
+
 public bool DeleteGrenadeFromKv(const char[] nadeIdStr) {
   g_UpdatedGrenadeKv = true;
   char auth[AUTH_LENGTH];

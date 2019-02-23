@@ -7,7 +7,7 @@ typedef GrenadeIteratorFunction = function Action(
 // TODO: this should be able to modify the grenade strings as well,
 // so name, description, and grenadeId shouldn't be const.
 // For now only 'origin' and 'angles' can be updated.
-// TODO: this shoudl also just pass the category string, and a good helper function should be
+// TODO: this should also just pass the category string, and a good helper function should be
 // available to convert it to an ArrayList.
 stock void IterateGrenades(GrenadeIteratorFunction f, any data = 0) {
   char ownerName[MAX_NAME_LENGTH];

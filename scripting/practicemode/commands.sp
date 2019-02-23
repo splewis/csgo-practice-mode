@@ -593,11 +593,60 @@ public Action Command_TestDatabaseConnection(int client, int args) {
   }
 
   if (!GetCvarIntSafe("sm_practicemode_use_database")) {
-    PM_Message(client, ".testdb requires sm_practicemode_use_database to be enabled.");
+    PM_Message(client, "sm_test_database (.testdb) requires sm_practicemode_use_database to be enabled.");
     return Plugin_Handled;
   }
 
   GetDatabaseConnection();
+  CloseDatabaseConnection();
+
+  return Plugin_Handled;
+}
+
+public Action Command_ExportGrenadesToDatabase(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  if (!GetCvarIntSafe("sm_practicemode_use_database")) {
+    PM_Message(client, "sm_export_grenades_to_database (.exportdb) requires sm_practicemode_use_database to be enabled.");
+    return Plugin_Handled;
+  }
+
+  char tableName[PLATFORM_MAX_PATH];
+  if (args >= 1 && GetCmdArg(1, tableName, sizeof(tableName))) {
+    ExportGrenadesToDatabase(tableName);
+  } else {
+    //Set tableName to default if no argument provided.
+    char map[PLATFORM_MAX_PATH];
+    GetCleanMapName(map, sizeof(map));
+    Format(tableName, sizeof(tableName), "%s_grenades", map);
+    ExportGrenadesToDatabase(tableName);
+  }
+
+  return Plugin_Handled;
+}
+
+public Action Command_ImportGrenadesFromDatabase(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  if (!GetCvarIntSafe("sm_practicemode_use_database")) {
+    PM_Message(client, "sm_import_grenades_from_database (.importdb) requires sm_practicemode_use_database to be enabled.");
+    return Plugin_Handled;
+  }
+
+  char tableName[PLATFORM_MAX_PATH];
+  if (args >= 1 && GetCmdArg(1, tableName, sizeof(tableName))) {
+    ImportGrenadesFromDatabase(tableName);
+  } else {
+    //Set tableName to default if no argument provided.
+    char map[PLATFORM_MAX_PATH];
+    GetCleanMapName(map, sizeof(map));
+    Format(tableName, sizeof(tableName), "%s_grenades", map);
+    ImportGrenadesFromDatabase(tableName);
+  }
 
   return Plugin_Handled;
 }
