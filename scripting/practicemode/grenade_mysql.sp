@@ -1,5 +1,5 @@
 public void GetDatabaseConnection() {
-  if (g_UseDatabaseCvar.IntValue == 0) {
+  if (!g_UseDatabaseCvar.BoolValue) {
     return;
   }
 
@@ -18,7 +18,7 @@ public void GetDatabaseConnection() {
 }
 
 public void CloseDatabaseConnection() {
-  if (g_UseDatabaseCvar.IntValue == 0 || g_Database == null) {
+  if (!g_UseDatabaseCvar.BoolValue || g_Database == null) {
     return;
   }
 
@@ -29,7 +29,7 @@ public void CloseDatabaseConnection() {
 }
 
 public void ExportGrenadesToDatabase(const char[] tableName) {
-  if (!g_InPracticeMode || g_UseDatabaseCvar.IntValue == 0 ) {
+  if (!g_InPracticeMode || !g_UseDatabaseCvar.BoolValue ) {
     return;
   }
 
@@ -177,7 +177,7 @@ DBStatement selectUsersQuery = null;
 public bool ImportGrenadesFromDatabase(const char[] tableName)
 {
 
-  if (!g_InPracticeMode || g_UseDatabaseCvar.IntValue == 0 ) {
+  if (!g_InPracticeMode || !g_UseDatabaseCvar.BoolValue ) {
     return false;
   }
 
