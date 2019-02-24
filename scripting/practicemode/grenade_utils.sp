@@ -265,9 +265,6 @@ stock int SaveGrenadeFromDatabase(const char[] idStr, const char[] auth,
     gOrigin[0] = StringToFloat(num[0]);
     gOrigin[1] = StringToFloat(num[1]);
     gOrigin[2] = StringToFloat(num[2]);
-    //PrintToServer("%s = grenadeOrigin", grenadeOrigin);
-    //PrintToServer("%s, %s, %s", num[0], num[1], num[2]);
-    //PrintToServer("%.6f, %.6f, %.6f", gOrigin[0], gOrigin[1], gOrigin[2]);
     g_GrenadeLocationsKv.SetVector("grenadeOrigin", gOrigin);
   }
 

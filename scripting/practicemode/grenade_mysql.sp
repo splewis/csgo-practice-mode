@@ -8,7 +8,7 @@ public void GetDatabaseConnection() {
    
   if (db == null)
   {
-    PrintToServer("Could not connect to 'default' database (sourcemod/config/database.cfg): %s", error);
+    LogError("Could not connect to 'default' database (sourcemod/config/database.cfg): %s", error);
   } 
   else 
   {
@@ -75,7 +75,7 @@ public void ExportGrenadesToDatabase(const char[] tableName) {
   if (!SQL_FastQuery(g_Database, query)) {
     char error[255];
     SQL_GetError(g_Database, error, sizeof(error));
-    PrintToServer("Failed to create table for %s (error: %s)", tableName, error);
+    LogError("Failed to create table for %s (error: %s)", tableName, error);
   }
 
   //Begin massive looping
@@ -117,7 +117,6 @@ public void ExportGrenadesToDatabase(const char[] tableName) {
 
 }
 
-DBStatement exportQuery = null;
 //Upsert = atomically either insert a row, or on the basis of the row already existing, UPDATE that existing row instead
 static void UpsertGrenade(const char[] tableName, const char[] steamId, const char[] steamName, int grenadeId, const char[] name, const char[] categories, const char[] origin, const char[] angles, 
   const char[] grenadeType, const char[] grenadeOrigin, const char[] grenadeVelocity, const char[] description ) {
@@ -126,6 +125,7 @@ static void UpsertGrenade(const char[] tableName, const char[] steamId, const ch
     return;
   }
 
+  static DBStatement exportQuery = null;
   char error[255];
   char query[5000];
 
@@ -133,17 +133,12 @@ static void UpsertGrenade(const char[] tableName, const char[] steamId, const ch
     ... "steamId, steamName, grenadeId, name, categories, origin, angles, grenadeType, grenadeOrigin, grenadeVelocity, description"
     ... ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE steamId = ?, steamName = ?, grenadeId = ?, name = ?, categories = ?, origin = ?, angles = ?, grenadeType = ?, "
     ... "grenadeOrigin = ?, grenadeVelocity = ?, description = ?;", tableName);
-  //PrintToServer(query);
   if (exportQuery == null) {
     exportQuery = SQL_PrepareQuery(g_Database, query, error, sizeof(error));
     if (exportQuery == null) {
-      PrintToServer("Failed to prepare export query (error: %s)", error);
+      LogError("Failed to prepare export query (error: %s)", error);
     }
   }
-
-  //PrintToServer("(%s, %s, %i, %s, %s, %s, %s, %s, %s, %s)", steamId, steamName, StringToInt(grenadeId), name, origin, angles, grenadeType, grenadeOrigin, grenadeVelocity, description );
-  //PrintToServer("(steamId = %s, steamName = %s, grenadeId = %i, name = %s, origin = %s, angles = %s, grenadeType = %s, grenadeOrigin = %s, grenadeVelocity = %s, description = %s)", steamId, steamName, grenadeId, name, origin, angles, grenadeType, grenadeOrigin, grenadeVelocity, description );
-
 
   //22 params to bind starting at index 0
   //We prepare and bind everything because SQL injection isn't fun.
@@ -173,7 +168,7 @@ static void UpsertGrenade(const char[] tableName, const char[] steamId, const ch
   if (!SQL_Execute(exportQuery))
   {
     SQL_GetError(g_Database, error, sizeof(error));
-    PrintToServer("Failed to execute export SQL (error: %s)", error);
+    LogError("Failed to execute export SQL (error: %s)", error);
   }
 
 }
@@ -190,10 +185,6 @@ public bool ImportGrenadesFromDatabase(const char[] tableName)
     GetDatabaseConnection();
   }
 
-  //if (g_Database == null) {
-  //  PrintToServer("No database connection open.");
-  //  return false;
-  //}
   char query[255];
   Format(query, sizeof(query), "SELECT * FROM %s;", tableName);
 
@@ -206,16 +197,16 @@ public bool ImportGrenadesFromDatabase(const char[] tableName)
       sizeof(error))) 
          == null)
     {
-      PrintToServer("Failed to prepare export query (error: %s)", error);
+      LogError("Failed to prepare export query (error: %s)", error);
       CloseDatabaseConnection();
       return false;
     }
   }
  
-  //SQL_BindParamString(selectUsersQuery, 0, tableName, false);
+
   if (!SQL_Execute(selectUsersQuery))
   {
-    PrintToServer("Failed to execute query.");
+    LogError("Failed to execute query.");
     CloseDatabaseConnection();
     return false;
   }

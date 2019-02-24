@@ -592,7 +592,7 @@ public Action Command_TestDatabaseConnection(int client, int args) {
     return Plugin_Handled;
   }
 
-  if (!GetCvarIntSafe("sm_practicemode_use_database")) {
+  if (!g_UseDatabaseCvar.BoolValue) {
     PM_Message(client, "sm_test_database (.testdb) requires sm_practicemode_use_database to be enabled.");
     return Plugin_Handled;
   }
@@ -608,7 +608,7 @@ public Action Command_ExportGrenadesToDatabase(int client, int args) {
     return Plugin_Handled;
   }
 
-  if (!GetCvarIntSafe("sm_practicemode_use_database")) {
+  if (!g_UseDatabaseCvar.BoolValue) {
     PM_Message(client, "sm_export_grenades_to_database (.exportdb) requires sm_practicemode_use_database to be enabled.");
     return Plugin_Handled;
   }
@@ -632,7 +632,7 @@ public Action Command_ImportGrenadesFromDatabase(int client, int args) {
     return Plugin_Handled;
   }
 
-  if (!GetCvarIntSafe("sm_practicemode_use_database")) {
+  if (!g_UseDatabaseCvar.BoolValue) {
     PM_Message(client, "sm_import_grenades_from_database (.importdb) requires sm_practicemode_use_database to be enabled.");
     return Plugin_Handled;
   }
