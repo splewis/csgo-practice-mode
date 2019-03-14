@@ -481,8 +481,21 @@ public Action Command_SaveBots(int client, int args) {
 
   char mapName[PLATFORM_MAX_PATH];
   GetCleanMapName(mapName, sizeof(mapName));
+
   char path[PLATFORM_MAX_PATH];
-  BuildPath(Path_SM, path, sizeof(path), "data/practicemode/bots/%s.cfg", mapName);
+
+  char fileName[PLATFORM_MAX_PATH];
+  /* This is setup to support the default method of loading bots */
+  if(args > 0 && GetCmdArg(1, fileName, sizeof(fileName)) != 0) {
+    if(!IsValidFileName(fileName)) {
+      ReplyToCommand(client, "Invalid: Permitted characters (A-Za-z._-)");
+      return Plugin_Handled;
+    }
+    BuildPath(Path_SM, path, sizeof(path), "data/practicemode/bots/%s_%s.cfg", mapName, fileName);
+  } else {
+    BuildPath(Path_SM, path, sizeof(path), "data/practicemode/bots/%s.cfg", mapName);
+  }
+
   KeyValues botsKv = new KeyValues("Bots");
 
   int output_index = 0;
@@ -521,14 +534,31 @@ public Action Command_LoadBots(int client, int args) {
   if (!g_InPracticeMode) {
     return Plugin_Handled;
   }
-
   char mapName[PLATFORM_MAX_PATH];
   GetCleanMapName(mapName, sizeof(mapName));
+
   char path[PLATFORM_MAX_PATH];
-  BuildPath(Path_SM, path, sizeof(path), "data/practicemode/bots/%s.cfg", mapName);
+
+  char fileName[PLATFORM_MAX_PATH];
+  /* This is setup to support the default method of loading bots */
+  if(args > 0 && GetCmdArg(1, fileName, sizeof(fileName)) != 0) {
+    if(!IsValidFileName(fileName)) {
+      ReplyToCommand(client, "Invalid: Permitted characters (A-Za-z._-)");
+      return Plugin_Handled;
+    }
+    BuildPath(Path_SM, path, sizeof(path), "data/practicemode/bots/%s_%s.cfg", mapName, fileName);
+  } else {
+    BuildPath(Path_SM, path, sizeof(path), "data/practicemode/bots/%s.cfg", mapName);
+  }
 
   KeyValues botsKv = new KeyValues("Bots");
-  botsKv.ImportFromFile(path);
+
+  if(!botsKv.ImportFromFile(path)) {
+    delete botsKv;
+    ReplyToCommand(client, "Invalid: Unable to load setup %s", fileName);
+    return Plugin_Handled;
+  }
+
   botsKv.GotoFirstSubKey();
 
   do {
@@ -549,6 +579,76 @@ public Action Command_LoadBots(int client, int args) {
 
   delete botsKv;
   PM_MessageToAll("Loaded bot spawns.");
+  return Plugin_Handled;
+}
+
+public Action Command_ListSetups(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  char mapName[PLATFORM_MAX_PATH];
+  GetCleanMapName(mapName, sizeof(mapName));
+
+  char path[PLATFORM_MAX_PATH];
+
+  BuildPath(Path_SM, path, sizeof(path), "data/practicemode/bots/");
+
+  DirectoryListing dirList = OpenDirectory(path);
+
+  char fileName[PLATFORM_MAX_PATH];
+
+  int mapNameLength = strlen(mapName);
+
+  ReplyToCommand(client, "List of Bot Setups");
+  ReplyToCommand(client, "------------------");
+
+  while(dirList.GetNext(fileName, sizeof(fileName))) {
+    int fileNameLength = strlen(fileName);
+    if(String_StartsWith(fileName, mapName)) {
+      char responseName[PLATFORM_MAX_PATH];
+      int j = 0;
+      for(int i = (mapNameLength+1);i < (fileNameLength - 4);i++) {
+         responseName[j++] = fileName[i];
+      }
+      if(strlen(responseName) != 0) {
+        ReplyToCommand(client, "%s", responseName);
+      }
+    }
+  }
+
+  ReplyToCommand(client, "------------------");
+
+  return Plugin_Handled;
+}
+
+public Action Command_RemoveBotSetup(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  char mapName[PLATFORM_MAX_PATH];
+  GetCleanMapName(mapName, sizeof(mapName));
+
+  char path[PLATFORM_MAX_PATH];
+
+  char fileName[PLATFORM_MAX_PATH];
+  /* This is setup to support the default method of loading bots */
+  if(args > 0 && GetCmdArg(1, fileName, sizeof(fileName)) != 0) {
+    if(!IsValidFileName(fileName)) {
+      ReplyToCommand(client, "Invalid: Permitted characters (A-Za-z._-)");
+      return Plugin_Handled;
+    }
+    BuildPath(Path_SM, path, sizeof(path), "data/practicemode/bots/%s_%s.cfg", mapName, fileName);
+    if(FileExists(path)) {
+        DeleteFile(path);
+        ReplyToCommand(client, "Setup deleted successfully");
+    } else {
+        ReplyToCommand(client, "Invalid: Setup not found");
+    }
+  } else {
+    ReplyToCommand(client, "Invalid: Must provide a setup name");
+  }
   return Plugin_Handled;
 }
 
