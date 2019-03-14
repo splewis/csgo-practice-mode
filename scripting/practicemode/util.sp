@@ -14,6 +14,8 @@ static char _colorNames[][] = {"{NORMAL}", "{DARK_RED}",    "{PINK}",      "{GRE
 static char _colorCodes[][] = {"\x01", "\x02", "\x03", "\x04", "\x05", "\x06",
                                "\x07", "\x08", "\x09", "\x0B", "\x0C", "\x0E"};
 
+static char _validFileNameCharacters[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_.";
+
 stock void SwitchPlayerTeam(int client, int team) {
   if (GetClientTeam(client) == team)
     return;
@@ -413,4 +415,35 @@ stock int RemoveDuplicates(ArrayList list, int stringLength) {
     }
   }
   return count;
+}
+
+stock bool IsValidFileName(char[] fileName, int length) {
+  int testLength = sizeof(_validFileNameCharacters);
+  bool inNullBytes = false;
+  for (int i = 0; i < length; i++) {
+    if(!inNullBytes && StrEqual(fileName[i], "\0")) {
+      if(i == 0) {
+        return false;
+      }
+      inNullBytes = true;
+    }
+    if(inNullBytes) {
+      if(!StrEqual(fileName[i], "\0")) {
+        return false;
+      }
+    } else {
+      bool valid = false;
+      for(int j = 0; j < testLength; j++) {
+        if(StrEqual(_validFileNameCharacters[j], fileName[i])) {
+            valid = true;
+            break;
+        }
+      }
+      if(!valid) {
+        return false;
+      }
+    }
+
+  }
+  return true;
 }

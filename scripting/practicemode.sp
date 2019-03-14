@@ -417,6 +417,9 @@ public void OnPluginStart() {
     RegConsoleCmd("sm_loadbots", Command_LoadBots);
     PM_AddChatAlias(".loadbots", "sm_loadbots");
 
+    RegConsoleCmd("sm_botsetups", Command_ListSetups);
+    PM_AddChatAlias(".botsetups", "sm_botsetups");
+
     RegConsoleCmd("sm_botsmenu", Command_BotsMenu);
     PM_AddChatAlias(".bots", "sm_botsmenu");
   }
