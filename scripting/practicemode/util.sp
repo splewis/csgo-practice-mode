@@ -419,11 +419,14 @@ stock int RemoveDuplicates(ArrayList list, int stringLength) {
 
 stock bool IsValidFileName(char[] fileName) {
   int i = 0;
-  while(fileName[i] != '\0' && i < 33) {
-      char c = fileName[i++]
-      if(FindCharInString(_validFileNameCharacters, c) == -1) {
-          return false;
-      }
+  while(fileName[i] != '\0') {
+    if(i > 31) {
+      return false
+    }
+    char c = fileName[i++]
+    if(FindCharInString(_validFileNameCharacters, c) == -1) {
+      return false;
+    }
   }
   return true;
 }
