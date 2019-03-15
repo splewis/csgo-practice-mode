@@ -491,6 +491,10 @@ public Action Command_SaveBots(int client, int args) {
       ReplyToCommand(client, "Invalid: Permitted characters (A-Za-z._-)");
       return Plugin_Handled;
     }
+    if(strlen(fileName) > 32) {
+      ReplyToCommand(client, "Invalid: Max name length 32");
+      return Plugin_Handled;
+    }
     BuildPath(Path_SM, path, sizeof(path), "data/practicemode/bots/%s_%s.cfg", mapName, fileName);
   } else {
     BuildPath(Path_SM, path, sizeof(path), "data/practicemode/bots/%s.cfg", mapName);
@@ -544,6 +548,10 @@ public Action Command_LoadBots(int client, int args) {
   if(args > 0 && GetCmdArg(1, fileName, sizeof(fileName)) != 0) {
     if(!IsValidFileName(fileName)) {
       ReplyToCommand(client, "Invalid: Permitted characters (A-Za-z._-)");
+      return Plugin_Handled;
+    }
+    if(strlen(fileName) > 32) {
+      ReplyToCommand(client, "Invalid: Max name length 32");
       return Plugin_Handled;
     }
     BuildPath(Path_SM, path, sizeof(path), "data/practicemode/bots/%s_%s.cfg", mapName, fileName);
@@ -637,6 +645,10 @@ public Action Command_RemoveBotSetup(int client, int args) {
   if(args > 0 && GetCmdArg(1, fileName, sizeof(fileName)) != 0) {
     if(!IsValidFileName(fileName)) {
       ReplyToCommand(client, "Invalid: Permitted characters (A-Za-z._-)");
+      return Plugin_Handled;
+    }
+    if(strlen(fileName) > 32) {
+      ReplyToCommand(client, "Invalid: Max name length 32");
       return Plugin_Handled;
     }
     BuildPath(Path_SM, path, sizeof(path), "data/practicemode/bots/%s_%s.cfg", mapName, fileName);
