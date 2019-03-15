@@ -485,7 +485,7 @@ public Action Command_SaveBots(int client, int args) {
   char path[PLATFORM_MAX_PATH];
 
   char fileName[PLATFORM_MAX_PATH];
-  /* This is setup to support the default method of loading bots */
+
   if(args > 0 && GetCmdArg(1, fileName, sizeof(fileName)) != 0) {
     if(!IsValidFileName(fileName)) {
       ReplyToCommand(client, "Invalid: Permitted characters (A-Za-z._-)");
@@ -540,7 +540,7 @@ public Action Command_LoadBots(int client, int args) {
   char path[PLATFORM_MAX_PATH];
 
   char fileName[PLATFORM_MAX_PATH];
-  /* This is setup to support the default method of loading bots */
+
   if(args > 0 && GetCmdArg(1, fileName, sizeof(fileName)) != 0) {
     if(!IsValidFileName(fileName)) {
       ReplyToCommand(client, "Invalid: Permitted characters (A-Za-z._-)");
@@ -633,7 +633,7 @@ public Action Command_RemoveBotSetup(int client, int args) {
   char path[PLATFORM_MAX_PATH];
 
   char fileName[PLATFORM_MAX_PATH];
-  /* This is setup to support the default method of loading bots */
+
   if(args > 0 && GetCmdArg(1, fileName, sizeof(fileName)) != 0) {
     if(!IsValidFileName(fileName)) {
       ReplyToCommand(client, "Invalid: Permitted characters (A-Za-z._-)");
