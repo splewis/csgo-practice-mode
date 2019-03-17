@@ -284,7 +284,6 @@ public void OnPluginStart() {
   HookEvent("flashbang_detonate", Event_FlashDetonate);
   HookEvent("smokegrenade_detonate", Event_SmokeDetonate);
   HookEvent("player_blind", Event_PlayerBlind);
-  HookEvent("player_death", Event_PlayerDeath);
 
   for (int i = 0; i <= MAXPLAYERS; i++) {
     g_GrenadeHistoryPositions[i] = new ArrayList(3);
