@@ -262,9 +262,10 @@ public Action Command_SaveGrenade(int client, int args) {
     return Plugin_Handled;
   }
 
-  if (CountGrenadesForPlayer(auth) >= g_MaxGrenadesSavedCvar.IntValue) {
+  int max_saved_grenades = g_MaxGrenadesSavedCvar.IntValue;
+  if (max_saved_grenades > 0 && CountGrenadesForPlayer(auth) >= max_saved_grenades) {
     PM_Message(client, "You have reached the maximum number of grenades you can save (%d).",
-               g_MaxGrenadesSavedCvar.IntValue);
+               max_saved_grenades);
     return Plugin_Handled;
   }
 

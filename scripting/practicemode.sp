@@ -605,11 +605,12 @@ public void OnPluginStart() {
                                  "Whether the plugin is automatically started on mapstart");
   g_DryRunFreezeTimeCvar = CreateConVar("sm_practicemode_dry_run_freeze_time", "6",
                                         "Freezetime after running the .dryrun command.");
-  g_MaxHistorySizeCvar =
-      CreateConVar("sm_practicemode_max_grenade_history_size", "50000",
-                   "Maximum number of grenades throws saved in history per-client");
-  g_MaxGrenadesSavedCvar = CreateConVar("sm_practicemode_max_grenades_saved", "512",
-                                        "Maximum number of grenades saved per-map per-client");
+  g_MaxHistorySizeCvar = CreateConVar(
+      "sm_practicemode_max_grenade_history_size", "50000",
+      "Maximum number of previous grenade throws saved in temporary history per-client. The temporary history is reset every map change. Set to 0 to disable.");
+  g_MaxGrenadesSavedCvar = CreateConVar(
+      "sm_practicemode_max_grenades_saved", "512",
+      "Maximum number of grenades that may be saved per-map, per-client. Set to 0 to disable.");
   g_PracModeCanBeStartedCvar =
       CreateConVar("sm_practicemode_can_be_started", "1", "Whether practicemode may be started");
   g_SharedAllNadesCvar = CreateConVar(

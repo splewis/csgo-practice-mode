@@ -261,7 +261,8 @@ public bool FindTargetNameByAuth(const char[] inputAuth, char[] name, int nameLe
 }
 
 public void AddGrenadeToHistory(int client) {
-  if (GetArraySize(g_GrenadeHistoryPositions[client]) >= g_MaxHistorySizeCvar.IntValue) {
+  int max_grenades = g_MaxHistorySizeCvar.IntValue;
+  if (max_grenades > 0 && GetArraySize(g_GrenadeHistoryPositions[client]) >= max_grenades) {
     RemoveFromArray(g_GrenadeHistoryPositions[client], 0);
     RemoveFromArray(g_GrenadeHistoryAngles[client], 0);
   }
