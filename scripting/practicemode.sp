@@ -179,6 +179,7 @@ enum GrenadeMenuType {
   GrenadeMenuType_OneCategory = 3,  // Note: empty category "" = all nades.
   GrenadeMenuType_MatchingName = 4,
   GrenadeMenuType_MatchingId = 5,
+  GrenadeMenuType_MultiCategory = 6,
 };
 
 // All the data we need to call GiveGrenadeMenu for a client to reopen the .nades menu
