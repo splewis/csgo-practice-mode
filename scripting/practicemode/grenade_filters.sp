@@ -64,6 +64,22 @@ stock GrenadeMenuType FindGrenades(const char[] input, ArrayList ids, char[] dat
     }
   }
 
+
+
+  // Try a AND-filter
+  if (StrContains(input, "&", false) != -1) {
+    if (FindGrenadesWithAndFilter(input, ids)) {
+      return GrenadeMenuType_MultiCategory;
+    }
+  }
+
+  // Try a OR-filter
+  if (StrContains(input, "|", false) != -1) {
+    if (FindGrenadesWithOrFilter(input, ids)) {
+      return GrenadeMenuType_MultiCategory;
+    }
+  }
+
   // Then try a category match.
   // data = category name.
 
@@ -87,6 +103,55 @@ stock GrenadeMenuType FindGrenades(const char[] input, ArrayList ids, char[] dat
   }
 
   return GrenadeMenuType_Invalid;
+}
+
+// Find grenades using an OR filter, using '|' as a separator
+public bool FindGrenadesWithOrFilter(const char[] input, ArrayList ids) {
+  char buffers[32][GRENADE_CATEGORY_LENGTH];
+  int count = ExplodeString(input, "|", buffers, 32, GRENADE_CATEGORY_LENGTH, true);
+
+  FindCategoryNades(buffers[0], ids);
+
+  for (int i = 1; i < count; i++) {
+    ArrayList nades = new ArrayList(GRENADE_CATEGORY_LENGTH);
+    FindCategoryNades(buffers[i], nades);
+    for (int j = 0; j < nades.Length; j++) {
+      char tmp[GRENADE_CATEGORY_LENGTH];
+      nades.GetString(j, tmp, GRENADE_CATEGORY_LENGTH);
+      if (ids.FindString(tmp) == -1) {
+        ids.PushString(tmp);
+      }
+    }
+  }
+
+  return ids.Length > 0;
+}
+
+// Find grenades using an AND filter, using '&' as a separator.
+public bool FindGrenadesWithAndFilter(const char[] input, ArrayList ids) {
+  char buffers[32][GRENADE_CATEGORY_LENGTH];
+  int count = ExplodeString(input, "&", buffers, 32, GRENADE_CATEGORY_LENGTH, true);
+
+  FindCategoryNades(buffers[0], ids);
+
+  for (int i = 1; i < count; i++) {
+    if (ids.Length == 0) {
+      break;
+    }
+    ArrayList nades = new ArrayList(GRENADE_CATEGORY_LENGTH);
+    FindCategoryNades(buffers[i], nades);
+    for (int j = 0; j < ids.Length;) {
+      char tmp[GRENADE_CATEGORY_LENGTH];
+      ids.GetString(j, tmp, GRENADE_CATEGORY_LENGTH);
+      if (nades.FindString(tmp) == -1) {
+        ids.Erase(j);
+      } else {
+        j++;
+      }
+    }
+  }
+
+  return ids.Length > 0;
 }
 
 public bool FindPlayerNades(const char[] auth, ArrayList ids) {
