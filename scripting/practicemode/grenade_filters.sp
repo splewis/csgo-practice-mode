@@ -64,8 +64,6 @@ stock GrenadeMenuType FindGrenades(const char[] input, ArrayList ids, char[] dat
     }
   }
 
-
-
   // Try a AND-filter
   if (StrContains(input, "&", false) != -1) {
     if (FindGrenadesWithAndFilter(input, ids)) {
@@ -107,8 +105,9 @@ stock GrenadeMenuType FindGrenades(const char[] input, ArrayList ids, char[] dat
 
 // Find grenades using an OR filter, using '|' as a separator
 public bool FindGrenadesWithOrFilter(const char[] input, ArrayList ids) {
-  char buffers[32][GRENADE_CATEGORY_LENGTH];
-  int count = ExplodeString(input, "|", buffers, 32, GRENADE_CATEGORY_LENGTH, true);
+  const int kMaxSplits = 32;
+  char buffers[kMaxSplits][GRENADE_CATEGORY_LENGTH];
+  int count = ExplodeString(input, "|", buffers, kMaxSplits, GRENADE_CATEGORY_LENGTH, true);
 
   FindCategoryNades(buffers[0], ids);
 
@@ -129,8 +128,9 @@ public bool FindGrenadesWithOrFilter(const char[] input, ArrayList ids) {
 
 // Find grenades using an AND filter, using '&' as a separator.
 public bool FindGrenadesWithAndFilter(const char[] input, ArrayList ids) {
-  char buffers[32][GRENADE_CATEGORY_LENGTH];
-  int count = ExplodeString(input, "&", buffers, 32, GRENADE_CATEGORY_LENGTH, true);
+  const int kMaxSplits = 32;
+  char buffers[kMaxSplits][GRENADE_CATEGORY_LENGTH];
+  int count = ExplodeString(input, "&", buffers, kMaxSplits, GRENADE_CATEGORY_LENGTH, true);
 
   FindCategoryNades(buffers[0], ids);
 
