@@ -92,8 +92,10 @@ All of the following commands can only be used on _your_ grenades. They will app
 - ``.movebot``: moves the last bot you placed to your current position
 - ``.nobot``: removes the bot you're aiming at (can also use ``.kickbot`` or ``.removebot``)
 - ``.nobots``: clears all bots (``.clearbots``, ``.removebots``, ``.kickbots`` also work)
-- ``.savebots``: saves all current bots to a file
-- ``.loadbots``: loads bots from the file (written by the last ``.savebots``)
+- ``.savebots <setup>``: saves all current bots to a file
+- ``.loadbots <setup>``: loads bots from the file
+- ``.botsetups``: list the setups available to load
+- ``.removebotsetup <setup>``: delete a saved setup
 
 ### Miscellaneous commands
 - ``.timer``: starts a timer when you start moving in any direction, and stops it when you stop moving, telling you the duration of time between starting/stopping
