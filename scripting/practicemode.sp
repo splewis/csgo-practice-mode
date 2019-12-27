@@ -59,6 +59,7 @@ ConVar g_MaxHistorySizeCvar;
 ConVar g_PracModeCanBeStartedCvar;
 ConVar g_SharedAllNadesCvar;
 ConVar g_FastfowardRequiresZeroVolumeCvar;
+ConVar g_MaxPlacedBotsCvar;
 
 // Infinite money data
 ConVar g_InfiniteMoneyCvar;
@@ -617,6 +618,8 @@ public void OnPluginStart() {
   g_SharedAllNadesCvar = CreateConVar(
       "sm_practicemode_share_all_nades", "0",
       "When set to 1, grenades aren't per-user; they are shared amongst all users that have grenade access. Grenades are not displayed by user, but displayed in 1 grouping. Anyone on the server can edit other users' grenades.");
+  g_MaxPlacedBotsCvar = CreateConVar("sm_practicemode_max_placed_bots", "25",
+                                     "Maximum number of static bots a single client may have placed at once.");
 
   g_FlashEffectiveThresholdCvar =
       CreateConVar("sm_practicemode_flash_effective_threshold", "2.0",

@@ -1,5 +1,13 @@
 stock int CreateBot(int client, bool forceCrouch, const char[] providedName = "",
                     int botTeam = CS_TEAM_NONE) {
+  if (g_ClientBots[client].Length >= g_MaxPlacedBotsCvar.IntValue) {
+    PM_Message(
+        client,
+        "You have too many bots (%d) added. Remove some with .deletebot or the .bots menu to add more.",
+        g_ClientBots[client].Length);
+    return -1;
+  }
+
   char name[MAX_NAME_LENGTH + 1];
   int botNumberTaken = -1;
   if (StrEqual(providedName, "")) {
