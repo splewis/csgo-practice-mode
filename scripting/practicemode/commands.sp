@@ -128,8 +128,6 @@ public Action Timer_DisplayClientTimer(Handle timer, int serial) {
         time_left -= dt;
       }
       if (time_left >= 0.0) {
-        // TODO: Consider displaying this time as a minute:second value (e.g. "1:55"). Maybe a cvar
-        // for it.
         int seconds = RoundToCeil(time_left);
         PrintCenterText(client, "Time: %d:%2d", seconds / 60, seconds % 60);
       } else {
