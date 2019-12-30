@@ -160,13 +160,17 @@ enum ClientColor {
 
 int g_LastNoclipCommand[MAXPLAYERS + 1];
 
+// Timer data. Supports 3 modes:
 enum TimerType {
-  TimerType_Movement = 0,
-  TimerType_Manual = 1,
-}
+  TimerType_Increasing_Movement = 0,  // Increasing timer, begins when client moves.
+  TimerType_Increasing_Manual = 1,    // Increasing timer, begins as soon as command is run.
+  TimerType_Countdown_Movement = 2,   // Countdown, begins when client moves.
+};
 
 bool g_RunningTimeCommand[MAXPLAYERS + 1];
-bool g_RunningLiveTimeCommand[MAXPLAYERS + 1];
+bool g_RunningLiveTimeCommand[MAXPLAYERS + 1];  // Used by .timer2 & .countdown, gets set to true
+                                                // when the client begins moving.
+float g_TimerDuration[MAXPLAYERS + 1];  // Used by .countdown, set to the length of the countdown.
 TimerType g_TimerType[MAXPLAYERS + 1];
 float g_LastTimeCommand[MAXPLAYERS + 1];
 
@@ -547,12 +551,17 @@ public void OnPluginStart() {
     RegConsoleCmd("sm_noflash", Command_NoFlash);
     PM_AddChatAlias(".noflash", "sm_noflash");
 
+    // TODO: A timer menu may be more accesible to users, as the number of timer types continues to
+    // increase...
     RegConsoleCmd("sm_time", Command_Time);
     PM_AddChatAlias(".timer", "sm_time");
     PM_AddChatAlias(".time", "sm_time");
 
     RegConsoleCmd("sm_time2", Command_Time2);
     PM_AddChatAlias(".timer2", "sm_time2");
+
+    RegConsoleCmd("sm_countdown", Command_CountDown);
+    PM_AddChatAlias(".countdown", "sm_countdown");
 
     RegConsoleCmd("sm_fastforward", Command_FastForward);
     PM_AddChatAlias(".fastforward", "sm_fastforward");
@@ -618,8 +627,9 @@ public void OnPluginStart() {
   g_SharedAllNadesCvar = CreateConVar(
       "sm_practicemode_share_all_nades", "0",
       "When set to 1, grenades aren't per-user; they are shared amongst all users that have grenade access. Grenades are not displayed by user, but displayed in 1 grouping. Anyone on the server can edit other users' grenades.");
-  g_MaxPlacedBotsCvar = CreateConVar("sm_practicemode_max_placed_bots", "25",
-                                     "Maximum number of static bots a single client may have placed at once.");
+  g_MaxPlacedBotsCvar =
+      CreateConVar("sm_practicemode_max_placed_bots", "25",
+                   "Maximum number of static bots a single client may have placed at once.");
 
   g_FlashEffectiveThresholdCvar =
       CreateConVar("sm_practicemode_flash_effective_threshold", "2.0",
@@ -986,10 +996,15 @@ public Action OnPlayerRunCmd(int client, int& buttons, int& impulse, float vel[3
   }
 
   bool moving = MovingButtons(buttons);
-  if (g_RunningTimeCommand[client] && g_TimerType[client] == TimerType_Movement) {
+  TimerType timer_type = g_TimerType[client];
+  bool is_movement_timer =
+      (timer_type == TimerType_Increasing_Movement || timer_type == TimerType_Countdown_Movement);
+  bool is_movement_end_timer = timer_type == TimerType_Increasing_Movement;
+
+  if (g_RunningTimeCommand[client] && is_movement_timer) {
     if (g_RunningLiveTimeCommand[client]) {
       // The movement timer is already running; stop it.
-      if (!moving && GetEntityFlags(client) & FL_ONGROUND) {
+      if (is_movement_end_timer && !moving && GetEntityFlags(client) & FL_ONGROUND) {
         g_RunningTimeCommand[client] = false;
         g_RunningLiveTimeCommand[client] = false;
         StopClientTimer(client);

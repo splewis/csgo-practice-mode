@@ -98,6 +98,7 @@ All of the following commands can only be used on _your_ grenades. They will app
 ### Miscellaneous commands
 - ``.timer``: starts a timer when you start moving in any direction, and stops it when you stop moving, telling you the duration of time between starting/stopping
 - ``.timer2``: starts a timer immediately and stops it when you type .timer2 again, telling you the duration of time
+- ``.countdown <duration>``: starts a countdown timer for the duration specified (in seconds), defaulting to the round duration (the `mp_roundtime` cvar).
 - ``.fastfoward`` (or ``.ff``): speeds up the server clock briefly so smokes dissipate quickly
 - ``.repeat <interval> <command>``: give a number of seconds and a chat command, the command will automatically repeat at the given interval. For example: ``.repeat 3 .throw`` repeats .throw every 3 seconds
 - ``.delay <duration> <command>``: runs the given chat command after a given duration (in seconds)

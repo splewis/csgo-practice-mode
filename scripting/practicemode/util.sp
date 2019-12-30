@@ -414,3 +414,12 @@ stock int RemoveDuplicates(ArrayList list, int stringLength) {
   }
   return count;
 }
+
+stock int GetRoundTimeSeconds() {
+  ConVar cvar = FindConVar("mp_roundtime");
+  float cvar_value = 1.92;
+  if (cvar != null) {
+    cvar_value = cvar.FloatValue;
+  }
+  return RoundFloat(cvar_value * 60);
+}

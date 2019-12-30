@@ -48,11 +48,9 @@ public Action Command_Time(int client, int args) {
     PM_Message(client, "When you start moving a timer will run until you stop moving.");
     g_RunningTimeCommand[client] = true;
     g_RunningLiveTimeCommand[client] = false;
-    g_TimerType[client] = TimerType_Movement;
+    g_TimerType[client] = TimerType_Increasing_Movement;
   } else {
     // Early stop command.
-    g_RunningTimeCommand[client] = false;
-    g_RunningLiveTimeCommand[client] = false;
     StopClientTimer(client);
   }
 
@@ -69,14 +67,33 @@ public Action Command_Time2(int client, int args) {
     PM_Message(client, "Type .timer2 to stop the timer again.");
     g_RunningTimeCommand[client] = true;
     g_RunningLiveTimeCommand[client] = false;
-    g_TimerType[client] = TimerType_Manual;
+    g_TimerType[client] = TimerType_Increasing_Manual;
     StartClientTimer(client);
   } else {
     // Stop command.
-    g_RunningTimeCommand[client] = false;
-    g_RunningLiveTimeCommand[client] = false;
     StopClientTimer(client);
   }
+
+  return Plugin_Handled;
+}
+
+public Action Command_CountDown(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  float timer_duration = float(GetRoundTimeSeconds());
+  char arg[PLATFORM_MAX_PATH];
+  if (args >= 1 && GetCmdArg(1, arg, sizeof(arg))) {
+    timer_duration = StringToFloat(arg);
+  }
+
+  PM_Message(client, "When you start moving a countdown will begin. Use .stop to cancel it.");
+  g_RunningTimeCommand[client] = true;
+  g_RunningLiveTimeCommand[client] = false;
+  g_TimerType[client] = TimerType_Countdown_Movement;
+  g_TimerDuration[client] = timer_duration;
+  StartClientTimer(client);
 
   return Plugin_Handled;
 }
@@ -88,21 +105,43 @@ public void StartClientTimer(int client) {
 }
 
 public void StopClientTimer(int client) {
-  float dt = GetEngineTime() - g_LastTimeCommand[client];
-  PM_Message(client, "Timer result: %.2f seconds", dt);
-  PrintHintText(client, "<b>Time: %.2f</b> seconds", dt);
+  g_RunningTimeCommand[client] = false;
+  g_RunningLiveTimeCommand[client] = false;
+
+  // Only display the elapsed duration for increasing timers (not a countdown).
+  TimerType timer_type = g_TimerType[client];
+  if (timer_type == TimerType_Increasing_Manual || timer_type == TimerType_Increasing_Movement) {
+    float dt = GetEngineTime() - g_LastTimeCommand[client];
+    PM_Message(client, "Timer result: %.2f seconds", dt);
+    PrintCenterText(client, "Time: %.2f seconds", dt);
+  }
 }
 
 public Action Timer_DisplayClientTimer(Handle timer, int serial) {
   int client = GetClientFromSerial(serial);
   if (IsPlayer(client) && g_RunningTimeCommand[client]) {
-    if (g_RunningTimeCommand[client]) {
-      float dt = GetEngineTime() - g_LastTimeCommand[client];
-      PrintHintText(client, "<b>Time: %.1f</b> seconds", dt);
-      return Plugin_Continue;
+    TimerType timer_type = g_TimerType[client];
+    if (timer_type == TimerType_Countdown_Movement) {
+      float time_left = g_TimerDuration[client];
+      if (g_RunningLiveTimeCommand[client]) {
+        float dt = GetEngineTime() - g_LastTimeCommand[client];
+        time_left -= dt;
+      }
+      if (time_left >= 0.0) {
+        // TODO: Consider displaying this time as a minute:second value (e.g. "1:55"). Maybe a cvar
+        // for it.
+        int seconds = RoundToCeil(time_left);
+        PrintCenterText(client, "Time: %d:%2d", seconds / 60, seconds % 60);
+      } else {
+        StopClientTimer(client);
+      }
+      // TODO: can we clear the hint text here quicker? Perhaps an empty PrintHintText(client, "")
+      // call works?
     } else {
-      return Plugin_Stop;
+      float dt = GetEngineTime() - g_LastTimeCommand[client];
+      PrintCenterText(client, "Time: %.1f seconds", dt);
     }
+    return Plugin_Continue;
   }
   return Plugin_Stop;
 }
@@ -200,6 +239,9 @@ public Action Command_StopAll(int client, int args) {
   if (g_TestingFlash[client]) {
     Command_StopFlash(client, 0);
   }
+  if (g_RunningTimeCommand[client]) {
+    StopClientTimer(client);
+  }
   if (g_RunningRepeatedCommand[client]) {
     Command_StopRepeat(client, 0);
   }
@@ -226,7 +268,7 @@ public Action Command_FastForward(int client, int args) {
     }
   }
 
-  // Freeze clients so its not really confusing.
+  // Freeze clients so it's not really confusing.
   for (int i = 1; i <= MaxClients; i++) {
     if (IsPlayer(i)) {
       g_PreFastForwardMoveTypes[i] = GetEntityMoveType(i);
