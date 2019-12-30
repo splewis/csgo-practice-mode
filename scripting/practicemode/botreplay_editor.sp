@@ -40,6 +40,11 @@ stock void GiveReplayEditorMenu(int client, int pos = 0) {
   menu.AddItem("copy", "Copy this replay to a new replay");
   menu.AddItem("delete", "Delete this replay entirely");
 
+  char display[128];
+  Format(display, sizeof(display), "Display overlay round timer: %s",
+         g_ReplayPlayRoundTimer[client] ? "yes" : "no");
+  menu.AddItem("round_timer", display);
+
   menu.ExitButton = true;
   menu.ExitBackButton = true;
   menu.DisplayAt(client, pos, MENU_TIME_FOREVER);
@@ -84,6 +89,10 @@ public int ReplayMenuHandler(Menu menu, MenuAction action, int param1, int param
       char replayName[REPLAY_NAME_LENGTH];
       GetReplayName(g_ReplayId[client], replayName, REPLAY_NAME_LENGTH);
       GiveDeleteConfirmationMenu(client);
+
+    } else if (StrEqual(buffer, "round_timer")) {
+      g_ReplayPlayRoundTimer[client] = !g_ReplayPlayRoundTimer[client];
+      GiveReplayEditorMenu(client, GetMenuSelectionPosition());
 
     } else if (StrEqual(buffer, "copy")) {
       char replayName[REPLAY_NAME_LENGTH];
@@ -460,6 +469,16 @@ stock void StartRecording(int client, int role, bool printCommands = true) {
   Format(roleString, sizeof(roleString), "role%d", role);
   BotMimic_StartRecording(client, recordName, "practicemode", roleString);
 
+  if (g_ReplayPlayRoundTimer[client]) {
+    // Effectively a .countdown command, but already started (g_RunningLiveTimeCommand=true).
+    float timer_duration = float(GetRoundTimeSeconds());
+    g_RunningTimeCommand[client] = true;
+    g_RunningLiveTimeCommand[client] = true;
+    g_TimerType[client] = TimerType_Countdown_Movement;
+    g_TimerDuration[client] = timer_duration;
+    StartClientTimer(client);
+  }
+
   if (printCommands) {
     PM_Message(client, "Started recording player %d role.", role + 1);
 
@@ -474,6 +493,10 @@ stock void StartRecording(int client, int role, bool printCommands = true) {
 
 public Action BotMimic_OnStopRecording(int client, char[] name, char[] category, char[] subdir,
                                 char[] path, bool& save) {
+  if (g_ReplayPlayRoundTimer[client]) {
+    StopClientTimer(client);
+  }
+
   if (g_CurrentEditingRole[client] >= 0) {
     if (!save) {
       // We only handle the not-saving case here because BotMimic_OnRecordSaved below

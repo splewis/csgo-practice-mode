@@ -23,6 +23,7 @@ float g_CurrentRecordingStartTime[MAXPLAYERS + 1];
 int g_CurrentEditingRole[MAXPLAYERS + 1];
 char g_ReplayId[MAXPLAYERS + 1][REPLAY_ID_LENGTH];
 int g_ReplayBotClients[MAX_REPLAY_CLIENTS];
+bool g_ReplayPlayRoundTimer[MAXPLAYERS + 1];  // TODO: add a client cookie for this
 
 int g_CurrentReplayNadeIndex[MAXPLAYERS + 1];
 ArrayList g_NadeReplayData[MAXPLAYERS + 1];
@@ -45,6 +46,7 @@ public void BotReplay_MapStart() {
   for (int i = 0; i <= MaxClients; i++) {
     delete g_NadeReplayData[i];
     g_NadeReplayData[i] = new ArrayList(14);
+    g_ReplayPlayRoundTimer[i] = false;
   }
 }
 
