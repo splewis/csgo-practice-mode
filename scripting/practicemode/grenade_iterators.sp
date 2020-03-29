@@ -1,6 +1,6 @@
 typedef GrenadeIteratorFunction = function Action(
-    const char[] ownerName, const char[] ownerAuth, const char[] name, const char[] description,
-    ArrayList categories, const char[] grenadeId, float origin[3], float angles[3], any data);
+    const char[] ownerName, const char[] ownerAuth, const char[] name, const char[] description, 
+    ArrayList categories, const char[] grenadeId, float origin[3], float angles[3], const char[] grenadeType, any data);
 
 // Helper that calls a GrenadeIteratorFunction over all grenades
 // for the current map.
@@ -16,6 +16,7 @@ stock void IterateGrenades(GrenadeIteratorFunction f, any data = 0) {
   char description[GRENADE_DESCRIPTION_LENGTH];
   char categoryString[GRENADE_CATEGORY_LENGTH];
   char grenadeId[GRENADE_ID_LENGTH];
+  char grenadeTypeString[32];
   float origin[3];
   float angles[3];
 
@@ -34,7 +35,8 @@ stock void IterateGrenades(GrenadeIteratorFunction f, any data = 0) {
           g_GrenadeLocationsKv.GetString("categories", categoryString, sizeof(categoryString));
           g_GrenadeLocationsKv.GetVector("origin", origin);
           g_GrenadeLocationsKv.GetVector("angles", angles);
-
+          g_GrenadeLocationsKv.GetString("grenadeType", grenadeTypeString, sizeof(grenadeTypeString));
+    
           ArrayList cats = new ArrayList(64);
           AddCategoriesToList(categoryString, cats);
 
@@ -48,6 +50,7 @@ stock void IterateGrenades(GrenadeIteratorFunction f, any data = 0) {
           Call_PushString(grenadeId);
           Call_PushArrayEx(origin, sizeof(origin), SM_PARAM_COPYBACK);
           Call_PushArrayEx(angles, sizeof(angles), SM_PARAM_COPYBACK);
+          Call_PushString(grenadeTypeString);
           Call_PushCell(data);
           Call_Finish(ret);
 

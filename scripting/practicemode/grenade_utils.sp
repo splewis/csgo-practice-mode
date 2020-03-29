@@ -221,6 +221,7 @@ stock int SaveGrenadeToKv(int client, const float origin[3], const float angles[
   g_GrenadeLocationsKv.GoBack();
   g_GrenadeLocationsKv.GoBack();
   g_NextID++;
+
   return g_NextID - 1;
 }
 
@@ -247,7 +248,7 @@ public bool DeleteGrenadeFromKv(const char[] nadeIdStr) {
       g_NextID--;
     }
   }
-
+  
   return deleted;
 }
 
@@ -594,7 +595,7 @@ public void FindGrenadeCategories() {
 public Action _FindGrenadeCategories_Helper(const char[] ownerName, const char[] ownerAuth,
                                      const char[] name, const char[] description, ArrayList cats,
                                      const char[] grenadeId, const float origin[3],
-                                     const float angles[3], any data) {
+                                     const float angles[3], const char[] grenadeType, any data) {
   for (int i = 0; i < cats.Length; i++) {
     char cat[64];
     cats.GetString(i, cat, sizeof(cat));
@@ -635,7 +636,8 @@ public void TranslateGrenades(float dx, float dy, float dz) {
 
 public Action TranslateGrenadeHelper(const char[] ownerName, const char[] ownerAuth, const char[] name,
                               const char[] description, ArrayList categories,
-                              const char[] grenadeId, float origin[3], float angles[3], any data) {
+                              const char[] grenadeId, float origin[3], float angles[3], const char[] grenadeType, 
+                              any data) {
   DataPack p = view_as<DataPack>(data);
   p.Reset();
   float dx = p.ReadFloat();
@@ -740,7 +742,7 @@ public void MaybeCorrectGrenadeIds() {
 public Action IsCorrectionNeededHelper(const char[] ownerName, const char[] ownerAuth, const char[] name,
                                 const char[] description, ArrayList categories,
                                 const char[] grenadeId, float origin[3], float angles[3],
-                                any data) {
+                                const char[] grenadeType, any data) {
   int id = StringToInt(grenadeId);
   if (g_AllIds.FindValue(id) >= 0) {
     g_RepeatIdSeen = true;
@@ -765,7 +767,8 @@ public void CorrectGrenadeIds() {
 
 public Action CorrectGrenadeIdsHelper(const char[] ownerName, const char[] ownerAuth, const char[] name,
                                const char[] description, ArrayList categories,
-                               const char[] grenadeId, float origin[3], float angles[3], any data) {
+                               const char[] grenadeId, float origin[3], float angles[3], 
+                               const char[] grenadeType, any data) {
   char newId[64];
   IntToString(g_NextID, newId, sizeof(newId));
   g_NextID++;

@@ -237,6 +237,8 @@ public Action Command_DeleteGrenade(int client, int args) {
 
   DeleteGrenadeFromKv(grenadeIdStr);
   PM_Message(client, "Deleted grenade id %s", grenadeIdStr);
+
+  OnGrenadeKvMutate();
   return Plugin_Handled;
 }
 
@@ -321,6 +323,7 @@ public Action Command_SaveGrenade(int client, int args) {
                    "No grenade throw parameters saved. Throw it and use .savethrow to save them.");
       }
     }
+    OnGrenadeKvMutate();
   }
 
   g_LastGrenadeType[client] = GrenadeType_None;
@@ -353,6 +356,7 @@ public Action Command_MoveGrenade(int client, int args) {
   GetClientEyeAngles(client, angles);
   SetClientGrenadeVectors(nadeId, origin, angles);
   PM_Message(client, "Updated grenade position.");
+  OnGrenadeKvMutate();
   return Plugin_Handled;
 }
 
@@ -421,6 +425,7 @@ public Action Command_UpdateGrenade(int client, int args) {
     PM_Message(client, "Updated grenade position.");
   }
 
+  OnGrenadeKvMutate();
   g_LastGrenadeType[client] = GrenadeType_None;
   return Plugin_Handled;
 }

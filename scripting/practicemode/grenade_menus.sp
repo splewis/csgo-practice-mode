@@ -339,7 +339,7 @@ public int CountCategoryNades(const char[] category) {
 public Action _CountCategoryNades_Helper(const char[] ownerName, const char[] ownerAuth, const char[] name,
                                   const char[] description, ArrayList categories,
                                   const char[] grenadeId, const float origin[3],
-                                  const float angles[3], any data) {
+                                  const float angles[3], const char[] grenadeType, any data) {
   DataPack p = view_as<DataPack>(data);
   ResetPack(p, false);
   int count = p.ReadCell();

@@ -6,6 +6,7 @@
 #include <sdktools>
 #include <smlib>
 #include <sourcemod>
+#include <vector>
 
 #undef REQUIRE_PLUGIN
 #include "include/botmimic.inc"
@@ -240,6 +241,7 @@ Handle g_OnPracticeModeSettingsRead = INVALID_HANDLE;
 #include "practicemode/debug.sp"
 #include "practicemode/grenade_commands.sp"
 #include "practicemode/grenade_filters.sp"
+#include "practicemode/grenade_hologram.sp"
 #include "practicemode/grenade_menus.sp"
 #include "practicemode/grenade_utils.sp"
 #include "practicemode/natives.sp"
@@ -831,6 +833,7 @@ public void OnMapStart() {
   FindGrenadeCategories();
   Spawns_MapStart();
   BotReplay_MapStart();
+  GrenadeHologram_MapStart();
 }
 
 public void OnConfigsExecuted() {
@@ -852,6 +855,10 @@ public void OnConfigsExecuted() {
   CheckAutoStart();
 }
 
+public void OnGrenadeKvMutate() {
+  UpdateGrenadeHologramEntities();
+}
+
 public void CheckAutoStart() {
   // Autostart practicemode if enabled.
   if (g_AutostartCvar.IntValue != 0 && !g_InPracticeMode) {
@@ -860,6 +867,9 @@ public void CheckAutoStart() {
       LaunchPracticeMode();
     }
   }
+
+  // TODO: hack, figure out ideal place to put this
+  UpdateGrenadeHologramEntities();
 }
 
 public void OnClientDisconnect(int client) {
