@@ -134,6 +134,12 @@ public int CreateGrenadeHologramDisc(const float origin[3], const float angles[3
   rotation[1] = angles[1];
   rotation[2] = 0.0;
 
+  // Prevent clipping in some maps from overlapping with floor brushes.
+  float raisedOrigin[3];
+  raisedOrigin[0] = origin[0];
+  raisedOrigin[1] = origin[1];
+  raisedOrigin[2] = origin[2] + 2.0; 
+
   int ent = CreateEntityByName("env_sprite_oriented");
   if (ent != -1) {
     DispatchKeyValue(ent, "classname", "env_sprite_oriented");
@@ -144,7 +150,7 @@ public int CreateGrenadeHologramDisc(const float origin[3], const float angles[3
     DispatchKeyValue(ent, "targetname", "grenade_hologram_disc");
     DispatchKeyValue(ent, "model", ASSET_DISC);
     DispatchSpawn(ent);
-    TeleportEntity(ent, origin, rotation, NULL_VECTOR);
+    TeleportEntity(ent, raisedOrigin, rotation, NULL_VECTOR);
   }
   return ent;
 }
