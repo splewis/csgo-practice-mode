@@ -836,6 +836,10 @@ public void OnMapStart() {
   GrenadeHologram_MapStart();
 }
 
+public void OnGameFrame() {
+  GrenadeHologram_GameFrame();
+}
+
 public void OnConfigsExecuted() {
   // Disable legacy plugin if found.
   char legacyPluginFile[PLATFORM_MAX_PATH];
@@ -1028,6 +1032,7 @@ public Action OnPlayerRunCmd(int client, int& buttons, int& impulse, float vel[3
     }
   }
 
+  GrenadeHologram_PlayerRunCmd(client, buttons, impulse, vel, angles, weapon);
   return Plugin_Continue;
 }
 
