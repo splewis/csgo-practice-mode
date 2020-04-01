@@ -605,6 +605,11 @@ public void OnPluginStart() {
     RegConsoleCmd("sm_endround", Command_EndRound);
     PM_AddChatAlias(".endround", "sm_endround");
 
+    RegConsoleCmd("sm_hologram_toggle", Command_GrenadeHologramToggle);
+    PM_AddChatAlias(".holograms", "sm_hologram_toggle");
+    PM_AddChatAlias(".hologram", "sm_hologram_toggle");
+    PM_AddChatAlias(".holo", "sm_hologram_toggle");
+
     RegConsoleCmd("sm_break", Command_Break);
     PM_AddChatAlias(".break", "sm_break");
   }

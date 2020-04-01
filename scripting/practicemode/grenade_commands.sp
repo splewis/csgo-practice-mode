@@ -742,3 +742,18 @@ public Action Command_FixGrenades(int client, int args) {
   ReplyToCommand(client, "Fixed grenade data.");
   return Plugin_Handled;
 }
+
+public Action Command_GrenadeHologramToggle(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  GrenadeHologramClientToggle(client);
+  if (IsGrenadeHologramEnabled(client)) {
+    PM_Message(client, "Grenade Holograms enabled.");
+  } else {
+    PM_Message(client, "Grenade Holograms disabled.");
+  }
+
+  return Plugin_Handled;
+}
