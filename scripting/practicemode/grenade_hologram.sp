@@ -98,6 +98,7 @@ public Action _UpdateGrenadeHologramEntities_Iterator(
   const float origin[3],
   const float angles[3], 
   const char[] strGrenadeType, 
+  const float grenadeVelocity[3], 
   any data
 ) {
   GrenadeType type = GrenadeTypeFromString(strGrenadeType);

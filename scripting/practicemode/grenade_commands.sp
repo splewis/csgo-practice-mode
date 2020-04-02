@@ -774,6 +774,17 @@ public Action Command_FixGrenades(int client, int args) {
   return Plugin_Handled;
 }
 
+public Action Command_FixGrenadeDetonations(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  CorrectGrenadeDetonations(client);
+  g_UpdatedGrenadeKv = true;
+  ReplyToCommand(client, "Throwing and recording all grenade detonations.");
+  return Plugin_Handled;
+}
+
 public Action Command_GrenadeHologramToggle(int client, int args) {
   if (!g_InPracticeMode) {
     return Plugin_Handled;

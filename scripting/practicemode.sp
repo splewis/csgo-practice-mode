@@ -130,6 +130,7 @@ float g_LastGrenadeDetonationOrigin[MAXPLAYERS + 1][3];
 int g_LastGrenadeEntity[MAXPLAYERS + 1];
 
 ArrayList g_GrenadeDetonationSaveQueue; 
+StringMap g_ManagedGrenadeDetonationsToFix;
 
 // Respawn values set by clients in the current session
 bool g_SavedRespawnActive[MAXPLAYERS + 1];
@@ -331,6 +332,8 @@ public void OnPluginStart() {
               "Translates all grenades on this map");
   RegAdminCmd("sm_fixgrenades", Command_FixGrenades, ADMFLAG_CHANGEMAP,
               "Reset grenade ids so they are consecutive and start at 1.");
+  RegAdminCmd("sm_fixdetonations", Command_FixGrenadeDetonations, ADMFLAG_CHANGEMAP,
+              "Throws all grenades and records detonation data.");
 
   // Grenade history commands
   {
@@ -698,6 +701,7 @@ public void OnPluginStart() {
   g_TSpawns = new ArrayList();
   g_KnownNadeCategories = new ArrayList(GRENADE_CATEGORY_LENGTH);
   g_GrenadeDetonationSaveQueue = new ArrayList();
+  g_ManagedGrenadeDetonationsToFix = new StringMap();
 
   // Create client cookies.
   RegisterUserSetting(UserSetting_ShowAirtime, "practicemode_grenade_airtime", true,
@@ -1670,5 +1674,44 @@ public void CSU_OnGrenadeExplode(
     }
     // All grenades processed.
     g_GrenadeDetonationSaveQueue.Clear();
+  }
+}
+
+public void CSU_OnManagedGrenadeExplode(
+  int client,
+  int currentEntity, 
+  GrenadeType grenade,
+  const float grenadeDetonationOrigin[3]
+) {
+  if (!g_ManagedGrenadeDetonationsToFix.Size) {
+    return;
+  }
+
+  char key[128];
+  IntToString(currentEntity, key, sizeof(key));
+
+  Handle p;
+  if (g_ManagedGrenadeDetonationsToFix.GetValue(key, p)) {
+    char auth[AUTH_LENGTH];
+    ReadPackString(p, auth, sizeof(auth));
+
+    char grenadeID[GRENADE_ID_LENGTH];
+    ReadPackString(p, grenadeID, sizeof(grenadeID));
+    
+    SetGrenadeVector(auth, grenadeID, "grenadeDetonationOrigin", grenadeDetonationOrigin);
+    
+    CloseHandle(p);
+    g_ManagedGrenadeDetonationsToFix.Remove(key);
+    PM_Message(
+      client, 
+      "Fixed detonation for grenade %s. Nades remaining: %i.", 
+      grenadeID, 
+      g_ManagedGrenadeDetonationsToFix.Size
+    );
+  }
+
+  // Did we finish the queue?
+  if (!g_ManagedGrenadeDetonationsToFix.Size) {
+    PM_Message(client, "Finished fixing detonations.");
   }
 }

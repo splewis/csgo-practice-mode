@@ -32,10 +32,9 @@ stock void TeleportToGrenadeHistoryPosition(int client, int index,
 }
 
 public bool FindId(const char[] idStr, char[] auth, int authLen) {
-  if (g_GrenadeLocationsKv.GotoFirstSubKey()) {
+  if (g_GrenadeLocationsKv.GotoFirstSubKey()) { 
     do {
       g_GrenadeLocationsKv.GetSectionName(auth, authLen);
-
       // Inner iteration by grenades for a user.
       if (g_GrenadeLocationsKv.GotoFirstSubKey()) {
         do {
@@ -51,7 +50,7 @@ public bool FindId(const char[] idStr, char[] auth, int authLen) {
 
     } while (g_GrenadeLocationsKv.GotoNextKey());
     g_GrenadeLocationsKv.GoBack();
-  }
+  } 
 
   return false;
 }
@@ -159,9 +158,9 @@ stock bool ThrowGrenade(int client, const char[] id, float delay = 0.0) {
   char typeString[32];
   float grenadeOrigin[3];
   float grenadeVelocity[3];
-  char auth[AUTH_LENGTH];
   bool success = false;
 
+  char auth[AUTH_LENGTH];
   if (!FindId(id, auth, sizeof(auth))) {
     return false;
   }
@@ -630,7 +629,8 @@ public void FindGrenadeCategories() {
 public Action _FindGrenadeCategories_Helper(const char[] ownerName, const char[] ownerAuth,
                                      const char[] name, const char[] description, ArrayList cats,
                                      const char[] grenadeId, const float origin[3],
-                                     const float angles[3], const char[] grenadeType, any data) {
+                                     const float angles[3], const char[] grenadeType, 
+                                     const float grenadeVelocity[3], any data) {
   for (int i = 0; i < cats.Length; i++) {
     char cat[64];
     cats.GetString(i, cat, sizeof(cat));
@@ -672,7 +672,7 @@ public void TranslateGrenades(float dx, float dy, float dz) {
 public Action TranslateGrenadeHelper(const char[] ownerName, const char[] ownerAuth, const char[] name,
                               const char[] description, ArrayList categories,
                               const char[] grenadeId, float origin[3], float angles[3], const char[] grenadeType, 
-                              any data) {
+                              const float grenadeVelocity[3], any data) {
   DataPack p = view_as<DataPack>(data);
   p.Reset();
   float dx = p.ReadFloat();
@@ -780,7 +780,7 @@ public void MaybeCorrectGrenadeIds() {
 public Action IsCorrectionNeededHelper(const char[] ownerName, const char[] ownerAuth, const char[] name,
                                 const char[] description, ArrayList categories,
                                 const char[] grenadeId, float origin[3], float angles[3],
-                                const char[] grenadeType, any data) {
+                                const char[] grenadeType, const float grenadeVelocity[3], any data) {
   int id = StringToInt(grenadeId);
   if (g_AllIds.FindValue(id) >= 0) {
     g_RepeatIdSeen = true;
@@ -806,7 +806,7 @@ public void CorrectGrenadeIds() {
 public Action CorrectGrenadeIdsHelper(const char[] ownerName, const char[] ownerAuth, const char[] name,
                                const char[] description, ArrayList categories,
                                const char[] grenadeId, float origin[3], float angles[3], 
-                               const char[] grenadeType, any data) {
+                               const char[] grenadeType, const float grenadeVelocity[3], any data) {
   char newId[64];
   IntToString(g_NextID, newId, sizeof(newId));
   g_NextID++;
@@ -831,6 +831,43 @@ public Action CorrectGrenadeIdsHelper(const char[] ownerName, const char[] owner
     }
   }
   g_NewKv.Rewind();
+}
+
+// Rethrows all grenades, and uses the CSU managed explosion forward to save grenade data.
+public void CorrectGrenadeDetonations(int initiatingClient) {
+  IterateGrenades(_CorrectGrenadeDetonations_Iterator, initiatingClient);
+}
+
+public Action _CorrectGrenadeDetonations_Iterator(
+  const char[] ownerName, 
+  const char[] ownerAuth, 
+  const char[] name,
+  const char[] description, 
+  ArrayList categories,
+  const char[] grenadeID, 
+  float origin[3], 
+  float angles[3], 
+  const char[] grenadeTypeStr, 
+  const float grenadeVelocity[3], 
+  any initiatingClient
+) {
+  int thrownEntity = -1;
+  GrenadeType grenadeType = GrenadeTypeFromString(grenadeTypeStr);
+  
+  thrownEntity = CSU_ThrowGrenade(initiatingClient, grenadeType, origin, grenadeVelocity);
+  if (thrownEntity == -1) {
+    LogError("Tried to throw grenade %s for fixing detonations but failed to capture the entity.", grenadeID);
+    return;
+  } 
+  
+  DataPack p = new DataPack();
+  p.WriteString(ownerAuth);
+  p.WriteString(grenadeID);
+  p.Reset();
+
+  char key[128];
+  IntToString(thrownEntity, key, sizeof(key));
+  g_ManagedGrenadeDetonationsToFix.SetValue(key, p);
 }
 
 public bool CanEditGrenade(int client, int id) {
