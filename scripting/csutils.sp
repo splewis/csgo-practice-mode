@@ -19,6 +19,7 @@ ConVar g_VersionCvar;
 
 Handle g_OnGrenadeThrownForward = INVALID_HANDLE;
 Handle g_OnGrenadeExplodeForward = INVALID_HANDLE;
+Handle g_OnManagedGrenadeExplodeForward = INVALID_HANDLE;
 
 ArrayList g_NadeList;
 ArrayList g_SmokeList;
@@ -53,6 +54,8 @@ public void OnPluginStart() {
       CreateGlobalForward("CSU_OnThrowGrenade", ET_Ignore, Param_Cell, Param_Cell, Param_Cell,
                           Param_Array, Param_Array, Param_Array, Param_Array);
   g_OnGrenadeExplodeForward = CreateGlobalForward("CSU_OnGrenadeExplode", ET_Ignore, Param_Cell,
+                                                  Param_Cell, Param_Cell, Param_Array);
+  g_OnManagedGrenadeExplodeForward = CreateGlobalForward("CSU_OnManagedGrenadeExplode", ET_Ignore, Param_Cell,
                                                   Param_Cell, Param_Cell, Param_Array);
 
   HookEvent("smokegrenade_detonate", Event_SmokeDetonate, EventHookMode_Pre);
@@ -259,30 +262,36 @@ public void OnEntityDestroyed(int entity) {
   }
 
   // Fire the CSU_OnGrenadeExplode forward.
-  int client = Entity_GetOwner(client);
   float origin[3];
   GetEntPropVector(entity, Prop_Data, "m_vecOrigin", origin);
 
-  // Erase the ent ref from the global nade list.
+  // Typically we get the client from Entity_GetOwner. 
+  // However, the owner property can be unset by the engine by the time this destroy event fires.
+  // Luckily, the thrower property persists.
+  int client = GetEntPropEnt(entity, Prop_Send, "m_hThrower");
+
+  // We handle smokes differently here because the OnEntityDestroyed forward
+  // won't get called until the smoke effect goes away, which is later than we want.
+  // The smokegrenade_detonate event handler takes care of the forward for smokes.
+  // (Except in the case of managed nades, which don't fire the smokegrenade_detonate event.)
+  //
+  // Why not do all nades in the *_detonate handlers? The molotov_detonate event
+  // doesn't pass the entityid parameter according to the alliedmods wiki.
   int index;
-  if (IsManagedNade(entity, index)) {
-    g_NadeList.Erase(index);
-  } else {
-    // We handle smokes differently here because the OnEntityDestroyed forward
-    // won't get called until the smoke effect goes away, which is later than we want.
-    // The smokegrenade_detonate event handler takes care of the forward for smokes.
-    //
-    // Why not do all nades in the *_detonate handlers? The molotov_detonate event
-    // doesn't pass the entityid parameter according to the alliedmods wiki.
-    if (type != GrenadeType_Smoke) {
+  if (type != GrenadeType_Smoke || IsManagedNade(entity, index)) {
+    // Erase the ent ref from the global nade list.
+    if (IsManagedNade(entity, index)) {
+      Call_StartForward(g_OnManagedGrenadeExplodeForward);
+      g_NadeList.Erase(index);
+    } else {
       Call_StartForward(g_OnGrenadeExplodeForward);
-      Call_PushCell(client);
-      Call_PushCell(entity);
-      Call_PushCell(type);
-      Call_PushArray(origin, 3);
-      Call_Finish();
     }
-  }
+    Call_PushCell(client);
+    Call_PushCell(entity);
+    Call_PushCell(type);
+    Call_PushArray(origin, 3);
+    Call_Finish();
+  } 
 }
 
 public Action OnTouch(int entity, int other) {
@@ -358,12 +367,14 @@ public Action Event_SmokeDetonate(Event event, const char[] name, bool dontBroad
   }
 
   int unused;
-  if (!IsManagedNade(entity, unused)) {
-    Call_StartForward(g_OnGrenadeExplodeForward);
-    Call_PushCell(GetClientOfUserId(userid));
-    Call_PushCell(entity);
-    Call_PushCell(GrenadeType_Smoke);
-    Call_PushArray(origin, 3);
-    Call_Finish();
-  }
+  Call_StartForward(
+    IsManagedNade(entity, unused)
+      ? g_OnManagedGrenadeExplodeForward
+      : g_OnGrenadeExplodeForward
+  );
+  Call_PushCell(GetClientOfUserId(userid));
+  Call_PushCell(entity);
+  Call_PushCell(GrenadeType_Smoke);
+  Call_PushArray(origin, 3);
+  Call_Finish();
 }
