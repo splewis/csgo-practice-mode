@@ -190,8 +190,8 @@ stock bool ThrowGrenade(int client, const char[] id, float delay = 0.0) {
 
 stock int SaveGrenadeToKv(int client, const float origin[3], const float angles[3],
                           const float grenadeOrigin[3], const float grenadeVelocity[3],
-                          GrenadeType type, const char[] name, const char[] description = "",
-                          const char[] categoryString = "") {
+                          GrenadeType type, const int grenadeEntity, const float[3] grenadeDetonationOrigin, 
+                          const char[] name, const char[] description = "", const char[] categoryString = "") {
   g_UpdatedGrenadeKv = true;
   char idStr[GRENADE_ID_LENGTH];
   IntToString(g_NextID, idStr, sizeof(idStr));
@@ -214,6 +214,11 @@ stock int SaveGrenadeToKv(int client, const float origin[3], const float angles[
     g_GrenadeLocationsKv.SetString("grenadeType", grenadeTypeString);
     g_GrenadeLocationsKv.SetVector("grenadeOrigin", grenadeOrigin);
     g_GrenadeLocationsKv.SetVector("grenadeVelocity", grenadeVelocity);
+    if (grenadeDetonationOrigin[0] || grenadeDetonationOrigin[1] || grenadeDetonationOrigin[2]) {
+      g_GrenadeLocationsKv.SetVector("grenadeDetonationOrigin", grenadeDetonationOrigin);
+    } else {
+      ScheduleSaveGrenadeDetonation(auth, idStr, grenadeEntity, grenadeDetonationOrigin);
+    }
   }
   g_GrenadeLocationsKv.SetString("description", description);
   g_GrenadeLocationsKv.SetString("categories", categoryString);
@@ -223,6 +228,29 @@ stock int SaveGrenadeToKv(int client, const float origin[3], const float angles[
   g_NextID++;
 
   return g_NextID - 1;
+}
+
+public void ScheduleSaveGrenadeDetonation(
+  const char[] auth, 
+  const char[] grenadeID, 
+  const int grenadeEntity, 
+  const float[3] grenadeDetonationOrigin
+) {
+  if (grenadeEntity == -1) {
+    LogError(
+      "Tried to schedule grenade %s detonation without an entity."
+      ..."I don't think this should be possible.",
+      grenadeID
+    );
+    return; 
+  }
+  // Queue data that the CSU detonation event handler knows how to process.
+  // (This approach could cause a small memory leak if the entity never explodes.)
+  StringMap args = new StringMap();
+  args.SetString(GRENADE_DETONATION_KEY_AUTH, auth);
+  args.SetString(GRENADE_DETONATION_KEY_ID, grenadeID);
+  args.SetValue(GRENADE_DETONATION_KEY_ENTITY, grenadeEntity);
+  g_GrenadeDetonationSaveQueue.Push(args);
 }
 
 public bool DeleteGrenadeFromKv(const char[] nadeIdStr) {
@@ -373,13 +401,11 @@ public void GetGrenadeVector(const char[] auth, const char[] id, const char[] ke
   }
 }
 
-public void SetGrenadeVectors(const char[] auth, const char[] id, const float[3] origin,
-                       const float[3] angles) {
+public void SetGrenadeVector(const char[] auth, const char[] id, const char[] key, const float[3] vector) {
   g_UpdatedGrenadeKv = true;
   if (g_GrenadeLocationsKv.JumpToKey(auth)) {
     if (g_GrenadeLocationsKv.JumpToKey(id)) {
-      g_GrenadeLocationsKv.SetVector("origin", origin);
-      g_GrenadeLocationsKv.SetVector("angles", angles);
+      g_GrenadeLocationsKv.SetVector(key, vector);
       g_GrenadeLocationsKv.GoBack();
     }
     g_GrenadeLocationsKv.GoBack();
@@ -387,7 +413,8 @@ public void SetGrenadeVectors(const char[] auth, const char[] id, const float[3]
 }
 
 public void SetGrenadeParameters(const char[] auth, const char[] id, GrenadeType type,
-                          const float[3] grenadeOrigin, const float[3] grenadeVelocity) {
+                          const float[3] grenadeOrigin, const float[3] grenadeVelocity,
+                          const int grenadeEntity, const float[3] grenadeDetonationOrigin) {
   if (!IsGrenade(type)) {
     return;
   }
@@ -400,6 +427,12 @@ public void SetGrenadeParameters(const char[] auth, const char[] id, GrenadeType
       g_GrenadeLocationsKv.SetString("grenadeType", typeString);
       g_GrenadeLocationsKv.SetVector("grenadeOrigin", grenadeOrigin);
       g_GrenadeLocationsKv.SetVector("grenadeVelocity", grenadeVelocity);
+      if (grenadeDetonationOrigin[0] || grenadeDetonationOrigin[1] || grenadeDetonationOrigin[2]) {
+        g_GrenadeLocationsKv.SetVector("grenadeDetonationOrigin", grenadeDetonationOrigin);
+      } else {
+        g_GrenadeLocationsKv.DeleteKey("grenadeDetonationOrigin");
+        ScheduleSaveGrenadeDetonation(auth, id, grenadeEntity, grenadeDetonationOrigin);
+      }
       g_GrenadeLocationsKv.GoBack();
     }
     g_GrenadeLocationsKv.GoBack();
@@ -459,16 +492,18 @@ public void SetClientGrenadeVectors(int id, const float[3] origin, const float[3
   char nadeId[GRENADE_ID_LENGTH];
   IntToString(id, nadeId, sizeof(nadeId));
   FindId(nadeId, auth, sizeof(auth));
-  SetGrenadeVectors(auth, nadeId, origin, angles);
+  SetGrenadeVector(auth, nadeId, "origin", origin);
+  SetGrenadeVector(auth, nadeId, "angles", angles);
 }
 
 public void SetClientGrenadeParameters(int id, GrenadeType type, const float[3] grenadeOrigin,
-                                const float[3] grenadeVelocity) {
+                                const float[3] grenadeVelocity, const int grenadeEntity, 
+                                const float[3] grenadeDetonationOrigin) {
   char auth[AUTH_LENGTH];
   char nadeId[GRENADE_ID_LENGTH];
   IntToString(id, nadeId, sizeof(nadeId));
   FindId(nadeId, auth, sizeof(auth));
-  SetGrenadeParameters(auth, nadeId, type, grenadeOrigin, grenadeVelocity);
+  SetGrenadeParameters(auth, nadeId, type, grenadeOrigin, grenadeVelocity, grenadeEntity, grenadeDetonationOrigin);
 }
 
 public void UpdateGrenadeName(int id, const char[] name) {
@@ -677,11 +712,13 @@ public int CopyGrenade(const char[] ownerAuth, const char[] nadeId, int client) 
   float angles[3];
   float grenadeOrigin[3];
   float grenadeVelocity[3];
+  float grenadeDetonationOrigin[3];
   char grenadeTypeString[32];
   char grenadeName[GRENADE_NAME_LENGTH];
   char description[GRENADE_DESCRIPTION_LENGTH];
   char categoryString[GRENADE_CATEGORY_LENGTH];
   bool success = false;
+  int grenadeEntity = -1; // assigning a constant for arg readability. this data is not stored.
 
   if (g_GrenadeLocationsKv.JumpToKey(ownerAuth)) {
     if (g_GrenadeLocationsKv.JumpToKey(nadeId)) {
@@ -701,8 +738,9 @@ public int CopyGrenade(const char[] ownerAuth, const char[] nadeId, int client) 
 
   if (success) {
     return SaveGrenadeToKv(client, origin, angles, grenadeOrigin, grenadeVelocity,
-                           GrenadeTypeFromString(grenadeTypeString), grenadeName, description,
-                           categoryString);
+                           GrenadeTypeFromString(grenadeTypeString), 
+                           grenadeEntity, grenadeDetonationOrigin,
+                           grenadeName, description, categoryString);
   } else {
     return -1;
   }

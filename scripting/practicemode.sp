@@ -91,6 +91,9 @@ ConVar g_VersionCvar;
 #define GRENADE_NAME_LENGTH 64
 #define GRENADE_ID_LENGTH 16
 #define GRENADE_CATEGORY_LENGTH 128
+#define GRENADE_DETONATION_KEY_AUTH "auth"
+#define GRENADE_DETONATION_KEY_ID "id"
+#define GRENADE_DETONATION_KEY_ENTITY "entity"
 #define AUTH_LENGTH 64
 #define AUTH_METHOD AuthId_Steam2
 char g_GrenadeLocationsFile[PLATFORM_MAX_PATH];
@@ -123,6 +126,10 @@ ArrayList g_RunningRoundRepeatedCommandArg[MAXPLAYERS + 1];   /* char[256] */
 GrenadeType g_LastGrenadeType[MAXPLAYERS + 1];
 float g_LastGrenadeOrigin[MAXPLAYERS + 1][3];
 float g_LastGrenadeVelocity[MAXPLAYERS + 1][3];
+float g_LastGrenadeDetonationOrigin[MAXPLAYERS + 1][3];
+int g_LastGrenadeEntity[MAXPLAYERS + 1];
+
+ArrayList g_GrenadeDetonationSaveQueue; 
 
 // Respawn values set by clients in the current session
 bool g_SavedRespawnActive[MAXPLAYERS + 1];
@@ -690,6 +697,7 @@ public void OnPluginStart() {
   g_CTSpawns = new ArrayList();
   g_TSpawns = new ArrayList();
   g_KnownNadeCategories = new ArrayList(GRENADE_CATEGORY_LENGTH);
+  g_GrenadeDetonationSaveQueue = new ArrayList();
 
   // Create client cookies.
   RegisterUserSetting(UserSetting_ShowAirtime, "practicemode_grenade_airtime", true,
@@ -786,6 +794,7 @@ public void OnClientConnected(int client) {
   g_RunningLiveTimeCommand[client] = false;
   g_SavedRespawnActive[client] = false;
   g_LastGrenadeType[client] = GrenadeType_None;
+  g_LastGrenadeEntity[client] = -1;
   g_RunningRepeatedCommand[client] = false;
   g_RunningRoundRepeatedCommandDelay[client].Clear();
   g_RunningRoundRepeatedCommandArg[client].Clear();
@@ -1623,5 +1632,43 @@ public void CSU_OnThrowGrenade(int client, int entity, GrenadeType grenadeType, 
   g_LastGrenadeType[client] = grenadeType;
   g_LastGrenadeOrigin[client] = origin;
   g_LastGrenadeVelocity[client] = velocity;
+  g_LastGrenadeDetonationOrigin[client] = view_as<float>({0.0, 0.0, 0.0});
+  g_LastGrenadeEntity[client] = entity;
   Replays_OnThrowGrenade(client, entity, grenadeType, origin, velocity);
+}
+
+public void CSU_OnGrenadeExplode(
+  int client,
+  int currentEntity, 
+  GrenadeType grenade,
+  const float grenadeDetonationOrigin[3]
+) {
+  if (currentEntity == g_LastGrenadeEntity[client]) {
+    g_LastGrenadeDetonationOrigin[client] = grenadeDetonationOrigin;
+  }
+  if (g_GrenadeDetonationSaveQueue.Length) {
+    // Process the async save queue to add detonation data.
+    for (int i = 0; i < g_GrenadeDetonationSaveQueue.Length; i++) {
+      StringMap item = g_GrenadeDetonationSaveQueue.Get(i);
+
+      int grenadeEntity;
+      if (!item.GetValue(GRENADE_DETONATION_KEY_ENTITY, grenadeEntity)) {
+        LogError("Tried to access a prop " ... GRENADE_DETONATION_KEY_ENTITY ... " that didn't exist in OnGrenadeExplode");
+      }
+
+      if (grenadeEntity == currentEntity) {
+        char auth[AUTH_LENGTH];
+        if (!item.GetString(GRENADE_DETONATION_KEY_AUTH, auth, sizeof(auth))) {
+          LogError("Tried to access a prop "  ... GRENADE_DETONATION_KEY_AUTH ... " that didn't exist in OnGrenadeExplode");
+        }
+        char grenadeID[GRENADE_ID_LENGTH];
+        if (!item.GetString(GRENADE_DETONATION_KEY_ID, grenadeID, sizeof(grenadeID))) {
+          LogError("Tried to access a prop "  ... GRENADE_DETONATION_KEY_ID ... " that didn't exist in OnGrenadeExplode");
+        }
+        SetGrenadeVector(auth, grenadeID, "grenadeDetonationOrigin", grenadeDetonationOrigin);
+      }
+    }
+    // All grenades processed.
+    g_GrenadeDetonationSaveQueue.Clear();
+  }
 }

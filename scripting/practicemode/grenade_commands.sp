@@ -281,11 +281,14 @@ public Action Command_SaveGrenade(int client, int args) {
   GetClientAbsOrigin(client, origin);
   GetClientEyeAngles(client, angles);
 
+  int grenadeEntity = g_LastGrenadeEntity[client];
   GrenadeType grenadeType = g_LastGrenadeType[client];
   float grenadeOrigin[3];
   float grenadeVelocity[3];
+  float grenadeDetonationOrigin[3];
   grenadeOrigin = g_LastGrenadeOrigin[client];
   grenadeVelocity = g_LastGrenadeVelocity[client];
+  grenadeDetonationOrigin = g_LastGrenadeDetonationOrigin[client];
 
   if (grenadeType != GrenadeType_None && GetVectorDistance(origin, grenadeOrigin) >= 500.0) {
     PM_Message(
@@ -302,8 +305,17 @@ public Action Command_SaveGrenade(int client, int args) {
   Call_Finish(ret);
 
   if (ret < Plugin_Handled) {
-    int nadeId =
-        SaveGrenadeToKv(client, origin, angles, grenadeOrigin, grenadeVelocity, grenadeType, name);
+    int nadeId = SaveGrenadeToKv(
+      client, 
+      origin, 
+      angles, 
+      grenadeOrigin, 
+      grenadeVelocity, 
+      grenadeType, 
+      grenadeEntity, 
+      grenadeDetonationOrigin, 
+      name
+    );
     g_CurrentSavedGrenadeId[client] = nadeId;
     PM_Message(
         client,
@@ -380,8 +392,14 @@ public Action Command_SaveThrow(int client, int args) {
     return Plugin_Handled;
   }
 
-  SetClientGrenadeParameters(nadeId, g_LastGrenadeType[client], g_LastGrenadeOrigin[client],
-                             g_LastGrenadeVelocity[client]);
+  SetClientGrenadeParameters(
+    nadeId, 
+    g_LastGrenadeType[client], 
+    g_LastGrenadeOrigin[client],
+    g_LastGrenadeVelocity[client], 
+    g_LastGrenadeEntity[client], 
+    g_LastGrenadeDetonationOrigin[client]
+  );
   PM_Message(client, "Updated grenade throw parameters.");
   g_LastGrenadeType[client] = GrenadeType_None;
   return Plugin_Handled;
@@ -415,8 +433,14 @@ public Action Command_UpdateGrenade(int client, int args) {
   bool updatedParameters = false;
   if (g_CSUtilsLoaded && IsGrenade(g_LastGrenadeType[client])) {
     updatedParameters = true;
-    SetClientGrenadeParameters(nadeId, g_LastGrenadeType[client], g_LastGrenadeOrigin[client],
-                               g_LastGrenadeVelocity[client]);
+    SetClientGrenadeParameters(
+      nadeId, 
+      g_LastGrenadeType[client], 
+      g_LastGrenadeOrigin[client],
+      g_LastGrenadeVelocity[client], 
+      g_LastGrenadeEntity[client], 
+      g_LastGrenadeDetonationOrigin[client]
+    );
   }
 
   if (updatedParameters) {
@@ -483,8 +507,15 @@ public Action Command_ClearThrow(int client, int args) {
     return Plugin_Handled;
   }
 
-  SetClientGrenadeParameters(nadeId, g_LastGrenadeType[client], g_LastGrenadeOrigin[client],
-                             g_LastGrenadeVelocity[client]);
+  SetClientGrenadeParameters(
+    nadeId, 
+    g_LastGrenadeType[client], 
+    g_LastGrenadeOrigin[client],
+    g_LastGrenadeVelocity[client], 
+    g_LastGrenadeEntity[client], 
+    g_LastGrenadeDetonationOrigin[client]
+  );
+
   PM_Message(client, "Cleared nade throwing parameters.");
   return Plugin_Handled;
 }
