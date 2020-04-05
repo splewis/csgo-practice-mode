@@ -486,6 +486,14 @@ public float GetClientGrenadeFloat(int id, const char[] key) {
   return GetGrenadeFloat(auth, nadeId, key);
 }
 
+public void GetClientGrenadeVector(int id, const char[] key, float vector[3]) {
+  char auth[AUTH_LENGTH];
+  char nadeId[GRENADE_ID_LENGTH];
+  IntToString(id, nadeId, sizeof(nadeId));
+  FindId(nadeId, auth, sizeof(auth));
+  GetGrenadeVector(auth, nadeId, key, vector);
+}
+
 public void SetClientGrenadeVectors(int id, const float[3] origin, const float[3] angles) {
   char auth[AUTH_LENGTH];
   char nadeId[GRENADE_ID_LENGTH];
@@ -626,11 +634,21 @@ public void FindGrenadeCategories() {
   IterateGrenades(_FindGrenadeCategories_Helper);
 }
 
-public Action _FindGrenadeCategories_Helper(const char[] ownerName, const char[] ownerAuth,
-                                     const char[] name, const char[] description, ArrayList cats,
-                                     const char[] grenadeId, const float origin[3],
-                                     const float angles[3], const char[] grenadeType, 
-                                     const float grenadeVelocity[3], any data) {
+public Action _FindGrenadeCategories_Helper(
+  const char[] ownerName, 
+  const char[] ownerAuth,
+  const char[] name, 
+  const char[] description, 
+  ArrayList cats,
+  const char[] grenadeId, 
+  const float origin[3],
+  const float angles[3], 
+  const char[] grenadeType, 
+  const float grenadeOrigin[3], 
+  const float grenadeVelocity[3], 
+  const float grenadeDetonationOrigin[3], 
+  any data
+) {
   for (int i = 0; i < cats.Length; i++) {
     char cat[64];
     cats.GetString(i, cat, sizeof(cat));
@@ -669,10 +687,21 @@ public void TranslateGrenades(float dx, float dy, float dz) {
   delete p;
 }
 
-public Action TranslateGrenadeHelper(const char[] ownerName, const char[] ownerAuth, const char[] name,
-                              const char[] description, ArrayList categories,
-                              const char[] grenadeId, float origin[3], float angles[3], const char[] grenadeType, 
-                              const float grenadeVelocity[3], any data) {
+public Action TranslateGrenadeHelper(
+  const char[] ownerName, 
+  const char[] ownerAuth, 
+  const char[] name,
+  const char[] description, 
+  ArrayList categories,
+  const char[] grenadeId,
+  float origin[3],
+  const float angles[3], 
+  const char[] grenadeType, 
+  const float grenadeOrigin[3], 
+  const float grenadeVelocity[3], 
+  const float grenadeDetonationOrigin[3], 
+  any data
+) {
   DataPack p = view_as<DataPack>(data);
   p.Reset();
   float dx = p.ReadFloat();
@@ -777,10 +806,21 @@ public void MaybeCorrectGrenadeIds() {
   }
 }
 
-public Action IsCorrectionNeededHelper(const char[] ownerName, const char[] ownerAuth, const char[] name,
-                                const char[] description, ArrayList categories,
-                                const char[] grenadeId, float origin[3], float angles[3],
-                                const char[] grenadeType, const float grenadeVelocity[3], any data) {
+public Action IsCorrectionNeededHelper(
+  const char[] ownerName, 
+  const char[] ownerAuth, 
+  const char[] name,
+  const char[] description, 
+  ArrayList categories,
+  const char[] grenadeId, 
+  const float origin[3], 
+  const float angles[3],
+  const char[] grenadeType, 
+  const float grenadeOrigin[3], 
+  const float grenadeVelocity[3], 
+  const float grenadeDetonationOrigin[3], 
+  any data
+) {
   int id = StringToInt(grenadeId);
   if (g_AllIds.FindValue(id) >= 0) {
     g_RepeatIdSeen = true;
@@ -803,10 +843,21 @@ public void CorrectGrenadeIds() {
   g_UpdatedGrenadeKv = true;
 }
 
-public Action CorrectGrenadeIdsHelper(const char[] ownerName, const char[] ownerAuth, const char[] name,
-                               const char[] description, ArrayList categories,
-                               const char[] grenadeId, float origin[3], float angles[3], 
-                               const char[] grenadeType, const float grenadeVelocity[3], any data) {
+public Action CorrectGrenadeIdsHelper(
+  const char[] ownerName, 
+  const char[] ownerAuth, 
+  const char[] name, 
+  const char[] description, 
+  ArrayList categories,
+  const char[] grenadeId, 
+  const float origin[3], 
+  const float angles[3], 
+  const char[] grenadeType, 
+  const float grenadeOrigin[3], 
+  const float grenadeVelocity[3], 
+  const float grenadeDetonationOrigin[3], 
+  any data
+) {
   char newId[64];
   IntToString(g_NextID, newId, sizeof(newId));
   g_NextID++;
@@ -835,7 +886,19 @@ public Action CorrectGrenadeIdsHelper(const char[] ownerName, const char[] owner
 
 // Rethrows all grenades, and uses the CSU managed explosion forward to save grenade data.
 public void CorrectGrenadeDetonations(int initiatingClient) {
+  g_ManagedGrenadeDetonationsToFixPhase = GRENADE_DETONATION_FIX_PHASE_SMOKES;
   IterateGrenades(_CorrectGrenadeDetonations_Iterator, initiatingClient);
+  PM_Message(initiatingClient, "Fixing detonations in %i phases.", g_ManagedGrenadeDetonationsToFixPhase);
+}
+
+public int CorrectGrenadeDetonationsAdvanceToNextPhase(int initiatingClient) {
+  g_ManagedGrenadeDetonationsToFixPhase -= 1;
+  if (g_ManagedGrenadeDetonationsToFixPhase > GRENADE_DETONATION_FIX_PHASE_DONE) {
+    IterateGrenades(_CorrectGrenadeDetonations_Iterator, initiatingClient);
+  } else {
+    g_ManagedGrenadeDetonationsToFixPhase = GRENADE_DETONATION_FIX_PHASE_DONE;
+  }
+  return g_ManagedGrenadeDetonationsToFixPhase;
 }
 
 public Action _CorrectGrenadeDetonations_Iterator(
@@ -845,16 +908,25 @@ public Action _CorrectGrenadeDetonations_Iterator(
   const char[] description, 
   ArrayList categories,
   const char[] grenadeID, 
-  float origin[3], 
-  float angles[3], 
+  const float origin[3], 
+  const float angles[3], 
   const char[] grenadeTypeStr, 
+  const float grenadeOrigin[3], 
   const float grenadeVelocity[3], 
+  const float grenadeDetonationOrigin[3], 
   any initiatingClient
 ) {
-  int thrownEntity = -1;
   GrenadeType grenadeType = GrenadeTypeFromString(grenadeTypeStr);
-  
-  thrownEntity = CSU_ThrowGrenade(initiatingClient, grenadeType, origin, grenadeVelocity);
+  if (
+    grenadeType == GrenadeType_None
+    || (grenadeType == GrenadeType_Smoke && g_ManagedGrenadeDetonationsToFixPhase == GRENADE_DETONATION_FIX_PHASE_NONSMOKES)
+    || (grenadeType != GrenadeType_Smoke && g_ManagedGrenadeDetonationsToFixPhase == GRENADE_DETONATION_FIX_PHASE_SMOKES) 
+  ) {
+    return;
+  }
+
+  // TODO: throw in 3 phases to break glass on some maps?
+  int thrownEntity = CSU_ThrowGrenade(initiatingClient, grenadeType, grenadeOrigin, grenadeVelocity);
   if (thrownEntity == -1) {
     LogError("Tried to throw grenade %s for fixing detonations but failed to capture the entity.", grenadeID);
     return;

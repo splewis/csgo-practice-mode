@@ -129,8 +129,13 @@ float g_LastGrenadeVelocity[MAXPLAYERS + 1][3];
 float g_LastGrenadeDetonationOrigin[MAXPLAYERS + 1][3];
 int g_LastGrenadeEntity[MAXPLAYERS + 1];
 
+
 ArrayList g_GrenadeDetonationSaveQueue; 
+#define GRENADE_DETONATION_FIX_PHASE_SMOKES 2
+#define GRENADE_DETONATION_FIX_PHASE_NONSMOKES 1
+#define GRENADE_DETONATION_FIX_PHASE_DONE 0
 StringMap g_ManagedGrenadeDetonationsToFix;
+int g_ManagedGrenadeDetonationsToFixPhase = GRENADE_DETONATION_FIX_PHASE_DONE;
 
 // Respawn values set by clients in the current session
 bool g_SavedRespawnActive[MAXPLAYERS + 1];
@@ -247,6 +252,7 @@ Handle g_OnPracticeModeSettingsRead = INVALID_HANDLE;
 #include "practicemode/bots_menu.sp"
 #include "practicemode/commands.sp"
 #include "practicemode/debug.sp"
+#include "practicemode/grenade_accuracy.sp"
 #include "practicemode/grenade_commands.sp"
 #include "practicemode/grenade_filters.sp"
 #include "practicemode/grenade_hologram.sp"
@@ -732,6 +738,9 @@ public void OnPluginStart() {
   CreateTimer(0.1, Timer_RespawnBots, _, TIMER_REPEAT);
   CreateTimer(1.0, Timer_CleanupLivingBots, _, TIMER_REPEAT);
   CreateTimer(1.0, Timer_UpdateClientCvars, _, TIMER_REPEAT);
+
+  GrenadeHologram_PluginStart();
+  GrenadeAccuracy_PluginStart();
 }
 
 public void OnPluginEnd() {
@@ -852,6 +861,7 @@ public void OnMapStart() {
   Spawns_MapStart();
   BotReplay_MapStart();
   GrenadeHologram_MapStart();
+  GrenadeAccuracy_MapStart();
 }
 
 public void OnGameFrame() {
@@ -913,6 +923,8 @@ public void OnClientDisconnect(int client) {
   if (playerCount == 0 && g_InPracticeMode) {
     ExitPracticeMode();
   }
+
+  GrenadeHologram_ClientDisconnect(client);
 }
 
 public void OnMapEnd() {
@@ -924,6 +936,7 @@ public void OnMapEnd() {
 
   Spawns_MapEnd();
   BotReplay_MapEnd();
+  GrenadeHologram_MapEnd();
   delete g_GrenadeLocationsKv;
 }
 
@@ -1639,6 +1652,7 @@ public void CSU_OnThrowGrenade(int client, int entity, GrenadeType grenadeType, 
   g_LastGrenadeDetonationOrigin[client] = view_as<float>({0.0, 0.0, 0.0});
   g_LastGrenadeEntity[client] = entity;
   Replays_OnThrowGrenade(client, entity, grenadeType, origin, velocity);
+  GrenadeAccuracy_OnThrowGrenade(client, entity);
 }
 
 public void CSU_OnGrenadeExplode(
@@ -1675,6 +1689,7 @@ public void CSU_OnGrenadeExplode(
     // All grenades processed.
     g_GrenadeDetonationSaveQueue.Clear();
   }
+  GrenadeAccuracy_OnGrenadeExplode(client, currentEntity, grenadeDetonationOrigin, grenade);
 }
 
 public void CSU_OnManagedGrenadeExplode(
@@ -1704,7 +1719,7 @@ public void CSU_OnManagedGrenadeExplode(
     g_ManagedGrenadeDetonationsToFix.Remove(key);
     PM_Message(
       client, 
-      "Fixed detonation for grenade %s. Nades remaining: %i.", 
+      "Fixed detonation for grenade %s. Nades remaining for this phase: %i.", 
       grenadeID, 
       g_ManagedGrenadeDetonationsToFix.Size
     );
@@ -1712,6 +1727,11 @@ public void CSU_OnManagedGrenadeExplode(
 
   // Did we finish the queue?
   if (!g_ManagedGrenadeDetonationsToFix.Size) {
-    PM_Message(client, "Finished fixing detonations.");
+    int nextPhase = CorrectGrenadeDetonationsAdvanceToNextPhase(client);
+    if (nextPhase == GRENADE_DETONATION_FIX_PHASE_DONE) {
+      PM_Message(client, "Finished fixing detonations.");
+    } else {
+      PM_Message(client, "Phases remaining: %i.", nextPhase);
+    }
   }
 }

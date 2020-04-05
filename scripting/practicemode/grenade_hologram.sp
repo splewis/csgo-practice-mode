@@ -16,12 +16,17 @@
 #define GRENADE_COLOR_HE "250 7 7"
 #define GRENADE_COLOR_DEFAULT "180 180 180"
 
-
-bool g_grenadeHologramInitiated = false;
 ArrayList /*int*/ g_grenadeHologramEntities;
 int g_grenadeHologramClientTargetGrenadeIDs[MAXPLAYERS]; 
 bool g_grenadeHologramClientInUse[MAXPLAYERS];
 bool g_grenadeHologramClientEnabled[MAXPLAYERS];
+
+public void GrenadeHologram_PluginStart() {
+  g_grenadeHologramEntities = new ArrayList();
+  for (int client = 1; client <= MaxClients; client++) {
+    InitGrenadeHologramClientSettings(client);
+  }
+}
 
 public void GrenadeHologram_GameFrame() {
   int ent = -1;
@@ -49,6 +54,13 @@ public void GrenadeHologram_MapStart() {
   PrecacheModel(ASSET_PLACEHOLDER_MDL, true);
 }
 
+public void GrenadeHologram_MapEnd() {
+  ClearArray(g_grenadeHologramEntities);
+}
+
+public void GrenadeHologram_ClientDisconnect(int client) {
+  InitGrenadeHologramClientSettings(client);
+}
 
 public Action GrenadeHologram_PlayerRunCmd(int client, int &buttons, int &impulse, float vel[3], float angles[3], int &weapon) {	
   if (buttons & IN_USE) {
@@ -69,20 +81,13 @@ public Action GrenadeHologram_PlayerRunCmd(int client, int &buttons, int &impuls
   }
 }
 
-public void InitGrenadeHologramOnce() {
-  if (!g_grenadeHologramInitiated) {
-    g_grenadeHologramEntities = new ArrayList();
-    for (int i = 0; i < MAXPLAYERS; i++) {
-      g_grenadeHologramClientTargetGrenadeIDs[i] = -1;
-      g_grenadeHologramClientInUse[i] = false;
-      g_grenadeHologramClientEnabled[i] = true;
-    }
-    g_grenadeHologramInitiated = true;
-  }
+public void InitGrenadeHologramClientSettings(int client) {
+  g_grenadeHologramClientTargetGrenadeIDs[client] = -1;
+  g_grenadeHologramClientInUse[client] = false;
+  g_grenadeHologramClientEnabled[client] = true;
 }
 
 public void UpdateGrenadeHologramEntities() {
-  InitGrenadeHologramOnce();
   RemoveGrenadeHologramEntites();
   IterateGrenades(_UpdateGrenadeHologramEntities_Iterator);
   SetupGrenadeHologramEntitiesHooks();
@@ -91,23 +96,25 @@ public void UpdateGrenadeHologramEntities() {
 public Action _UpdateGrenadeHologramEntities_Iterator(
   const char[] ownerName, 
   const char[] ownerAuth, 
-  const char[] name,
+  const char[] name, 
   const char[] description, 
   ArrayList categories,
-  const char[] grenadeID, 
-  const float origin[3],
+  const char[] grenadeId, 
+  const float origin[3], 
   const float angles[3], 
-  const char[] strGrenadeType, 
+  const char[] grenadeType, 
+  const float grenadeOrigin[3],
   const float grenadeVelocity[3], 
+  const float grenadeDetonationOrigin[3], 
   any data
 ) {
-  GrenadeType type = GrenadeTypeFromString(strGrenadeType);
+  GrenadeType type = GrenadeTypeFromString(grenadeType);
 
   float projectedOrigin[3];
   GetGrenadeHologramReticulePosition(origin, angles, projectedOrigin);
 
   char parentName[128];
-  int button = CreateGrenadeHologramInteractiveEntity(projectedOrigin, angles, grenadeID, parentName, sizeof(parentName));
+  int button = CreateGrenadeHologramInteractiveEntity(projectedOrigin, angles, grenadeId, parentName, sizeof(parentName));
   if (button != -1) {
     g_grenadeHologramEntities.Push(button);
   }
