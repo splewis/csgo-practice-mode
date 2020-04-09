@@ -55,11 +55,32 @@ public void GrenadeHologram_MapStart() {
 }
 
 public void GrenadeHologram_MapEnd() {
-  ClearArray(g_grenadeHologramEntities);
+  RemoveGrenadeHologramEntites();
+}
+
+public void GrenadeHologram_ClientPutInServer(int client) {
+  InitGrenadeHologramClientSettings(client);
+  InitGrenadeHologramEntities();
 }
 
 public void GrenadeHologram_ClientDisconnect(int client) {
   InitGrenadeHologramClientSettings(client);
+}
+
+public void GrenadeHologram_LaunchPracticeMode() {
+  // This gate is a workaround to prevent unexpected destruction of our entities during server initialization.
+  // (The workaround is to wait until after initialization to make our entities.)
+  if (!IsServerEmpty()) {
+    InitGrenadeHologramEntities();
+  }
+}
+
+public void GrenadeHologram_ExitPracticeMode() {
+  RemoveGrenadeHologramEntites();
+}
+
+public void GrenadeHologram_GrenadeKvMutate() {
+  UpdateGrenadeHologramEntities();
 }
 
 public Action GrenadeHologram_PlayerRunCmd(int client, int &buttons, int &impulse, float vel[3], float angles[3], int &weapon) {	
@@ -85,6 +106,12 @@ public void InitGrenadeHologramClientSettings(int client) {
   g_grenadeHologramClientTargetGrenadeIDs[client] = -1;
   g_grenadeHologramClientInUse[client] = false;
   g_grenadeHologramClientEnabled[client] = true;
+}
+
+public void InitGrenadeHologramEntities() {
+  if (g_InPracticeMode && !g_grenadeHologramEntities.Length) {
+    UpdateGrenadeHologramEntities();
+  }
 }
 
 public void UpdateGrenadeHologramEntities() {
@@ -134,8 +161,8 @@ public void RemoveGrenadeHologramEntites() {
   for (int i = 0; i < g_grenadeHologramEntities.Length; i++) {
     int ent = g_grenadeHologramEntities.Get(i);
     if (IsValidEntity(ent)) {
-        SDKUnhook(ent, SDKHook_SetTransmit, GrenadeHologramHook_OnTransmit);
-        AcceptEntityInput(ent, "Kill");
+      SDKUnhook(ent, SDKHook_SetTransmit, GrenadeHologramHook_OnTransmit);
+      AcceptEntityInput(ent, "Kill");
     }
   }
   ClearArray(g_grenadeHologramEntities);
@@ -149,114 +176,6 @@ public void SetupGrenadeHologramEntitiesHooks() {
 
 public Action GrenadeHologramHook_OnTransmit(int entity, int client) {
   return g_grenadeHologramClientEnabled[client] ? Plugin_Continue : Plugin_Handled;
-}
-
-// thing you stand on.
-public int CreateGrenadeHologramFloor(
-  const float origin[3], 
-  const float angles[3], 
-  const GrenadeType type,
-  const char[] interactivityParent
-) {
-  char color[16];
-  GetGrenadeHologramColorFromType(type, color);
-
-  float rotation[3];
-  rotation[0] = 90.0;
-  rotation[1] = angles[1];
-  rotation[2] = 0.0;
-
-  // Prevent clipping in some maps from overlapping with floor brushes.
-  float raisedOrigin[3];
-  raisedOrigin[0] = origin[0];
-  raisedOrigin[1] = origin[1];
-  raisedOrigin[2] = origin[2] + 2.0; 
-
-  int ent = CreateEntityByName("env_sprite_oriented");
-  if (ent != -1) {
-    DispatchKeyValue(ent, "classname", "env_sprite_oriented");
-    DispatchKeyValue(ent, "spawnflags", "1"); 
-    DispatchKeyValue(ent, "renderamt", "255");
-    DispatchKeyValue(ent, "rendermode", "1"); 
-    DispatchKeyValue(ent, "rendercolor", color);
-    DispatchKeyValue(ent, "targetname", "grenade_hologram_disc");
-    DispatchKeyValue(ent, "model", ASSET_DISC);
-    DispatchSpawn(ent);
-    TeleportEntity(ent, raisedOrigin, rotation, NULL_VECTOR);
-    // Needed for transmit hooks.
-    SetVariantString(interactivityParent);
-    AcceptEntityInput(ent, "SetParent"); 
-  }
-  return ent;
-}
-
-// moves origin up and out, to a point in front of player's face.
-public void GetGrenadeHologramReticulePosition(const float origin[3], const float angles[3], float projectedOrigin[3]) {
-  float eyeOrigin[3];
-  float direction[3];
-  AddVectors(origin, view_as<float>({0.0, 0.0, EYE_HEIGHT}), eyeOrigin);
-  Math_RotateVector(view_as<float>({1.0, 0.0, 0.0}), angles, direction);
-  ScaleVector(direction, RETICULE_DISTANCE);
-  AddVectors(eyeOrigin, direction, projectedOrigin);
-}
-
-// thing you aim at.
-public int CreateGrenadeHologramReticule(
-  const float origin[3], 
-  const float angles[3], 
-  const GrenadeType type,
-  const char[] interactivityParent
-) {
-  char color[16];
-  GetGrenadeHologramColorFromType(type, color);
-
-  int ent = CreateEntityByName("env_sprite_oriented");
-  if (ent != -1) {
-    DispatchKeyValue(ent, "classname", "env_sprite_oriented");
-    DispatchKeyValue(ent, "spawnflags", "1"); 
-    DispatchKeyValue(ent, "renderamt", "255");
-    DispatchKeyValue(ent, "rendermode", "1"); 
-    DispatchKeyValue(ent, "rendercolor", color);
-    DispatchKeyValue(ent, "targetname", "grenade_hologram_reticule");
-    DispatchKeyValue(ent, "model", ASSET_RING);
-    DispatchSpawn(ent);
-    TeleportEntity(ent, origin, angles, NULL_VECTOR);
-    // Needed for transmit hooks.
-    SetVariantString(interactivityParent);
-    AcceptEntityInput(ent, "SetParent"); 
-  }
-  return ent;
-}
-
-public int GetGrenadeHologramColorFromType(const GrenadeType type, char[] buffer) {
-  switch (type) {
-    case GrenadeType_Molotov:
-      return strcopy(buffer, 16, GRENADE_COLOR_MOLOTOV);
-    case GrenadeType_Incendiary:
-      return strcopy(buffer, 16, GRENADE_COLOR_MOLOTOV);
-    case GrenadeType_Smoke:
-      return strcopy(buffer, 16, GRENADE_COLOR_SMOKE);
-    case GrenadeType_Flash:
-      return strcopy(buffer, 16,  GRENADE_COLOR_FLASH);
-    case GrenadeType_HE:
-      return strcopy(buffer, 16, GRENADE_COLOR_HE);
-  }
-  return strcopy(buffer, 16, GRENADE_COLOR_DEFAULT);
-}
-
-public void EncodeEntityGrenadeIDString(char[] buffer, const int length, const char[] grenadeID) {
-  strcopy(buffer, length, ENT_NADEID_PREFIX);
-  StrCat(buffer, length, grenadeID);
-}
-
-public int GetEntityGrenadeID(int ent) {
-  int prefixlen = strlen(ENT_NADEID_PREFIX);
-  char prop[128];
-  GetEntPropString(ent, Prop_Send, "m_iName", prop, sizeof(prop));
-  char numeral[128];
-  strcopy(numeral, sizeof(numeral), prop[prefixlen]);
-  // TODO: error checking if name is formatted incorrectly?
-  return StringToInt(numeral, 10);
 }
 
 // creates an invisible entity for player interaction with the reticule.
@@ -300,6 +219,118 @@ public int CreateGrenadeHologramInteractiveEntity(
   SetEntProp(ent, Prop_Send, "m_fEffects", effects);
 
   return ent;
+}
+
+// thing you stand on.
+public int CreateGrenadeHologramFloor(
+  const float origin[3], 
+  const float angles[3], 
+  const GrenadeType type,
+  const char[] interactivityParent
+) {
+  char color[16];
+  GetGrenadeHologramColorFromType(type, color);
+
+  float rotation[3];
+  rotation[0] = 90.0;
+  rotation[1] = angles[1];
+  rotation[2] = 0.0;
+
+  // Prevent clipping in some maps from overlapping with floor brushes.
+  float raisedOrigin[3];
+  raisedOrigin[0] = origin[0];
+  raisedOrigin[1] = origin[1];
+  raisedOrigin[2] = origin[2] + 2.0; 
+
+  int ent = CreateEntityByName("env_sprite_oriented");
+  if (ent != -1) {
+    DispatchKeyValue(ent, "classname", "env_sprite_oriented");
+    DispatchKeyValue(ent, "spawnflags", "1"); 
+    DispatchKeyValue(ent, "renderamt", "255");
+    DispatchKeyValue(ent, "rendermode", "1"); 
+    DispatchKeyValue(ent, "rendercolor", color);
+    DispatchKeyValue(ent, "targetname", "grenade_hologram_disc");
+    DispatchKeyValue(ent, "model", ASSET_DISC);
+    if (!DispatchSpawn(ent)) {
+      return -1;
+    } 
+    TeleportEntity(ent, raisedOrigin, rotation, NULL_VECTOR);
+    // Needed for transmit hooks.
+    SetVariantString(interactivityParent);
+    AcceptEntityInput(ent, "SetParent"); 
+  }
+  return ent;
+}
+
+// thing you aim at.
+public int CreateGrenadeHologramReticule(
+  const float origin[3], 
+  const float angles[3], 
+  const GrenadeType type,
+  const char[] interactivityParent
+) {
+  char color[16];
+  GetGrenadeHologramColorFromType(type, color);
+
+  int ent = CreateEntityByName("env_sprite_oriented");
+  if (ent != -1) {
+    DispatchKeyValue(ent, "classname", "env_sprite_oriented");
+    DispatchKeyValue(ent, "spawnflags", "1"); 
+    DispatchKeyValue(ent, "renderamt", "255");
+    DispatchKeyValue(ent, "rendermode", "1"); 
+    DispatchKeyValue(ent, "rendercolor", color);
+    DispatchKeyValue(ent, "targetname", "grenade_hologram_reticule");
+    DispatchKeyValue(ent, "model", ASSET_RING);
+    if (!DispatchSpawn(ent)) {
+      return -1;
+    } 
+    TeleportEntity(ent, origin, angles, NULL_VECTOR);
+    // Needed for transmit hooks.
+    SetVariantString(interactivityParent);
+    AcceptEntityInput(ent, "SetParent"); 
+  }
+  return ent;
+}
+
+// moves origin up and out, to a point in front of player's face.
+public void GetGrenadeHologramReticulePosition(const float origin[3], const float angles[3], float projectedOrigin[3]) {
+  float eyeOrigin[3];
+  float direction[3];
+  AddVectors(origin, view_as<float>({0.0, 0.0, EYE_HEIGHT}), eyeOrigin);
+  Math_RotateVector(view_as<float>({1.0, 0.0, 0.0}), angles, direction);
+  ScaleVector(direction, RETICULE_DISTANCE);
+  AddVectors(eyeOrigin, direction, projectedOrigin);
+}
+
+public int GetGrenadeHologramColorFromType(const GrenadeType type, char[] buffer) {
+  switch (type) {
+    case GrenadeType_Molotov:
+      return strcopy(buffer, 16, GRENADE_COLOR_MOLOTOV);
+    case GrenadeType_Incendiary:
+      return strcopy(buffer, 16, GRENADE_COLOR_MOLOTOV);
+    case GrenadeType_Smoke:
+      return strcopy(buffer, 16, GRENADE_COLOR_SMOKE);
+    case GrenadeType_Flash:
+      return strcopy(buffer, 16,  GRENADE_COLOR_FLASH);
+    case GrenadeType_HE:
+      return strcopy(buffer, 16, GRENADE_COLOR_HE);
+  }
+  return strcopy(buffer, 16, GRENADE_COLOR_DEFAULT);
+}
+
+public void EncodeEntityGrenadeIDString(char[] buffer, const int length, const char[] grenadeID) {
+  strcopy(buffer, length, ENT_NADEID_PREFIX);
+  StrCat(buffer, length, grenadeID);
+}
+
+public int GetEntityGrenadeID(int ent) {
+  int prefixlen = strlen(ENT_NADEID_PREFIX);
+  char prop[128];
+  GetEntPropString(ent, Prop_Send, "m_iName", prop, sizeof(prop));
+  char numeral[128];
+  strcopy(numeral, sizeof(numeral), prop[prefixlen]);
+  // TODO: error checking if name is formatted incorrectly?
+  return StringToInt(numeral, 10);
 }
 
 public int GetClientVisibleAimTarget(int client) {

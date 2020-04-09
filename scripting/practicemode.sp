@@ -888,7 +888,7 @@ public void OnConfigsExecuted() {
 }
 
 public void OnGrenadeKvMutate() {
-  UpdateGrenadeHologramEntities();
+  GrenadeHologram_GrenadeKvMutate();
 }
 
 public void CheckAutoStart() {
@@ -899,9 +899,6 @@ public void CheckAutoStart() {
       LaunchPracticeMode();
     }
   }
-
-  // TODO: hack, figure out ideal place to put this
-  UpdateGrenadeHologramEntities();
 }
 
 public void OnClientDisconnect(int client) {
@@ -958,6 +955,7 @@ public void OnClientSettingsChanged(int client) {
 
 public void OnClientPutInServer(int client) {
   UpdateClientCvars(client);
+  GrenadeHologram_ClientPutInServer(client);
 }
 
 static void UpdateClientCvars(int client) {
@@ -1237,6 +1235,8 @@ public void LaunchPracticeMode() {
     ChangeSetting(i, PM_IsSettingEnabled(i), false, true);
   }
 
+  GrenadeHologram_LaunchPracticeMode();
+
   PM_MessageToAll("Practice mode is now enabled.");
   Call_StartForward(g_OnPracticeModeEnabled);
   Call_Finish();
@@ -1331,6 +1331,8 @@ public void ExitPracticeMode() {
       SetEntityMoveType(i, MOVETYPE_WALK);
     }
   }
+
+  GrenadeHologram_ExitPracticeMode();
 
   ServerCommand("exec sourcemod/practicemode_end.cfg");
   PM_MessageToAll("Practice mode is now disabled.");
@@ -1661,6 +1663,10 @@ public void CSU_OnGrenadeExplode(
   GrenadeType grenade,
   const float grenadeDetonationOrigin[3]
 ) {
+  if (client == -1) {
+    // I guess this is possible in some race conditions involving map change or disconnect.
+    return;
+  }
   if (currentEntity == g_LastGrenadeEntity[client]) {
     g_LastGrenadeDetonationOrigin[client] = grenadeDetonationOrigin;
   }
