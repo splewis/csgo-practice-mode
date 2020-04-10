@@ -1441,6 +1441,10 @@ public int DelayedOnEntitySpawned(int entity) {
   }
 }
 
+public void OnEntityDestroyed(int entity) {
+  GrenadeHologram_EntityDestroyed(entity);
+}
+
 public Action Timer_TeleportClient(Handle timer, int serial) {
   int client = GetClientFromSerial(serial);
   if (g_InPracticeMode && IsPlayer(client) && g_TestingFlash[client]) {

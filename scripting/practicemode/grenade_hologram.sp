@@ -83,6 +83,16 @@ public void GrenadeHologram_GrenadeKvMutate() {
   UpdateGrenadeHologramEntities();
 }
 
+public void GrenadeHologram_EntityDestroyed(int entity) {
+  char classname[128];
+  GetEntityClassname(entity, classname, sizeof(classname));
+  if (!strcmp(classname, "env_sprite_oriented") || !strcmp(classname, "info_target")) {
+    if (g_grenadeHologramEntities.FindValue(entity) != -1) {
+      LogError("Engine is destroying hologram entity %i while we expect to retain it.", entity);
+    }
+  }
+}
+
 public Action GrenadeHologram_PlayerRunCmd(int client, int &buttons, int &impulse, float vel[3], float angles[3], int &weapon) {	
   if (buttons & IN_USE) {
     // Debounce the use button switch.
@@ -158,14 +168,14 @@ public Action _UpdateGrenadeHologramEntities_Iterator(
 }
 
 public void RemoveGrenadeHologramEntites() {
-  for (int i = 0; i < g_grenadeHologramEntities.Length; i++) {
+  for (int i = g_grenadeHologramEntities.Length - 1; i >= 0; i--) {
     int ent = g_grenadeHologramEntities.Get(i);
+    g_grenadeHologramEntities.Erase(i);
     if (IsValidEntity(ent)) {
       SDKUnhook(ent, SDKHook_SetTransmit, GrenadeHologramHook_OnTransmit);
       AcceptEntityInput(ent, "Kill");
     }
   }
-  ClearArray(g_grenadeHologramEntities);
 }
 
 public void SetupGrenadeHologramEntitiesHooks() {
