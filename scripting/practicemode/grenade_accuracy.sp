@@ -1,7 +1,7 @@
-#define GRENADE_ACCURACY_MESSAGE_GOOD "\x04perfectly landed\x01"
-#define GRENADE_ACCURACY_MESSAGE_CLOSE "\x06closely landed\x01"
-#define GRENADE_ACCURACY_MESSAGE_FAR "\x07missed\x01"
-#define GRENADE_ACCURACY_MESSAGE_MISSING_DATA "\x07Warning:\x01 detonation data missing for grenade %i. Try running the console command \"sm_fixdetonations\"."
+#define GRENADE_ACCURACY_MESSAGE_GOOD "{GREEN}perfectly landed{NORMAL}"
+#define GRENADE_ACCURACY_MESSAGE_CLOSE "{LIGHT_GREEN}closely landed{NORMAL}"
+#define GRENADE_ACCURACY_MESSAGE_FAR "{LIGHT_RED}missed{NORMAL}"
+#define GRENADE_ACCURACY_MESSAGE_MISSING_DATA "{LIGHT_RED}Warning:{NORMAL} detonation data missing for grenade %i. Try running the console command \"sm_fixdetonations\"."
 #define GRENADE_ACCURACY_SCORING_DETONATION 10.0, 50.0, 400.0
 #define GRENADE_ACCURACY_SCORING_ANGLES 5.0, 30.0, 200.0
 #define GRENADE_ACCURACY_SCORING_ORIGIN 0.3, 3.0, 100.0
@@ -19,6 +19,8 @@ enum GrenadeAccuracyScore {
 }
 
 StringMap g_GrenadeAccuracyQueue;
+int g_GrenadeAccuracyIntent[MAXPLAYERS];
+int g_GrenadeAccuracyAllowReport[MAXPLAYERS];
 
 public void GrenadeAccuracy_PluginStart() {
   g_GrenadeAccuracyQueue = new StringMap();
@@ -26,6 +28,10 @@ public void GrenadeAccuracy_PluginStart() {
 
 public void GrenadeAccuracy_MapStart() {
   g_GrenadeAccuracyQueue.Clear();
+  for (int i = 1; i <= MaxClients; i++) {
+    g_GrenadeAccuracyIntent[i] = -1;
+    g_GrenadeAccuracyAllowReport[i] = true;
+  }
 }
 
 public void GrenadeAccuracy_OnThrowGrenade(const int client, const int entity) {
@@ -53,9 +59,13 @@ public void GrenadeAccuracy_OnThrowGrenade(const int client, const int entity) {
 public void GrenadeAccuracy_OnGrenadeExplode(
   const int client, 
   const int entity, 
-  const float detonation[3], 
-  GrenadeType type
+  GrenadeType type,
+  const float detonation[3]
 ) {
+  if (!g_GrenadeAccuracyAllowReport[client]) {
+    return;
+  }
+
   Handle p;
   char key[32];
   IntToString(entity, key, sizeof(key));
@@ -75,16 +85,20 @@ public void GrenadeAccuracy_OnGrenadeExplode(
   CloseHandle(p);
   g_GrenadeAccuracyQueue.Remove(key);
 
-  int grenadeID_nearOrigin = GrenadeAccuracyFindNearestIdToVectorProp(
-    origin, 
-    type,
-    GrenadeAccuracyIteratorProp_Origin
-  );
-  int grenadeID_nearDetonation = GrenadeAccuracyFindNearestIdToVectorProp(
-    detonation, 
-    type, 
-    GrenadeAccuracyIteratorProp_Detonation
-  );
+  int grenadeID_nearOrigin = g_GrenadeAccuracyIntent[client] != -1 
+    ? g_GrenadeAccuracyIntent[client]
+    : GrenadeAccuracyFindNearestIdToVectorProp(
+      origin, 
+      type,
+      GrenadeAccuracyIteratorProp_Origin
+    );
+  int grenadeID_nearDetonation = g_GrenadeAccuracyIntent[client] != -1 
+    ? g_GrenadeAccuracyIntent[client]
+    : GrenadeAccuracyFindNearestIdToVectorProp(
+      detonation, 
+      type, 
+      GrenadeAccuracyIteratorProp_Detonation
+    );
 
   float detonation_nearOrigin[3];
   float origin_nearOrigin[3];
@@ -374,4 +388,20 @@ public int _FindNearestGrenadeToVector_Sort(int a, int b, Handle arr, Handle hnd
     return -1;
   } 
   return 1;
+}
+
+public void GrenadeAccuracySetIntent(const int client, const int grenadeID) {
+  g_GrenadeAccuracyIntent[client] = grenadeID;
+}
+
+public void GrenadeAccuracyClearIntent(const int client) {
+  GrenadeAccuracySetIntent(client, -1);
+}
+
+public void GrenadeAccuracyAllowReport(const int client) {
+  g_GrenadeAccuracyAllowReport[client] = true;
+}
+
+public void GrenadeAccuracyDenyReport(const int client) {
+  g_GrenadeAccuracyAllowReport[client] = false;
 }

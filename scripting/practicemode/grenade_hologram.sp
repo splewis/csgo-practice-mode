@@ -20,6 +20,8 @@ ArrayList /*int*/ g_grenadeHologramEntities;
 int g_grenadeHologramClientTargetGrenadeIDs[MAXPLAYERS]; 
 bool g_grenadeHologramClientInUse[MAXPLAYERS];
 bool g_grenadeHologramClientEnabled[MAXPLAYERS];
+bool g_grenadeHologramClientAllowed[MAXPLAYERS];
+int g_grenadeHologramClientWhitelist[MAXPLAYERS];
 
 public void GrenadeHologram_PluginStart() {
   g_grenadeHologramEntities = new ArrayList();
@@ -36,9 +38,11 @@ public void GrenadeHologram_GameFrame() {
     if (IsClientInGame(client)) {
       ent = GetClientVisibleAimTarget(client);
       grenadeID = ent != -1 
-        ? GetEntityGrenadeID(ent) 
+        ? GetHologramEntityGrenadeID(ent) 
         : 0;
-      ShowGrenadeHUDInfo(client, grenadeID);
+      if (GrenadeHologramShouldShow(client, grenadeID)) {
+        ShowGrenadeHUDInfo(client, grenadeID);
+      }
     } 
     g_grenadeHologramClientTargetGrenadeIDs[client] = grenadeID;
   }
@@ -116,6 +120,8 @@ public void InitGrenadeHologramClientSettings(int client) {
   g_grenadeHologramClientTargetGrenadeIDs[client] = -1;
   g_grenadeHologramClientInUse[client] = false;
   g_grenadeHologramClientEnabled[client] = true;
+  g_grenadeHologramClientAllowed[client] = true;
+  g_grenadeHologramClientWhitelist[client] = -1;
 }
 
 public void InitGrenadeHologramEntities() {
@@ -156,12 +162,12 @@ public Action _UpdateGrenadeHologramEntities_Iterator(
     g_grenadeHologramEntities.Push(button);
   }
 
-  int reticule = CreateGrenadeHologramReticule(projectedOrigin, angles, type, parentName);
+  int reticule = CreateGrenadeHologramReticule(projectedOrigin, angles, type, grenadeId, parentName);
   if (reticule != -1) {
     g_grenadeHologramEntities.Push(reticule);
   }
 
-  int disc = CreateGrenadeHologramFloor(origin, angles, type, parentName);
+  int disc = CreateGrenadeHologramFloor(origin, angles, type, grenadeId, parentName);
   if (disc != -1) {
     g_grenadeHologramEntities.Push(disc);
   }
@@ -185,7 +191,9 @@ public void SetupGrenadeHologramEntitiesHooks() {
 }
 
 public Action GrenadeHologramHook_OnTransmit(int entity, int client) {
-  return g_grenadeHologramClientEnabled[client] ? Plugin_Continue : Plugin_Handled;
+  return IsGrenadeHologramEnabled(client) || IsGrenadeHologramEntityWhitelisted(client, entity) 
+    ? Plugin_Continue 
+    : Plugin_Handled;
 }
 
 // creates an invisible entity for player interaction with the reticule.
@@ -205,6 +213,8 @@ public int CreateGrenadeHologramInteractiveEntity(
 
   EncodeEntityGrenadeIDString(targetname, targetnameLength, grenadeID);
   DispatchKeyValue(ent, "targetname", targetname);
+  // Hack: reuse this prop for storing grenade ID.
+  SetEntProp(ent, Prop_Send, "m_iTeamNum", StringToInt(grenadeID, 10));
 
   DispatchKeyValue(ent, "spawnflags", "1");
   DispatchSpawn(ent);
@@ -236,6 +246,7 @@ public int CreateGrenadeHologramFloor(
   const float origin[3], 
   const float angles[3], 
   const GrenadeType type,
+  const char[] grenadeID,
   const char[] interactivityParent
 ) {
   char color[16];
@@ -265,6 +276,8 @@ public int CreateGrenadeHologramFloor(
       return -1;
     } 
     TeleportEntity(ent, raisedOrigin, rotation, NULL_VECTOR);
+    // Hack: reuse this prop for storing grenade ID.
+    SetEntProp(ent, Prop_Send, "m_iTeamNum", StringToInt(grenadeID, 10));
     // Needed for transmit hooks.
     SetVariantString(interactivityParent);
     AcceptEntityInput(ent, "SetParent"); 
@@ -277,6 +290,7 @@ public int CreateGrenadeHologramReticule(
   const float origin[3], 
   const float angles[3], 
   const GrenadeType type,
+  const char[] grenadeID,
   const char[] interactivityParent
 ) {
   char color[16];
@@ -295,6 +309,8 @@ public int CreateGrenadeHologramReticule(
       return -1;
     } 
     TeleportEntity(ent, origin, angles, NULL_VECTOR);
+    // Hack: reuse this prop for storing grenade ID.
+    SetEntProp(ent, Prop_Send, "m_iTeamNum", StringToInt(grenadeID, 10));
     // Needed for transmit hooks.
     SetVariantString(interactivityParent);
     AcceptEntityInput(ent, "SetParent"); 
@@ -333,14 +349,9 @@ public void EncodeEntityGrenadeIDString(char[] buffer, const int length, const c
   StrCat(buffer, length, grenadeID);
 }
 
-public int GetEntityGrenadeID(int ent) {
-  int prefixlen = strlen(ENT_NADEID_PREFIX);
-  char prop[128];
-  GetEntPropString(ent, Prop_Send, "m_iName", prop, sizeof(prop));
-  char numeral[128];
-  strcopy(numeral, sizeof(numeral), prop[prefixlen]);
-  // TODO: error checking if name is formatted incorrectly?
-  return StringToInt(numeral, 10);
+public int GetHologramEntityGrenadeID(const int ent) {
+  // Hack: reuse this prop for storing grenade ID.
+  return GetEntProp(ent, Prop_Send, "m_iTeamNum");
 }
 
 public int GetClientVisibleAimTarget(int client) {
@@ -365,6 +376,9 @@ public bool TR_DontHitSelf(int entity, int mask, any data_client) {
 }
 
 public void ShowGrenadeHUDInfo(const int client, const int grenadeID) {
+  if (!GrenadeHologramShouldShow(client, grenadeID)) {
+    return;
+  }
   if (!grenadeID) {
     PrintHintText(client, "Aim at a target for nade info.");
   } else {
@@ -389,10 +403,56 @@ public void ShowGrenadeHUDInfo(const int client, const int grenadeID) {
   }
 }
 
-public void GrenadeHologramClientToggle(int client) {
+public void GrenadeHologramToggle(int client) {
   g_grenadeHologramClientEnabled[client] = !g_grenadeHologramClientEnabled[client];
+}
+
+public void GrenadeHologramEnable(int client) {
+  GrenadeHologramClearWhitelist(client);
+  g_grenadeHologramClientEnabled[client] = true;
+}
+
+public void GrenadeHologramDisable(int client) {
+  g_grenadeHologramClientEnabled[client] = false;
+}
+
+public void GrenadeHologramDeny(int client) {
+  GrenadeHologramDisable(client);
+  g_grenadeHologramClientAllowed[client] = false;
+}
+
+public void GrenadeHologramAllow(int client) {
+  GrenadeHologramEnable(client);
+  g_grenadeHologramClientAllowed[client] = true;
+}
+
+public bool IsGrenadeHologramAllowed(int client) {
+  return g_grenadeHologramClientAllowed[client];
 }
 
 public bool IsGrenadeHologramEnabled(int client) {
   return g_grenadeHologramClientEnabled[client];
+}
+
+public bool IsGrenadeHologramEntityWhitelisted(const int client, const int entity) {
+  int id = GetHologramEntityGrenadeID(entity);
+  return id == g_grenadeHologramClientWhitelist[client];
+}
+
+public void GrenadeHologramWhitelistGrenadeID(const int client, const int id) {
+  g_grenadeHologramClientWhitelist[client] = id;
+}
+
+public void GrenadeHologramClearWhitelist(const int client) {
+  GrenadeHologramWhitelistGrenadeID(client, -1);
+}
+
+public bool GrenadeHologramShouldShow(const int client, const int grenadeID) {
+  if (IsGrenadeHologramEnabled(client)) {
+    return true; 
+  }
+  if (g_grenadeHologramClientWhitelist[client] == grenadeID) {
+    return true;
+  }
+  return false;
 }

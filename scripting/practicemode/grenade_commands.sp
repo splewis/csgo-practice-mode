@@ -790,11 +790,15 @@ public Action Command_GrenadeHologramToggle(int client, int args) {
     return Plugin_Handled;
   }
 
-  GrenadeHologramClientToggle(client);
-  if (IsGrenadeHologramEnabled(client)) {
-    PM_Message(client, "Grenade Holograms enabled.");
+  if (IsGrenadeHologramAllowed(client)) {
+    GrenadeHologramToggle(client);
+    if (IsGrenadeHologramEnabled(client)) {
+      PM_Message(client, "Grenade Holograms enabled.");
+    } else {
+      PM_Message(client, "Grenade Holograms disabled.");
+    }
   } else {
-    PM_Message(client, "Grenade Holograms disabled.");
+    PM_Message(client, "Hologram toggling is not allowed.");
   }
 
   return Plugin_Handled;

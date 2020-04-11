@@ -258,6 +258,7 @@ Handle g_OnPracticeModeSettingsRead = INVALID_HANDLE;
 #include "practicemode/grenade_hologram.sp"
 #include "practicemode/grenade_menus.sp"
 #include "practicemode/grenade_utils.sp"
+#include "practicemode/learn.sp"
 #include "practicemode/natives.sp"
 #include "practicemode/pugsetup_integration.sp"
 #include "practicemode/settings_menu.sp"
@@ -552,6 +553,22 @@ public void OnPluginStart() {
 
     RegConsoleCmd("sm_joinct", Command_JoinCT);
     PM_AddChatAlias(".ct", "sm_joinct");
+  }
+
+  // Learn commands
+  {
+    RegConsoleCmd("sm_learn", Command_Learn);
+    PM_AddChatAlias(".learn", "sm_learn");
+
+    RegConsoleCmd("sm_skip", Command_Skip);
+    PM_AddChatAlias(".skip", "sm_skip");
+
+    RegConsoleCmd("sm_stoplearn", Command_StopLearn);
+    PM_AddChatAlias(".stoplearn", "sm_stoplearn");
+    PM_AddChatAlias(".stoplearning", "sm_stoplearn");
+    
+    RegConsoleCmd("sm_show", Command_Show);
+    PM_AddChatAlias(".show", "sm_show");
   }
 
   // Other commands
@@ -862,6 +879,7 @@ public void OnMapStart() {
   BotReplay_MapStart();
   GrenadeHologram_MapStart();
   GrenadeAccuracy_MapStart();
+  Learn_MapStart();
 }
 
 public void OnGameFrame() {
@@ -922,6 +940,7 @@ public void OnClientDisconnect(int client) {
   }
 
   GrenadeHologram_ClientDisconnect(client);
+  Learn_ClientDisconnect(client);
 }
 
 public void OnMapEnd() {
@@ -1699,7 +1718,8 @@ public void CSU_OnGrenadeExplode(
     // All grenades processed.
     g_GrenadeDetonationSaveQueue.Clear();
   }
-  GrenadeAccuracy_OnGrenadeExplode(client, currentEntity, grenadeDetonationOrigin, grenade);
+  GrenadeAccuracy_OnGrenadeExplode(client, currentEntity, grenade, grenadeDetonationOrigin);
+  Learn_OnGrenadeExplode(client, currentEntity, grenade, grenadeDetonationOrigin);
 }
 
 public void CSU_OnManagedGrenadeExplode(
