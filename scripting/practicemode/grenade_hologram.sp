@@ -31,6 +31,9 @@ public void GrenadeHologram_PluginStart() {
 }
 
 public void GrenadeHologram_GameFrame() {
+  if (!g_InPracticeMode) {
+    return;
+  }
   int ent = -1;
   int grenadeID = 0;
   for(int client = 1; client <= MaxClients; client++) {

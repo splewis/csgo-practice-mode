@@ -131,6 +131,7 @@ int g_LastGrenadeEntity[MAXPLAYERS + 1];
 
 
 ArrayList g_GrenadeDetonationSaveQueue; 
+#define GRENADE_DETONATION_FIX_PHASE_BREAKGLASS 3
 #define GRENADE_DETONATION_FIX_PHASE_SMOKES 2
 #define GRENADE_DETONATION_FIX_PHASE_NONSMOKES 1
 #define GRENADE_DETONATION_FIX_PHASE_DONE 0
@@ -1693,7 +1694,7 @@ public void CSU_OnGrenadeExplode(
   if (currentEntity == g_LastGrenadeEntity[client]) {
     g_LastGrenadeDetonationOrigin[client] = grenadeDetonationOrigin;
   }
-  if (g_GrenadeDetonationSaveQueue.Length) {
+  if (g_GrenadeDetonationSaveQueue.Length > 0) {
     // Process the async save queue to add detonation data.
     for (int i = 0; i < g_GrenadeDetonationSaveQueue.Length; i++) {
       StringMap item = g_GrenadeDetonationSaveQueue.Get(i);
@@ -1728,7 +1729,7 @@ public void CSU_OnManagedGrenadeExplode(
   GrenadeType grenade,
   const float grenadeDetonationOrigin[3]
 ) {
-  if (!g_ManagedGrenadeDetonationsToFix.Size) {
+  if (g_ManagedGrenadeDetonationsToFix.Size == 0) {
     return;
   }
 
@@ -1756,7 +1757,7 @@ public void CSU_OnManagedGrenadeExplode(
   }
 
   // Did we finish the queue?
-  if (!g_ManagedGrenadeDetonationsToFix.Size) {
+  if (g_ManagedGrenadeDetonationsToFix.Size == 0) {
     int nextPhase = CorrectGrenadeDetonationsAdvanceToNextPhase(client);
     if (nextPhase == GRENADE_DETONATION_FIX_PHASE_DONE) {
       PM_Message(client, "Finished fixing detonations.");

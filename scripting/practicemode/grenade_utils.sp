@@ -886,7 +886,7 @@ public Action CorrectGrenadeIdsHelper(
 
 // Rethrows all grenades, and uses the CSU managed explosion forward to save grenade data.
 public void CorrectGrenadeDetonations(int initiatingClient) {
-  g_ManagedGrenadeDetonationsToFixPhase = GRENADE_DETONATION_FIX_PHASE_SMOKES;
+  g_ManagedGrenadeDetonationsToFixPhase = GRENADE_DETONATION_FIX_PHASE_BREAKGLASS;
   IterateGrenades(_CorrectGrenadeDetonations_Iterator, initiatingClient);
   PM_Message(initiatingClient, "Fixing detonations in %i phases.", g_ManagedGrenadeDetonationsToFixPhase);
 }
@@ -925,7 +925,6 @@ public Action _CorrectGrenadeDetonations_Iterator(
     return;
   }
 
-  // TODO: throw in 3 phases to break glass on some maps?
   int thrownEntity = CSU_ThrowGrenade(initiatingClient, grenadeType, grenadeOrigin, grenadeVelocity);
   if (thrownEntity == -1) {
     LogError("Tried to throw grenade %s for fixing detonations but failed to capture the entity.", grenadeID);

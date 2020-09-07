@@ -1,8 +1,3 @@
-// TODO
-// -- check for category "Exempt", exclude those (const it tho)
-// -- tell the person they missed? suppress the other messaging?
-
-
 #define LEARN_ATTEMPTS 1
 #define LEARN_START_SEC 3.0
 #define LEARN_ADVANCE_DELAY_SEC 1.0
@@ -189,7 +184,7 @@ public Action _LearnLaunch_Iterator(
   for (int i = 0; i < categories.Length; i++) {
     char buffer[GRENADE_CATEGORY_LENGTH];
     categories.GetString(i, buffer, sizeof(buffer));
-    if (!strcmp(buffer, LEARN_BLACKLIST_CATEGORY, .caseSensitive=false)) {
+    if (StrEqual(buffer, LEARN_BLACKLIST_CATEGORY, false)) {
       return;
     }
   }
@@ -231,7 +226,7 @@ public int LearnGetCurrentGrenade(const int client) {
 }
 
 public bool LearnIsActive(const int client) {
-  return !!g_LearnQueue[client].Length;
+  return g_LearnQueue[client].Length != 0;
 }
 
 public void LearnHit(const int client, const GrenadeAccuracyScore score) {
@@ -252,12 +247,12 @@ public Action _LearnHit_Delay(Handle timer, int client) {
 
 // Used with success or skip; agnostic to intent.
 public void LearnAdvance(const int client) {
-  if (!g_LearnQueue[client].Length) {
+  if (g_LearnQueue[client].Length == 0) {
     LogError("Tried to advance learn queue for %i when it is empty.", client);
     return;
   }
   g_LearnQueue[client].Erase(0);
-  if (g_LearnQueue[client].Length) {    
+  if (g_LearnQueue[client].Length > 0) {    
     LearnActivateGrenade(client, LearnGetCurrentGrenade(client));
   } else {
     if (g_LearnMissCount[client] == 0) {
