@@ -869,6 +869,7 @@ public void OnMapStart() {
     g_UpdatedGrenadeKv = true;
   } else {
     g_GrenadeLocationsKv = new KeyValues("Grenades");
+    g_GrenadeLocationsKv.SetEscapeSequences(true); // Avoid fatals from special chars in user data
     g_GrenadeLocationsKv.ImportFromFile(g_GrenadeLocationsFile);
     g_UpdatedGrenadeKv = false;
   }
