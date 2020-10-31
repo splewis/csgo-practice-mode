@@ -104,31 +104,42 @@ public void GrenadeAccuracy_OnGrenadeExplode(
   float origin_nearOrigin[3];
   float angles_nearOrigin[3];
   char name_nearOrigin[GRENADE_NAME_LENGTH];
-  GetClientGrenadeVector(grenadeID_nearOrigin, "grenadeDetonationOrigin", detonation_nearOrigin);
-  GetClientGrenadeVector(grenadeID_nearOrigin, "origin", origin_nearOrigin);
-  GetClientGrenadeVector(grenadeID_nearOrigin, "angles", angles_nearOrigin);
-  GetClientGrenadeData(grenadeID_nearOrigin, "name", name_nearOrigin, sizeof(name_nearOrigin));
-  GrenadeAccuracyScore scoreDetonation_nearOrigin = GetGrenadeAccuracyScore(detonation, detonation_nearOrigin, GRENADE_ACCURACY_SCORING_DETONATION);
-  GrenadeAccuracyScore scoreOrigin_nearOrigin = GetGrenadeAccuracyScore(origin, origin_nearOrigin, GRENADE_ACCURACY_SCORING_ANGLES);
-  GrenadeAccuracyScore scoreAngles_nearOrigin = GetGrenadeAccuracyScore(angles, angles_nearOrigin, GRENADE_ACCURACY_SCORING_ORIGIN);
-  GrenadeAccuracyPrintWarningIfMissing(client, detonation_nearOrigin, grenadeID_nearOrigin);
+  GrenadeAccuracyScore scoreDetonation_nearOrigin;
+  GrenadeAccuracyScore scoreOrigin_nearOrigin;
+  GrenadeAccuracyScore scoreAngles_nearOrigin;
+  if (grenadeID_nearOrigin != -1) {
+    GetClientGrenadeVector(grenadeID_nearOrigin, "grenadeDetonationOrigin", detonation_nearOrigin);
+    GetClientGrenadeVector(grenadeID_nearOrigin, "origin", origin_nearOrigin);
+    GetClientGrenadeVector(grenadeID_nearOrigin, "angles", angles_nearOrigin);
+    GetClientGrenadeData(grenadeID_nearOrigin, "name", name_nearOrigin, sizeof(name_nearOrigin));
+    scoreDetonation_nearOrigin = GetGrenadeAccuracyScore(detonation, detonation_nearOrigin, GRENADE_ACCURACY_SCORING_DETONATION);
+    scoreOrigin_nearOrigin = GetGrenadeAccuracyScore(origin, origin_nearOrigin, GRENADE_ACCURACY_SCORING_ANGLES);
+    scoreAngles_nearOrigin = GetGrenadeAccuracyScore(angles, angles_nearOrigin, GRENADE_ACCURACY_SCORING_ORIGIN);
+    GrenadeAccuracyPrintWarningIfMissing(client, detonation_nearOrigin, grenadeID_nearOrigin);
+  }
 
   float detonation_nearDetonation[3];
   float origin_nearDetonation[3];
   float angles_nearDetonation[3];
   char name_nearDetonation[GRENADE_NAME_LENGTH];
-  GetClientGrenadeVector(grenadeID_nearDetonation, "grenadeDetonationOrigin", detonation_nearDetonation);
-  GetClientGrenadeVector(grenadeID_nearDetonation, "origin", origin_nearDetonation);
-  GetClientGrenadeVector(grenadeID_nearDetonation, "angles", angles_nearDetonation);
-  GetClientGrenadeData(grenadeID_nearDetonation, "name", name_nearDetonation, sizeof(name_nearDetonation));
-  GrenadeAccuracyScore scoreDetonation_nearDetonation = GetGrenadeAccuracyScore(detonation, detonation_nearDetonation, GRENADE_ACCURACY_SCORING_DETONATION);
-  GrenadeAccuracyScore scoreOrigin_nearDetonation = GetGrenadeAccuracyScore(origin, origin_nearDetonation, GRENADE_ACCURACY_SCORING_ANGLES);
-  GrenadeAccuracyScore scoreAngles_nearDetonation = GetGrenadeAccuracyScore(angles, angles_nearDetonation, GRENADE_ACCURACY_SCORING_ORIGIN);
-  GrenadeAccuracyPrintWarningIfMissing(client, detonation_nearDetonation, grenadeID_nearDetonation);
+  GrenadeAccuracyScore scoreDetonation_nearDetonation;
+  GrenadeAccuracyScore scoreOrigin_nearDetonation;
+  GrenadeAccuracyScore scoreAngles_nearDetonation;
+  if (grenadeID_nearDetonation != -1) {
+    GetClientGrenadeVector(grenadeID_nearDetonation, "grenadeDetonationOrigin", detonation_nearDetonation);
+    GetClientGrenadeVector(grenadeID_nearDetonation, "origin", origin_nearDetonation);
+    GetClientGrenadeVector(grenadeID_nearDetonation, "angles", angles_nearDetonation);
+    GetClientGrenadeData(grenadeID_nearDetonation, "name", name_nearDetonation, sizeof(name_nearDetonation));
+    scoreDetonation_nearDetonation = GetGrenadeAccuracyScore(detonation, detonation_nearDetonation, GRENADE_ACCURACY_SCORING_DETONATION);
+    scoreOrigin_nearDetonation = GetGrenadeAccuracyScore(origin, origin_nearDetonation, GRENADE_ACCURACY_SCORING_ANGLES);
+    scoreAngles_nearDetonation = GetGrenadeAccuracyScore(angles, angles_nearDetonation, GRENADE_ACCURACY_SCORING_ORIGIN);
+    GrenadeAccuracyPrintWarningIfMissing(client, detonation_nearDetonation, grenadeID_nearDetonation);
+  }
 
   // TODO for potential scoring improvement: especially penalize deltas in z-axis.
   if (
-    scoreDetonation_nearOrigin > GrenadeAccuracyScore_CLOSE 
+    grenadeID_nearDetonation != -1
+    && scoreDetonation_nearOrigin > GrenadeAccuracyScore_CLOSE 
     && GrenadeAccuracyGetCloserVector(detonation, detonation_nearDetonation, detonation_nearOrigin) == -1
     && grenadeID_nearDetonation != grenadeID_nearOrigin
   ) {
@@ -146,7 +157,7 @@ public void GrenadeAccuracy_OnGrenadeExplode(
       scoreDetonation_nearOrigin,
       scoreOrigin_nearOrigin
     );
-  } else {
+  } else if (grenadeID_nearOrigin != -1) {
     GrenadeAccuracyPrint(
       client, 
       grenadeID_nearOrigin, 
@@ -301,6 +312,7 @@ public void GrenadeAccuracyPrintWarningIfMissing(const int client, const float v
 
 }
 
+// return id of -1 means that no grenade was found for the given type.
 public int GrenadeAccuracyFindNearestIdToVectorProp(const float vec[3], GrenadeType type, GrenadeAccuracyIteratorProp prop) {
   ArrayList nades = new ArrayList();
 
@@ -320,16 +332,20 @@ public int GrenadeAccuracyFindNearestIdToVectorProp(const float vec[3], GrenadeT
   nades.Erase(0);
   nades.Erase(0);
 
-  SortADTArrayCustom(nades, _FindNearestGrenadeToVector_Sort);
-  Handle pResult = nades.Get(0);
-  ResetPack(pResult);
-  ReadPackFloat(pResult); // skip distance.
-  char idStr[GRENADE_ID_LENGTH];
-  ReadPackString(pResult, idStr, sizeof(idStr));
-  int result = StringToInt(idStr, 10);
-
-  for (int i = 0; i < nades.Length; i++) {
-    CloseHandle(nades.Get(i));
+  int result = -1;
+  if (nades.Length > 0) {
+    SortADTArrayCustom(nades, _FindNearestGrenadeToVector_Sort);
+    Handle pResult = nades.Get(0);
+    ResetPack(pResult);
+    ReadPackFloat(pResult); // skip distance.
+    char idStr[GRENADE_ID_LENGTH];
+    ReadPackString(pResult, idStr, sizeof(idStr));
+    
+    result = StringToInt(idStr, 10);
+    
+    for (int i = 0; i < nades.Length; i++) {
+      CloseHandle(nades.Get(i));
+    }
   }
   nades.Clear();
   CloseHandle(nades);

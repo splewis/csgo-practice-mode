@@ -91,6 +91,11 @@ public void GrenadeHologram_GrenadeKvMutate() {
 }
 
 public void GrenadeHologram_EntityDestroyed(int entity) {
+  if (entity == -1) {
+    // Not sure what the cause is for this, but it does happen sometimes, and it's not valid for us.
+    // No evident reason to log it though.
+    return;
+  }
   char classname[128];
   GetEntityClassname(entity, classname, sizeof(classname));
   if (!strcmp(classname, "env_sprite_oriented") || !strcmp(classname, "info_target")) {
