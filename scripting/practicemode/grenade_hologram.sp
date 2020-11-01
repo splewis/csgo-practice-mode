@@ -28,6 +28,12 @@ public void GrenadeHologram_PluginStart() {
   for (int client = 1; client <= MaxClients; client++) {
     InitGrenadeHologramClientSettings(client);
   }
+  HookEvent("round_start", GrenadeHologram_OnRoundStart, EventHookMode_PostNoCopy);
+}
+
+public void GrenadeHologram_OnRoundStart(Event event, const char[] name, bool dontBroadcast) {
+  // Round restart will kill some of our hologram entities, so let's recreate our state.
+  UpdateGrenadeHologramEntities();
 }
 
 public void GrenadeHologram_GameFrame() {
@@ -100,7 +106,7 @@ public void GrenadeHologram_EntityDestroyed(int entity) {
   GetEntityClassname(entity, classname, sizeof(classname));
   if (!strcmp(classname, "env_sprite_oriented") || !strcmp(classname, "info_target")) {
     if (g_grenadeHologramEntities.FindValue(entity) != -1) {
-      LogError("Engine is destroying hologram entity %i while we expect to retain it.", entity);
+      LogMessage("CSGO is destroying hologram entity %i but we are retaining it. Expecting to fix at next round_start.", entity);
     }
   }
 }
