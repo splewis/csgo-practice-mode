@@ -105,8 +105,10 @@ public void GrenadeHologram_EntityDestroyed(int entity) {
   char classname[128];
   GetEntityClassname(entity, classname, sizeof(classname));
   if (!strcmp(classname, "env_sprite_oriented") || !strcmp(classname, "info_target")) {
-    if (g_grenadeHologramEntities.FindValue(entity) != -1) {
+    int i = g_grenadeHologramEntities.FindValue(entity);
+    if (i != -1) {
       LogMessage("CSGO is destroying hologram entity %i but we are retaining it. Expecting to fix at next round_start.", entity);
+      g_grenadeHologramEntities.Erase(i);
     }
   }
 }
