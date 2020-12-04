@@ -13,7 +13,7 @@
 
 #include <get5>
 #include <pugsetup>
-#include <updater>
+#include "include/updater.inc"
 
 #include "include/practicemode.inc"
 #include "include/restorecvars.inc"
