@@ -36,6 +36,15 @@ stock bool IsPlayer(int client) {
   return IsValidClient(client) && !IsFakeClient(client) && !IsClientSourceTV(client);
 }
 
+stock bool IsServerEmpty() {
+  for (int client = 1; client <= MaxClients; client++) {
+    if (IsPlayer(client)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 stock void Colorize(char[] msg, int size, bool stripColor = false) {
   for (int i = 0; i < sizeof(_colorNames); i++) {
     if (stripColor)

@@ -6,6 +6,7 @@
 #include <sdktools>
 #include <smlib>
 #include <sourcemod>
+#include <vector>
 
 #undef REQUIRE_PLUGIN
 #include "include/botmimic.inc"
@@ -90,6 +91,9 @@ ConVar g_VersionCvar;
 #define GRENADE_NAME_LENGTH 64
 #define GRENADE_ID_LENGTH 16
 #define GRENADE_CATEGORY_LENGTH 128
+#define GRENADE_DETONATION_KEY_AUTH "auth"
+#define GRENADE_DETONATION_KEY_ID "id"
+#define GRENADE_DETONATION_KEY_ENTITY "entity"
 #define AUTH_LENGTH 64
 #define AUTH_METHOD AuthId_Steam2
 char g_GrenadeLocationsFile[PLATFORM_MAX_PATH];
@@ -122,6 +126,17 @@ ArrayList g_RunningRoundRepeatedCommandArg[MAXPLAYERS + 1];   /* char[256] */
 GrenadeType g_LastGrenadeType[MAXPLAYERS + 1];
 float g_LastGrenadeOrigin[MAXPLAYERS + 1][3];
 float g_LastGrenadeVelocity[MAXPLAYERS + 1][3];
+float g_LastGrenadeDetonationOrigin[MAXPLAYERS + 1][3];
+int g_LastGrenadeEntity[MAXPLAYERS + 1];
+
+
+ArrayList g_GrenadeDetonationSaveQueue; 
+#define GRENADE_DETONATION_FIX_PHASE_BREAKGLASS 3
+#define GRENADE_DETONATION_FIX_PHASE_SMOKES 2
+#define GRENADE_DETONATION_FIX_PHASE_NONSMOKES 1
+#define GRENADE_DETONATION_FIX_PHASE_DONE 0
+StringMap g_ManagedGrenadeDetonationsToFix;
+int g_ManagedGrenadeDetonationsToFixPhase = GRENADE_DETONATION_FIX_PHASE_DONE;
 
 // Respawn values set by clients in the current session
 bool g_SavedRespawnActive[MAXPLAYERS + 1];
@@ -238,10 +253,13 @@ Handle g_OnPracticeModeSettingsRead = INVALID_HANDLE;
 #include "practicemode/bots_menu.sp"
 #include "practicemode/commands.sp"
 #include "practicemode/debug.sp"
+#include "practicemode/grenade_accuracy.sp"
 #include "practicemode/grenade_commands.sp"
 #include "practicemode/grenade_filters.sp"
+#include "practicemode/grenade_hologram.sp"
 #include "practicemode/grenade_menus.sp"
 #include "practicemode/grenade_utils.sp"
+#include "practicemode/learn.sp"
 #include "practicemode/natives.sp"
 #include "practicemode/pugsetup_integration.sp"
 #include "practicemode/settings_menu.sp"
@@ -322,6 +340,8 @@ public void OnPluginStart() {
               "Translates all grenades on this map");
   RegAdminCmd("sm_fixgrenades", Command_FixGrenades, ADMFLAG_CHANGEMAP,
               "Reset grenade ids so they are consecutive and start at 1.");
+  RegAdminCmd("sm_fixdetonations", Command_FixGrenadeDetonations, ADMFLAG_CHANGEMAP,
+              "Throws all grenades and records detonation data.");
 
   // Grenade history commands
   {
@@ -536,6 +556,22 @@ public void OnPluginStart() {
     PM_AddChatAlias(".ct", "sm_joinct");
   }
 
+  // Learn commands
+  {
+    RegConsoleCmd("sm_learn", Command_Learn);
+    PM_AddChatAlias(".learn", "sm_learn");
+
+    RegConsoleCmd("sm_skip", Command_Skip);
+    PM_AddChatAlias(".skip", "sm_skip");
+
+    RegConsoleCmd("sm_stoplearn", Command_StopLearn);
+    PM_AddChatAlias(".stoplearn", "sm_stoplearn");
+    PM_AddChatAlias(".stoplearning", "sm_stoplearn");
+    
+    RegConsoleCmd("sm_show", Command_Show);
+    PM_AddChatAlias(".show", "sm_show");
+  }
+
   // Other commands
   {
     RegConsoleCmd("sm_testflash", Command_TestFlash);
@@ -602,6 +638,11 @@ public void OnPluginStart() {
 
     RegConsoleCmd("sm_endround", Command_EndRound);
     PM_AddChatAlias(".endround", "sm_endround");
+
+    RegConsoleCmd("sm_hologram_toggle", Command_GrenadeHologramToggle);
+    PM_AddChatAlias(".holograms", "sm_hologram_toggle");
+    PM_AddChatAlias(".hologram", "sm_hologram_toggle");
+    PM_AddChatAlias(".holo", "sm_hologram_toggle");
 
     RegConsoleCmd("sm_break", Command_Break);
     PM_AddChatAlias(".break", "sm_break");
@@ -683,6 +724,8 @@ public void OnPluginStart() {
   g_CTSpawns = new ArrayList();
   g_TSpawns = new ArrayList();
   g_KnownNadeCategories = new ArrayList(GRENADE_CATEGORY_LENGTH);
+  g_GrenadeDetonationSaveQueue = new ArrayList();
+  g_ManagedGrenadeDetonationsToFix = new StringMap();
 
   // Create client cookies.
   RegisterUserSetting(UserSetting_ShowAirtime, "practicemode_grenade_airtime", true,
@@ -713,6 +756,9 @@ public void OnPluginStart() {
   CreateTimer(0.1, Timer_RespawnBots, _, TIMER_REPEAT);
   CreateTimer(1.0, Timer_CleanupLivingBots, _, TIMER_REPEAT);
   CreateTimer(1.0, Timer_UpdateClientCvars, _, TIMER_REPEAT);
+
+  GrenadeHologram_PluginStart();
+  GrenadeAccuracy_PluginStart();
 }
 
 public void OnPluginEnd() {
@@ -779,6 +825,7 @@ public void OnClientConnected(int client) {
   g_RunningLiveTimeCommand[client] = false;
   g_SavedRespawnActive[client] = false;
   g_LastGrenadeType[client] = GrenadeType_None;
+  g_LastGrenadeEntity[client] = -1;
   g_RunningRepeatedCommand[client] = false;
   g_RunningRoundRepeatedCommandDelay[client].Clear();
   g_RunningRoundRepeatedCommandArg[client].Clear();
@@ -822,6 +869,7 @@ public void OnMapStart() {
     g_UpdatedGrenadeKv = true;
   } else {
     g_GrenadeLocationsKv = new KeyValues("Grenades");
+    g_GrenadeLocationsKv.SetEscapeSequences(true); // Avoid fatals from special chars in user data
     g_GrenadeLocationsKv.ImportFromFile(g_GrenadeLocationsFile);
     g_UpdatedGrenadeKv = false;
   }
@@ -831,6 +879,13 @@ public void OnMapStart() {
   FindGrenadeCategories();
   Spawns_MapStart();
   BotReplay_MapStart();
+  GrenadeHologram_MapStart();
+  GrenadeAccuracy_MapStart();
+  Learn_MapStart();
+}
+
+public void OnGameFrame() {
+  GrenadeHologram_GameFrame();
 }
 
 public void OnConfigsExecuted() {
@@ -850,6 +905,10 @@ public void OnConfigsExecuted() {
   }
 
   CheckAutoStart();
+}
+
+public void OnGrenadeKvMutate() {
+  GrenadeHologram_GrenadeKvMutate();
 }
 
 public void CheckAutoStart() {
@@ -881,6 +940,9 @@ public void OnClientDisconnect(int client) {
   if (playerCount == 0 && g_InPracticeMode) {
     ExitPracticeMode();
   }
+
+  GrenadeHologram_ClientDisconnect(client);
+  Learn_ClientDisconnect(client);
 }
 
 public void OnMapEnd() {
@@ -892,6 +954,7 @@ public void OnMapEnd() {
 
   Spawns_MapEnd();
   BotReplay_MapEnd();
+  GrenadeHologram_MapEnd();
   delete g_GrenadeLocationsKv;
 }
 
@@ -913,6 +976,7 @@ public void OnClientSettingsChanged(int client) {
 
 public void OnClientPutInServer(int client) {
   UpdateClientCvars(client);
+  GrenadeHologram_ClientPutInServer(client);
 }
 
 static void UpdateClientCvars(int client) {
@@ -1018,6 +1082,7 @@ public Action OnPlayerRunCmd(int client, int& buttons, int& impulse, float vel[3
     }
   }
 
+  GrenadeHologram_PlayerRunCmd(client, buttons, impulse, vel, angles, weapon);
   return Plugin_Continue;
 }
 
@@ -1192,6 +1257,8 @@ public void LaunchPracticeMode() {
     ChangeSetting(i, PM_IsSettingEnabled(i), false, true);
   }
 
+  GrenadeHologram_LaunchPracticeMode();
+
   PM_MessageToAll("Practice mode is now enabled.");
   Call_StartForward(g_OnPracticeModeEnabled);
   Call_Finish();
@@ -1286,6 +1353,8 @@ public void ExitPracticeMode() {
       SetEntityMoveType(i, MOVETYPE_WALK);
     }
   }
+
+  GrenadeHologram_ExitPracticeMode();
 
   ServerCommand("exec sourcemod/practicemode_end.cfg");
   PM_MessageToAll("Practice mode is now disabled.");
@@ -1392,6 +1461,10 @@ public int DelayedOnEntitySpawned(int entity) {
       }
     }
   }
+}
+
+public void OnEntityDestroyed(int entity) {
+  GrenadeHologram_EntityDestroyed(entity);
 }
 
 public Action Timer_TeleportClient(Handle timer, int serial) {
@@ -1604,5 +1677,94 @@ public void CSU_OnThrowGrenade(int client, int entity, GrenadeType grenadeType, 
   g_LastGrenadeType[client] = grenadeType;
   g_LastGrenadeOrigin[client] = origin;
   g_LastGrenadeVelocity[client] = velocity;
+  g_LastGrenadeDetonationOrigin[client] = view_as<float>({0.0, 0.0, 0.0});
+  g_LastGrenadeEntity[client] = entity;
   Replays_OnThrowGrenade(client, entity, grenadeType, origin, velocity);
+  GrenadeAccuracy_OnThrowGrenade(client, entity);
+}
+
+public void CSU_OnGrenadeExplode(
+  int client,
+  int currentEntity, 
+  GrenadeType grenade,
+  const float grenadeDetonationOrigin[3]
+) {
+  if (client == -1) {
+    // I guess this is possible in some race conditions involving map change or disconnect.
+    return;
+  }
+  if (currentEntity == g_LastGrenadeEntity[client]) {
+    g_LastGrenadeDetonationOrigin[client] = grenadeDetonationOrigin;
+  }
+  if (g_GrenadeDetonationSaveQueue.Length > 0) {
+    // Process the async save queue to add detonation data.
+    for (int i = 0; i < g_GrenadeDetonationSaveQueue.Length; i++) {
+      StringMap item = g_GrenadeDetonationSaveQueue.Get(i);
+
+      int grenadeEntity;
+      if (!item.GetValue(GRENADE_DETONATION_KEY_ENTITY, grenadeEntity)) {
+        LogError("Tried to access a prop " ... GRENADE_DETONATION_KEY_ENTITY ... " that didn't exist in OnGrenadeExplode");
+      }
+
+      if (grenadeEntity == currentEntity) {
+        char auth[AUTH_LENGTH];
+        if (!item.GetString(GRENADE_DETONATION_KEY_AUTH, auth, sizeof(auth))) {
+          LogError("Tried to access a prop "  ... GRENADE_DETONATION_KEY_AUTH ... " that didn't exist in OnGrenadeExplode");
+        }
+        char grenadeID[GRENADE_ID_LENGTH];
+        if (!item.GetString(GRENADE_DETONATION_KEY_ID, grenadeID, sizeof(grenadeID))) {
+          LogError("Tried to access a prop "  ... GRENADE_DETONATION_KEY_ID ... " that didn't exist in OnGrenadeExplode");
+        }
+        SetGrenadeVector(auth, grenadeID, "grenadeDetonationOrigin", grenadeDetonationOrigin);
+      }
+    }
+    // All grenades processed.
+    g_GrenadeDetonationSaveQueue.Clear();
+  }
+  GrenadeAccuracy_OnGrenadeExplode(client, currentEntity, grenade, grenadeDetonationOrigin);
+  Learn_OnGrenadeExplode(client, currentEntity, grenade, grenadeDetonationOrigin);
+}
+
+public void CSU_OnManagedGrenadeExplode(
+  int client,
+  int currentEntity, 
+  GrenadeType grenade,
+  const float grenadeDetonationOrigin[3]
+) {
+  if (g_ManagedGrenadeDetonationsToFix.Size == 0) {
+    return;
+  }
+
+  char key[128];
+  IntToString(currentEntity, key, sizeof(key));
+
+  Handle p;
+  if (g_ManagedGrenadeDetonationsToFix.GetValue(key, p)) {
+    char auth[AUTH_LENGTH];
+    ReadPackString(p, auth, sizeof(auth));
+
+    char grenadeID[GRENADE_ID_LENGTH];
+    ReadPackString(p, grenadeID, sizeof(grenadeID));
+    
+    SetGrenadeVector(auth, grenadeID, "grenadeDetonationOrigin", grenadeDetonationOrigin);
+    
+    CloseHandle(p);
+    g_ManagedGrenadeDetonationsToFix.Remove(key);
+    PM_Message(
+      client, 
+      "Fixed detonation for grenade %s. Nades remaining for this phase: %i.", 
+      grenadeID, 
+      g_ManagedGrenadeDetonationsToFix.Size
+    );
+  }
+
+  // Did we finish the queue?
+  if (g_ManagedGrenadeDetonationsToFix.Size == 0) {
+    int nextPhase = CorrectGrenadeDetonationsAdvanceToNextPhase(client);
+    if (nextPhase == GRENADE_DETONATION_FIX_PHASE_DONE) {
+      PM_Message(client, "Finished fixing detonations.");
+    } else {
+      PM_Message(client, "Phases remaining: %i.", nextPhase);
+    }
+  }
 }

@@ -237,6 +237,8 @@ public Action Command_DeleteGrenade(int client, int args) {
 
   DeleteGrenadeFromKv(grenadeIdStr);
   PM_Message(client, "Deleted grenade id %s", grenadeIdStr);
+
+  OnGrenadeKvMutate();
   return Plugin_Handled;
 }
 
@@ -279,11 +281,14 @@ public Action Command_SaveGrenade(int client, int args) {
   GetClientAbsOrigin(client, origin);
   GetClientEyeAngles(client, angles);
 
+  int grenadeEntity = g_LastGrenadeEntity[client];
   GrenadeType grenadeType = g_LastGrenadeType[client];
   float grenadeOrigin[3];
   float grenadeVelocity[3];
+  float grenadeDetonationOrigin[3];
   grenadeOrigin = g_LastGrenadeOrigin[client];
   grenadeVelocity = g_LastGrenadeVelocity[client];
+  grenadeDetonationOrigin = g_LastGrenadeDetonationOrigin[client];
 
   if (grenadeType != GrenadeType_None && GetVectorDistance(origin, grenadeOrigin) >= 500.0) {
     PM_Message(
@@ -300,8 +305,17 @@ public Action Command_SaveGrenade(int client, int args) {
   Call_Finish(ret);
 
   if (ret < Plugin_Handled) {
-    int nadeId =
-        SaveGrenadeToKv(client, origin, angles, grenadeOrigin, grenadeVelocity, grenadeType, name);
+    int nadeId = SaveGrenadeToKv(
+      client, 
+      origin, 
+      angles, 
+      grenadeOrigin, 
+      grenadeVelocity, 
+      grenadeType, 
+      grenadeEntity, 
+      grenadeDetonationOrigin, 
+      name
+    );
     g_CurrentSavedGrenadeId[client] = nadeId;
     PM_Message(
         client,
@@ -321,6 +335,7 @@ public Action Command_SaveGrenade(int client, int args) {
                    "No grenade throw parameters saved. Throw it and use .savethrow to save them.");
       }
     }
+    OnGrenadeKvMutate();
   }
 
   g_LastGrenadeType[client] = GrenadeType_None;
@@ -353,6 +368,7 @@ public Action Command_MoveGrenade(int client, int args) {
   GetClientEyeAngles(client, angles);
   SetClientGrenadeVectors(nadeId, origin, angles);
   PM_Message(client, "Updated grenade position.");
+  OnGrenadeKvMutate();
   return Plugin_Handled;
 }
 
@@ -376,8 +392,14 @@ public Action Command_SaveThrow(int client, int args) {
     return Plugin_Handled;
   }
 
-  SetClientGrenadeParameters(nadeId, g_LastGrenadeType[client], g_LastGrenadeOrigin[client],
-                             g_LastGrenadeVelocity[client]);
+  SetClientGrenadeParameters(
+    nadeId, 
+    g_LastGrenadeType[client], 
+    g_LastGrenadeOrigin[client],
+    g_LastGrenadeVelocity[client], 
+    g_LastGrenadeEntity[client], 
+    g_LastGrenadeDetonationOrigin[client]
+  );
   PM_Message(client, "Updated grenade throw parameters.");
   g_LastGrenadeType[client] = GrenadeType_None;
   return Plugin_Handled;
@@ -411,8 +433,14 @@ public Action Command_UpdateGrenade(int client, int args) {
   bool updatedParameters = false;
   if (g_CSUtilsLoaded && IsGrenade(g_LastGrenadeType[client])) {
     updatedParameters = true;
-    SetClientGrenadeParameters(nadeId, g_LastGrenadeType[client], g_LastGrenadeOrigin[client],
-                               g_LastGrenadeVelocity[client]);
+    SetClientGrenadeParameters(
+      nadeId, 
+      g_LastGrenadeType[client], 
+      g_LastGrenadeOrigin[client],
+      g_LastGrenadeVelocity[client], 
+      g_LastGrenadeEntity[client], 
+      g_LastGrenadeDetonationOrigin[client]
+    );
   }
 
   if (updatedParameters) {
@@ -421,6 +449,7 @@ public Action Command_UpdateGrenade(int client, int args) {
     PM_Message(client, "Updated grenade position.");
   }
 
+  OnGrenadeKvMutate();
   g_LastGrenadeType[client] = GrenadeType_None;
   return Plugin_Handled;
 }
@@ -478,8 +507,15 @@ public Action Command_ClearThrow(int client, int args) {
     return Plugin_Handled;
   }
 
-  SetClientGrenadeParameters(nadeId, g_LastGrenadeType[client], g_LastGrenadeOrigin[client],
-                             g_LastGrenadeVelocity[client]);
+  SetClientGrenadeParameters(
+    nadeId, 
+    g_LastGrenadeType[client], 
+    g_LastGrenadeOrigin[client],
+    g_LastGrenadeVelocity[client], 
+    g_LastGrenadeEntity[client], 
+    g_LastGrenadeDetonationOrigin[client]
+  );
+
   PM_Message(client, "Cleared nade throwing parameters.");
   return Plugin_Handled;
 }
@@ -735,5 +771,35 @@ public Action Command_FixGrenades(int client, int args) {
   CorrectGrenadeIds();
   g_UpdatedGrenadeKv = true;
   ReplyToCommand(client, "Fixed grenade data.");
+  return Plugin_Handled;
+}
+
+public Action Command_FixGrenadeDetonations(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  CorrectGrenadeDetonations(client);
+  g_UpdatedGrenadeKv = true;
+  ReplyToCommand(client, "Throwing and recording all grenade detonations.");
+  return Plugin_Handled;
+}
+
+public Action Command_GrenadeHologramToggle(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  if (IsGrenadeHologramAllowed(client)) {
+    GrenadeHologramToggle(client);
+    if (IsGrenadeHologramEnabled(client)) {
+      PM_Message(client, "Grenade Holograms enabled.");
+    } else {
+      PM_Message(client, "Grenade Holograms disabled.");
+    }
+  } else {
+    PM_Message(client, "Hologram toggling is not allowed.");
+  }
+
   return Plugin_Handled;
 }

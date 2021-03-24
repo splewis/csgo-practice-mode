@@ -249,6 +249,9 @@ public Action Command_StopAll(int client, int args) {
   if (g_BotMimicLoaded && BotMimic_IsPlayerRecording(client)) {
     BotMimic_StopRecording(client, false /* save */);
   }
+  if (LearnIsActive(client)) {
+    Command_StopLearn(client, 0);
+  }
   return Plugin_Handled;
 }
 

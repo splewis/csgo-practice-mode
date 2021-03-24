@@ -336,10 +336,21 @@ public int CountCategoryNades(const char[] category) {
   return count;
 }
 
-public Action _CountCategoryNades_Helper(const char[] ownerName, const char[] ownerAuth, const char[] name,
-                                  const char[] description, ArrayList categories,
-                                  const char[] grenadeId, const float origin[3],
-                                  const float angles[3], any data) {
+public Action _CountCategoryNades_Helper(
+  const char[] ownerName, 
+  const char[] ownerAuth, 
+  const char[] name, 
+  const char[] description, 
+  ArrayList categories,
+  const char[] grenadeId, 
+  const float origin[3], 
+  const float angles[3], 
+  const char[] grenadeType, 
+  const float grenadeOrigin[3],
+  const float grenadeVelocity[3], 
+  const float grenadeDetonationOrigin[3], 
+  any data
+) {
   DataPack p = view_as<DataPack>(data);
   ResetPack(p, false);
   int count = p.ReadCell();

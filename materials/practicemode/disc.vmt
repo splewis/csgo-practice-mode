@@ -1,0 +1,6 @@
+"Sprite"
+{
+	"$basetexture" "practicemode/disc"
+	"$spriteorigin" "[ 0.50 0.50 ]"
+	"$spriteorientation" "oriented"
+}
