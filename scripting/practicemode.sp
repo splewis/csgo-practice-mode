@@ -1174,6 +1174,7 @@ public void ReadPracticeSettings() {
     g_MapList.PushString("de_nuke");
     g_MapList.PushString("de_overpass");
     g_MapList.PushString("de_train");
+    g_MapList.PushString("de_vertigo");
   }
 
   Call_StartForward(g_OnPracticeModeSettingsRead);
