@@ -1166,15 +1166,13 @@ public void ReadPracticeSettings() {
     kv.GoBack();
   }
   if (g_MapList.Length == 0) {
-    g_MapList.PushString("de_cache");
-    g_MapList.PushString("de_cbble");
     g_MapList.PushString("de_dust2");
     g_MapList.PushString("de_inferno");
     g_MapList.PushString("de_mirage");
     g_MapList.PushString("de_nuke");
     g_MapList.PushString("de_overpass");
-    g_MapList.PushString("de_train");
     g_MapList.PushString("de_vertigo");
+    g_MapList.PushString("de_ancient");
   }
 
   Call_StartForward(g_OnPracticeModeSettingsRead);
