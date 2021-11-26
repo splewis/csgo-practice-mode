@@ -10,6 +10,7 @@ stock void GiveReplayEditorMenu(int client, int pos = 0) {
   Menu menu = new Menu(ReplayMenuHandler);
   char replayName[REPLAY_NAME_LENGTH];
   GetReplayName(g_ReplayId[client], replayName, REPLAY_NAME_LENGTH);
+  bool frozen = IsReplayFrozen(g_ReplayId[client]);
   menu.SetTitle("Replay editor: %s (id %s)", replayName, g_ReplayId[client]);
 
   /* Page 1 */
@@ -18,7 +19,7 @@ stock void GiveReplayEditorMenu(int client, int pos = 0) {
     if (i > 0) {
       recordedLastRole = HasRoleRecorded(g_ReplayId[client], i - 1);
     }
-    int style = EnabledIf(recordedLastRole);
+    int style = EnabledIf(recordedLastRole && !frozen);
     if (HasRoleRecorded(g_ReplayId[client], i)) {
       char roleName[REPLAY_NAME_LENGTH];
       if (GetRoleName(g_ReplayId[client], i, roleName, sizeof(roleName))) {
@@ -38,6 +39,10 @@ stock void GiveReplayEditorMenu(int client, int pos = 0) {
   menu.AddItem("stop", "Stop current replay");
   menu.AddItem("name", "Name this replay");
   menu.AddItem("copy", "Copy this replay to a new replay");
+  if (!frozen)
+    menu.AddItem("freeze", "Freeze role data (prevents accidental edits)");
+  else
+    menu.AddItem("unfreeze", "Unfreeze role data for edits");
   menu.AddItem("delete", "Delete this replay entirely");
 
   char display[128];
@@ -114,6 +119,18 @@ public int ReplayMenuHandler(Menu menu, MenuAction action, int param1, int param
       PM_Message(client, "Use .namereplay <name> to name this replay.");
       GiveReplayEditorMenu(client, GetMenuSelectionPosition());
 
+    } else if (StrContains(buffer, "freeze") == 0) {
+      PM_Message(client, "Froze replay. Role edit buttons will be disabled until the replay is unfrozen.");
+      SetReplayFrozen(g_ReplayId[client], true);
+      GiveReplayEditorMenu(client, GetMenuSelectionPosition());
+    } else if (StrContains(buffer, "unfreeze") == 0) {
+      PM_Message(client, "Unfroze replay.");
+      SetReplayFrozen(g_ReplayId[client], false);
+      // Going back to the same page in the replay menu makes sense for menu consistency,
+      // but if a user pressed this they probably want to do some edits, so there's a case
+      // to be made for not using GetMenuSelectionPosition here. Let's favor consistency in 
+      // the menu behavior for a simpler user experience.
+      GiveReplayEditorMenu(client, GetMenuSelectionPosition());
     } else if (StrEqual(buffer, "recordall")) {
       int count = 0;
       for (int i = 1; i <= MaxClients; i++) {

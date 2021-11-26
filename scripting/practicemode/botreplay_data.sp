@@ -159,6 +159,24 @@ public void SetReplayName(const char[] id, const char[] newName) {
   MaybeWriteNewReplayData();
 }
 
+public bool IsReplayFrozen(const char[] id) {
+  int frozen = 0;
+  if (g_ReplaysKv.JumpToKey(id)) {
+    frozen = g_ReplaysKv.GetNum("frozen");
+    g_ReplaysKv.GoBack();
+  }
+  return !!frozen;
+}
+
+public void SetReplayFrozen(const char[] id, bool frozen) {
+  g_UpdatedReplayKv = true;
+  if (g_ReplaysKv.JumpToKey(id, true)) {
+    g_ReplaysKv.SetNum("frozen", frozen);
+    g_ReplaysKv.GoBack();
+  }
+  MaybeWriteNewReplayData();
+}
+
 public bool HasRoleRecorded(const char[] id, int index) {
   char buf[PLATFORM_MAX_PATH];
   return GetRoleFile(id, index, buf, sizeof(buf));
