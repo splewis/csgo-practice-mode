@@ -19,7 +19,7 @@ stock void GiveReplayEditorMenu(int client, int pos = 0) {
     if (i > 0) {
       recordedLastRole = HasRoleRecorded(g_ReplayId[client], i - 1);
     }
-    int style = EnabledIf(recordedLastRole && !frozen);
+    int style = EnabledIf(recordedLastRole);
     if (HasRoleRecorded(g_ReplayId[client], i)) {
       char roleName[REPLAY_NAME_LENGTH];
       if (GetRoleName(g_ReplayId[client], i, roleName, sizeof(roleName))) {
@@ -285,17 +285,18 @@ stock void GiveReplayRoleMenu(int client, int role, int pos = 0) {
   menu.ExitBackButton = true;
 
   bool recorded = HasRoleRecorded(g_ReplayId[client], role);
+  bool frozen = IsReplayFrozen(g_ReplayId[client]);
   if (recorded) {
-    menu.AddItem("record", "Re-record role");
+    menu.AddItem("record", "Re-record role", EnabledIf(!frozen));
   } else {
-    menu.AddItem("record", "Record role");
+    menu.AddItem("record", "Record role", EnabledIf(!frozen));
   }
 
   menu.AddItem("spawn", "Go to spawn position", EnabledIf(recorded));
-  menu.AddItem("play", "Play this recording", EnabledIf(recorded));
-  menu.AddItem("name", "Name this role", EnabledIf(recorded));
   menu.AddItem("nades", "View nade lineups", EnabledIf(recorded));
-  menu.AddItem("delete", "Delete recording", EnabledIf(recorded));
+  menu.AddItem("play", "Play this recording", EnabledIf(recorded));
+  menu.AddItem("name", "Name this role", EnabledIf(recorded && !frozen));
+  menu.AddItem("delete", "Delete recording", EnabledIf(recorded && !frozen));
 
   menu.DisplayAt(client, MENU_TIME_FOREVER, pos);
 }
