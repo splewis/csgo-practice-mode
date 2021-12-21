@@ -1,7 +1,7 @@
 #define REPLAY_NAME_LENGTH 128
 #define REPLAY_ROLE_DESCRIPTION_LENGTH 256
 #define REPLAY_ID_LENGTH 16
-#define MAX_REPLAY_CLIENTS 5
+#define MAX_REPLAY_CLIENTS 10
 #define DEFAULT_REPLAY_NAME "unnamed - use .namereplay on me!"
 
 // Ideas:
