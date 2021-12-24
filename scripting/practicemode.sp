@@ -22,7 +22,7 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-bool g_InPracticeMode = false;
+int g_InPracticeMode = -1;
 bool g_PugsetupLoaded = false;
 bool g_CSUtilsLoaded = false;
 bool g_BotMimicLoaded = false;
@@ -258,7 +258,7 @@ public Plugin myinfo = {
 // clang-format on
 
 public void OnPluginStart() {
-  g_InPracticeMode = false;
+  g_InPracticeMode = -1;
   AddCommandListener(Command_TeamJoin, "jointeam");
   AddCommandListener(Command_Noclip, "noclip");
   AddCommandListener(Command_SetPos, "setpos");
@@ -853,13 +853,15 @@ public void OnConfigsExecuted() {
 }
 
 public void CheckAutoStart() {
-  // Autostart practicemode if enabled.
-  if (g_AutostartCvar.IntValue != 0 && !g_InPracticeMode) {
-    bool pugsetup_live = g_PugsetupLoaded && PugSetup_GetGameState() != GameState_None;
-    if (!pugsetup_live) {
-      LaunchPracticeMode();
-    }
+  // Check for reasons not to autostart
+  if (g_AutostartCvar.IntValue == 0
+      || g_InPracticeMode > -1
+      || g_PugsetupLoaded && PugSetup_GetGameState() != GameState_None
+    ) {
+    return;
   }
+
+  LaunchPracticeMode();
 }
 
 public void OnClientDisconnect(int client) {
@@ -880,6 +882,8 @@ public void OnClientDisconnect(int client) {
   }
   if (playerCount == 0 && g_InPracticeMode) {
     ExitPracticeMode();
+    // reset to 'maybe' when all users have disconnected from the server
+    g_InPracticeMode = -1;
   }
 }
 
@@ -1186,7 +1190,7 @@ public void ReadPracticeSettings() {
 public void LaunchPracticeMode() {
   ServerCommand("exec sourcemod/practicemode_start.cfg");
 
-  g_InPracticeMode = true;
+  g_InPracticeMode = 1;
   ReadPracticeSettings();
   for (int i = 0; i < g_BinaryOptionNames.Length; i++) {
     ChangeSetting(i, PM_IsSettingEnabled(i), false, true);
@@ -1277,7 +1281,7 @@ public void ExitPracticeMode() {
     }
   }
 
-  g_InPracticeMode = false;
+  g_InPracticeMode = 0;
 
   // force turn noclip off for everyone
   for (int i = 1; i <= MaxClients; i++) {
