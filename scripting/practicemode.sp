@@ -701,7 +701,8 @@ public void OnPluginStart() {
 
   // Remove cheats so sv_cheats isn't required for this:
   RemoveCvarFlag(g_GrenadeTrajectoryCvar, FCVAR_CHEAT);
-
+  
+  HookEvent("player_disconnect", Event_PlayerDisconnect);
   HookEvent("server_cvar", Event_CvarChanged, EventHookMode_Pre);
   HookEvent("player_spawn", Event_PlayerSpawn);
   HookEvent("player_hurt", Event_BotDamageDealtEvent, EventHookMode_Pre);
@@ -878,7 +879,7 @@ public void OnClientDisconnect(int client) {
   g_IsPMBot[client] = false;
 }
 
-public void OnClientDisconnect_Post(int client) {
+public Action Event_PlayerDisconnect(Event event, const char[] name, bool dontBroadcast) {
   // If the server empties out, exit practice mode.
   int playerCount = 0;
   for (int i = 0; i <= MaxClients; i++) {
@@ -886,12 +887,15 @@ public void OnClientDisconnect_Post(int client) {
       playerCount++;
     }
   }
+
   if (playerCount == 0) {
     if (g_InPracticeMode) {
       ExitPracticeMode();
     }
     g_PracticeModeCanBeAutoStarted = true;
   }
+
+  return Plugin_Continue;
 }
 
 public void OnMapEnd() {
