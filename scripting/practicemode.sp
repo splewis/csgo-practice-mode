@@ -876,7 +876,9 @@ public void OnClientDisconnect(int client) {
   }
 
   g_IsPMBot[client] = false;
+}
 
+public void OnClientDisconnect_Post(int client) {
   // If the server empties out, exit practice mode.
   int playerCount = 0;
   for (int i = 0; i <= MaxClients; i++) {
