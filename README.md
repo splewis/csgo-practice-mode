@@ -3,7 +3,7 @@ csgo-practice-mode
 
 [![Build status](http://ci.splewis.net/job/csgo-practice-mode/badge/icon)](http://ci.splewis.net/job/csgo-practice-mode/)
 [![GitHub Downloads](https://img.shields.io/github/downloads/splewis/csgo-practice-mode/total.svg?style=flat-square&label=Downloads)](https://github.com/splewis/csgo-practice-mode/releases/latest)
-[![Discord Chat](https://img.shields.io/discord/926309849673895966.svg)](https://discord.gg/)
+[![Discord Chat](https://img.shields.io/discord/926309849673895966.svg)](https://discord.gg/zmqEa4keCk)
 
 **Status: Supported, actively developed.**
 
