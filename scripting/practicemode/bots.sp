@@ -500,6 +500,12 @@ public Action Command_SaveBots(int client, int args) {
     }
     // Custom bot placements are in a subdirectory.
     BuildPath(Path_SM, path, sizeof(path), "data/practicemode/bots/%s/%s.cfg", mapName, filename);
+    char dir[PLATFORM_MAX_PATH];
+    BuildPath(Path_SM, dir, sizeof(dir), "data/practicemode/bots/%s", mapName);
+    if (!DirExists(dir)) {
+      if (!CreateDirectory(dir, 511))
+        LogError("Failed to create directory %s", dir);
+    }
   }
   // Use the default legacy path if no argument has been provided to the command.
   else {
