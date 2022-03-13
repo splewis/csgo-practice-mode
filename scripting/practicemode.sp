@@ -23,6 +23,7 @@
 #pragma newdecls required
 
 bool g_InPracticeMode = false;
+bool g_PracticeModeCanBeAutoStarted = true;
 bool g_PugsetupLoaded = false;
 bool g_CSUtilsLoaded = false;
 bool g_BotMimicLoaded = false;
@@ -259,6 +260,8 @@ public Plugin myinfo = {
 
 public void OnPluginStart() {
   g_InPracticeMode = false;
+  g_PracticeModeCanBeAutoStarted = true;
+
   AddCommandListener(Command_TeamJoin, "jointeam");
   AddCommandListener(Command_Noclip, "noclip");
   AddCommandListener(Command_SetPos, "setpos");
@@ -698,7 +701,8 @@ public void OnPluginStart() {
 
   // Remove cheats so sv_cheats isn't required for this:
   RemoveCvarFlag(g_GrenadeTrajectoryCvar, FCVAR_CHEAT);
-
+  
+  HookEvent("player_disconnect", Event_PlayerDisconnect);
   HookEvent("server_cvar", Event_CvarChanged, EventHookMode_Pre);
   HookEvent("player_spawn", Event_PlayerSpawn);
   HookEvent("player_hurt", Event_BotDamageDealtEvent, EventHookMode_Pre);
@@ -853,13 +857,16 @@ public void OnConfigsExecuted() {
 }
 
 public void CheckAutoStart() {
-  // Autostart practicemode if enabled.
-  if (g_AutostartCvar.IntValue != 0 && !g_InPracticeMode) {
-    bool pugsetup_live = g_PugsetupLoaded && PugSetup_GetGameState() != GameState_None;
-    if (!pugsetup_live) {
-      LaunchPracticeMode();
-    }
+  // Check for reasons not to autostart
+  if (g_InPracticeMode
+    || g_AutostartCvar.IntValue == 0
+    || !g_PracticeModeCanBeAutoStarted
+    || g_PugsetupLoaded && PugSetup_GetGameState() != GameState_None
+  ) {
+    return;
   }
+
+  LaunchPracticeMode();
 }
 
 public void OnClientDisconnect(int client) {
@@ -870,7 +877,9 @@ public void OnClientDisconnect(int client) {
   }
 
   g_IsPMBot[client] = false;
+}
 
+public Action Event_PlayerDisconnect(Event event, const char[] name, bool dontBroadcast) {
   // If the server empties out, exit practice mode.
   int playerCount = 0;
   for (int i = 0; i <= MaxClients; i++) {
@@ -878,16 +887,25 @@ public void OnClientDisconnect(int client) {
       playerCount++;
     }
   }
-  if (playerCount == 0 && g_InPracticeMode) {
-    ExitPracticeMode();
+
+  if (playerCount == 0) {
+    if (g_InPracticeMode) {
+      ExitPracticeMode();
+    }
+    g_PracticeModeCanBeAutoStarted = true;
   }
+
+  return Plugin_Continue;
 }
 
 public void OnMapEnd() {
   MaybeWriteNewGrenadeData();
 
+  
   if (g_InPracticeMode) {
+    bool practiceModeCanBeAutoStarted = g_PracticeModeCanBeAutoStarted;
     ExitPracticeMode();
+    g_PracticeModeCanBeAutoStarted = practiceModeCanBeAutoStarted;
   }
 
   Spawns_MapEnd();
@@ -1278,6 +1296,9 @@ public void ExitPracticeMode() {
   }
 
   g_InPracticeMode = false;
+  // We no longer want prac mode to auto-restart on player spawn (g_AutostartCvar.IntValue == 1).
+  // Will be reset to true when the last player disconnects or plugin is reloaded.
+  g_PracticeModeCanBeAutoStarted = false;
 
   // force turn noclip off for everyone
   for (int i = 1; i <= MaxClients; i++) {
