@@ -490,9 +490,29 @@ public Action Command_SaveBots(int client, int args) {
   char mapName[PLATFORM_MAX_PATH];
   GetCleanMapName(mapName, sizeof(mapName));
   char path[PLATFORM_MAX_PATH];
-  BuildPath(Path_SM, path, sizeof(path), "data/practicemode/bots/%s.cfg", mapName);
-  KeyValues botsKv = new KeyValues("Bots");
 
+  // If there is an argument for this command, we load the bots from a specific file.
+  if (args >= 1) {
+    char filename[128];
+    for (int i = 1; i <= args; i++)
+    {
+        GetCmdArg(i, filename, sizeof(filename));
+    }
+    // Custom bot placements are in a subdirectory.
+    BuildPath(Path_SM, path, sizeof(path), "data/practicemode/bots/%s/%s.cfg", mapName, filename);
+    char dir[PLATFORM_MAX_PATH];
+    BuildPath(Path_SM, dir, sizeof(dir), "data/practicemode/bots/%s", mapName);
+    if (!DirExists(dir)) {
+      if (!CreateDirectory(dir, 511))
+        LogError("Failed to create directory %s", dir);
+    }
+  }
+  // Use the default legacy path if no argument has been provided to the command.
+  else {
+    BuildPath(Path_SM, path, sizeof(path), "data/practicemode/bots/%s.cfg", mapName);
+  }
+
+  KeyValues botsKv = new KeyValues("Bots");
   int output_index = 0;
   for (int i = 1; i <= MaxClients; i++) {
     if (IsPMBot(i)) {
@@ -533,31 +553,50 @@ public Action Command_LoadBots(int client, int args) {
   char mapName[PLATFORM_MAX_PATH];
   GetCleanMapName(mapName, sizeof(mapName));
   char path[PLATFORM_MAX_PATH];
-  BuildPath(Path_SM, path, sizeof(path), "data/practicemode/bots/%s.cfg", mapName);
 
-  KeyValues botsKv = new KeyValues("Bots");
-  botsKv.ImportFromFile(path);
-  botsKv.GotoFirstSubKey();
-
-  do {
-    char name[MAX_NAME_LENGTH + 1];
-    botsKv.GetString("name", name, sizeof(name));
-    bool crouching = !!botsKv.GetNum("crouching");
-
-    int bot = CreateBot(client, crouching, name);
-    if (bot <= 0) {
-      return Plugin_Handled;
+  // If there is an argument for this command, we load the bots from a specific file.
+  if (args >= 1) {
+    char filename[128];
+    for (int i = 1; i <= args; i++)
+    {
+        GetCmdArg(i, filename, sizeof(filename));
     }
-    botsKv.GetVector("origin", g_BotSpawnOrigin[bot], NULL_VECTOR);
-    botsKv.GetVector("angle", g_BotSpawnAngles[bot], NULL_VECTOR);
-    botsKv.GetString("weapon", g_BotSpawnWeapon[bot], 64);
-    g_BotCrouching[bot] = crouching;
-    GiveBotParams(bot);
-  } while (botsKv.GotoNextKey());
+    // Custom bot placements are in a subdirectory.
+    BuildPath(Path_SM, path, sizeof(path), "data/practicemode/bots/%s/%s.cfg", mapName, filename);
+  }
+  // Use the default legacy path if no argument has been provided to the command.
+  else {
+    BuildPath(Path_SM, path, sizeof(path), "data/practicemode/bots/%s.cfg", mapName);
+  }
 
-  delete botsKv;
-  PM_MessageToAll("Loaded bot spawns.");
-  return Plugin_Handled;
+  // Check if the file exist on the server and try to load bots from the file.
+  if (FileExists(path)) {
+    KeyValues botsKv = new KeyValues("Bots");
+    botsKv.ImportFromFile(path);
+    botsKv.GotoFirstSubKey();
+
+    do {
+      char name[MAX_NAME_LENGTH + 1];
+      botsKv.GetString("name", name, sizeof(name));
+      bool crouching = !!botsKv.GetNum("crouching");
+
+      int bot = CreateBot(client, crouching, name);
+      if (bot <= 0) {
+        return Plugin_Handled;
+      }
+      botsKv.GetVector("origin", g_BotSpawnOrigin[bot], NULL_VECTOR);
+      botsKv.GetVector("angle", g_BotSpawnAngles[bot], NULL_VECTOR);
+      botsKv.GetString("weapon", g_BotSpawnWeapon[bot], 64);
+      g_BotCrouching[bot] = crouching;
+      GiveBotParams(bot);
+    } while (botsKv.GotoNextKey());
+    delete botsKv;
+    PM_MessageToAll("Loaded bot spawns.");
+    return Plugin_Handled;
+  } else {
+    PM_Message(client, "No botfile found.");
+    return Plugin_Handled;
+  }
 }
 
 public Action Command_SwapBot(int client, int args) {
