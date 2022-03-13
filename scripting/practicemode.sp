@@ -861,7 +861,7 @@ public void CheckAutoStart() {
   if (g_InPracticeMode
     || g_AutostartCvar.IntValue == 0
     || !g_PracticeModeCanBeAutoStarted
-    || g_PugsetupLoaded && PugSetup_GetGameState() != GameState_None
+    || (g_PugsetupLoaded && PugSetup_GetGameState() != GameState_None)
   ) {
     return;
   }
