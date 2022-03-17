@@ -297,6 +297,9 @@ public Action Command_SaveGrenade(int client, int args) {
   Call_PushArray(origin, sizeof(origin));
   Call_PushArray(angles, sizeof(angles));
   Call_PushString(name);
+  Call_PushArray(grenadeOrigin, sizeof(grenadeOrigin));
+  Call_PushArray(grenadeVelocity, sizeof(grenadeVelocity));
+  Call_PushCell(grenadeType);
   Call_Finish(ret);
 
   if (ret < Plugin_Handled) {
