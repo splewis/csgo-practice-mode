@@ -267,8 +267,9 @@ public void OnPluginStart() {
   AddCommandListener(Command_SetPos, "setpos");
 
   // Forwards
-  g_OnGrenadeSaved = CreateGlobalForward("PM_OnGrenadeSaved", ET_Event, Param_Cell,
-                                         Param_Array, Param_Array, Param_String);
+  g_OnGrenadeSaved = CreateGlobalForward(
+      "PM_OnGrenadeSaved", ET_Event, Param_Cell, Param_Array, Param_Array, Param_String, Param_Array, Param_Array, Param_Cell);
+
   g_OnPracticeModeDisabled = CreateGlobalForward("PM_OnPracticeModeEnabled", ET_Ignore);
   g_OnPracticeModeEnabled = CreateGlobalForward("PM_OnPracticeModeEnabled", ET_Ignore);
   g_OnPracticeModeSettingChanged = CreateGlobalForward(
