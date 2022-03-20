@@ -230,6 +230,12 @@ public Action Command_DeleteGrenade(int client, int args) {
     IntToString(g_CurrentSavedGrenadeId[client], grenadeIdStr, sizeof(grenadeIdStr));
   }
 
+  Action ret = Plugin_Continue;
+  Call_StartForward(g_OnGrenadeDeleted);
+  Call_PushCell(client);
+  Call_PushCell(g_CurrentSavedGrenadeId[client]);
+  Call_Finish(ret);
+  
   if (!CanEditGrenade(client, StringToInt(grenadeIdStr))) {
     PM_Message(client, "You aren't the owner of this grenade.");
     return Plugin_Handled;

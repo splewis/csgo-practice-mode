@@ -34,6 +34,13 @@ forward Action PM_OnGrenadeSaved(int client, const float origin[3], const float 
                                  const float grenadeVelocity[3], const int grenadeType);
 
 /**
+ * Called when a client deletes a grenade position.
+ *
+ * @return Plugin_Handled or a higher action to block the deletion.
+ */
+forward Action PM_OnGrenadeDeleted(int client, const int nadeId);
+
+/**
  * Called when a practice mode setting is changed.
  */
 forward void PM_OnSettingChanged(int settingNumber, const char[] settingId,

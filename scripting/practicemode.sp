@@ -220,6 +220,7 @@ char g_UserSettingDisplayName[UserSetting_NumSettings][USERSETTING_DISPLAY_LENGT
 
 // Forwards
 Handle g_OnGrenadeSaved = INVALID_HANDLE;
+Handle g_OnGrenadeDeleted = INVALID_HANDLE;
 Handle g_OnPracticeModeDisabled = INVALID_HANDLE;
 Handle g_OnPracticeModeEnabled = INVALID_HANDLE;
 Handle g_OnPracticeModeSettingChanged = INVALID_HANDLE;
@@ -270,6 +271,7 @@ public void OnPluginStart() {
   g_OnGrenadeSaved = CreateGlobalForward(
       "PM_OnGrenadeSaved", ET_Event, Param_Cell, Param_Array, Param_Array, Param_String, Param_Array, Param_Array, Param_Cell);
 
+  g_OnGrenadeDeleted = CreateGlobalForward("PM_OnGrenadeDeleted", ET_Event, Param_Cell, Param_Cell);
   g_OnPracticeModeDisabled = CreateGlobalForward("PM_OnPracticeModeEnabled", ET_Ignore);
   g_OnPracticeModeEnabled = CreateGlobalForward("PM_OnPracticeModeEnabled", ET_Ignore);
   g_OnPracticeModeSettingChanged = CreateGlobalForward(
