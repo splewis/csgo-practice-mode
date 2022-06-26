@@ -494,9 +494,8 @@ public Action Command_SaveBots(int client, int args) {
   // If there is an argument for this command, we load the bots from a specific file.
   if (args >= 1) {
     char filename[128];
-    for (int i = 1; i <= args; i++)
-    {
-        GetCmdArg(i, filename, sizeof(filename));
+    for (int i = 1; i <= args; i++) {
+      GetCmdArg(i, filename, sizeof(filename));
     }
     // Custom bot placements are in a subdirectory.
     BuildPath(Path_SM, path, sizeof(path), "data/practicemode/bots/%s/%s.cfg", mapName, filename);
@@ -557,9 +556,8 @@ public Action Command_LoadBots(int client, int args) {
   // If there is an argument for this command, we load the bots from a specific file.
   if (args >= 1) {
     char filename[128];
-    for (int i = 1; i <= args; i++)
-    {
-        GetCmdArg(i, filename, sizeof(filename));
+    for (int i = 1; i <= args; i++) {
+      GetCmdArg(i, filename, sizeof(filename));
     }
     // Custom bot placements are in a subdirectory.
     BuildPath(Path_SM, path, sizeof(path), "data/practicemode/bots/%s/%s.cfg", mapName, filename);

@@ -30,7 +30,7 @@ forward void PM_OnSettingsRead();
  * @return Plugin_Handled or a higher action to block the save.
  */
 forward Action PM_OnGrenadeSaved(int client, const float origin[3], const float angle[3],
-                                 const char[] name, const float grenadeTrajectory[3], 
+                                 const char[] name, const float grenadeTrajectory[3],
                                  const float grenadeVelocity[3], const int grenadeType);
 
 /**
@@ -77,7 +77,8 @@ native void PM_MessageToAll(const char[] format, any:...);
 native void PM_AddChatAlias(const char[] alias, const char[] command);
 
 public SharedPlugin __pl_practicemode = {
-    name = "practicemode", file = "practicemode.smx",
+    name = "practicemode",
+    file = "practicemode.smx",
 #if defined REQUIRE_PLUGIN
     required = 1,
 #else

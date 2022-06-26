@@ -11,9 +11,9 @@
 #include "include/botmimic.inc"
 #include "include/csutils.inc"
 
+#include "include/updater.inc"
 #include <get5>
 #include <pugsetup>
-#include "include/updater.inc"
 
 #include "include/practicemode.inc"
 #include "include/restorecvars.inc"
@@ -267,8 +267,9 @@ public void OnPluginStart() {
   AddCommandListener(Command_SetPos, "setpos");
 
   // Forwards
-  g_OnGrenadeSaved = CreateGlobalForward(
-      "PM_OnGrenadeSaved", ET_Event, Param_Cell, Param_Array, Param_Array, Param_String, Param_Array, Param_Array, Param_Cell);
+  g_OnGrenadeSaved =
+      CreateGlobalForward("PM_OnGrenadeSaved", ET_Event, Param_Cell, Param_Array, Param_Array,
+                          Param_String, Param_Array, Param_Array, Param_Cell);
 
   g_OnPracticeModeDisabled = CreateGlobalForward("PM_OnPracticeModeEnabled", ET_Ignore);
   g_OnPracticeModeEnabled = CreateGlobalForward("PM_OnPracticeModeEnabled", ET_Ignore);
@@ -702,7 +703,7 @@ public void OnPluginStart() {
 
   // Remove cheats so sv_cheats isn't required for this:
   RemoveCvarFlag(g_GrenadeTrajectoryCvar, FCVAR_CHEAT);
-  
+
   HookEvent("player_disconnect", Event_PlayerDisconnect);
   HookEvent("server_cvar", Event_CvarChanged, EventHookMode_Pre);
   HookEvent("player_spawn", Event_PlayerSpawn);
@@ -859,11 +860,8 @@ public void OnConfigsExecuted() {
 
 public void CheckAutoStart() {
   // Check for reasons not to autostart
-  if (g_InPracticeMode
-    || g_AutostartCvar.IntValue == 0
-    || !g_PracticeModeCanBeAutoStarted
-    || (g_PugsetupLoaded && PugSetup_GetGameState() != GameState_None)
-  ) {
+  if (g_InPracticeMode || g_AutostartCvar.IntValue == 0 || !g_PracticeModeCanBeAutoStarted ||
+      (g_PugsetupLoaded && PugSetup_GetGameState() != GameState_None)) {
     return;
   }
 
@@ -902,7 +900,6 @@ public Action Event_PlayerDisconnect(Event event, const char[] name, bool dontBr
 public void OnMapEnd() {
   MaybeWriteNewGrenadeData();
 
-  
   if (g_InPracticeMode) {
     bool practiceModeCanBeAutoStarted = g_PracticeModeCanBeAutoStarted;
     ExitPracticeMode();

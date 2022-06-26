@@ -120,7 +120,8 @@ public int ReplayMenuHandler(Menu menu, MenuAction action, int param1, int param
       GiveReplayEditorMenu(client, GetMenuSelectionPosition());
 
     } else if (StrContains(buffer, "freeze") == 0) {
-      PM_Message(client, "Froze replay. Role edit buttons will be disabled until the replay is unfrozen.");
+      PM_Message(client,
+                 "Froze replay. Role edit buttons will be disabled until the replay is unfrozen.");
       SetReplayFrozen(g_ReplayId[client], true);
       GiveReplayEditorMenu(client, GetMenuSelectionPosition());
     } else if (StrContains(buffer, "unfreeze") == 0) {
@@ -128,7 +129,7 @@ public int ReplayMenuHandler(Menu menu, MenuAction action, int param1, int param
       SetReplayFrozen(g_ReplayId[client], false);
       // Going back to the same page in the replay menu makes sense for menu consistency,
       // but if a user pressed this they probably want to do some edits, so there's a case
-      // to be made for not using GetMenuSelectionPosition here. Let's favor consistency in 
+      // to be made for not using GetMenuSelectionPosition here. Let's favor consistency in
       // the menu behavior for a simpler user experience.
       GiveReplayEditorMenu(client, GetMenuSelectionPosition());
     } else if (StrEqual(buffer, "recordall")) {

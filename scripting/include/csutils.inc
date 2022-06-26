@@ -163,7 +163,8 @@ public Action __csutils__DelayThrowGrenade(Handle timer, DataPack data) {
 }
 
 public SharedPlugin __pl_csutils = {
-    name = "csutils", file = "csutils.smx",
+    name = "csutils",
+    file = "csutils.smx",
 #if defined REQUIRE_PLUGIN
     required = 1,
 #else
