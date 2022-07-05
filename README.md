@@ -46,6 +46,7 @@ For a more thorough guide for users new to configuring servers, please see [this
 - ``.prac`` launches practice mode and displays the ``.setup`` menu
 - ``.help``: displays this page
 - ``.settings``: opens the client settings menu
+- ``.exitprac``: exits practicemode
 
 ### Saving grenade positions
 - ``.nades [filter]``: displays a menu to select saved grenade positions. ``.nades`` with no argument shows all nades. ``filter`` can be any of: nade ids, category name, player name, or part of a grenade name
