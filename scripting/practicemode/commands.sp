@@ -10,7 +10,9 @@ public Action Command_LaunchPracticeMode(int client, int args) {
     }
     LaunchPracticeMode();
     if (IsPlayer(client)) {
-      GivePracticeMenu(client);
+      if (g_OpenMenuOnStart.IntValue == 1) {
+        GivePracticeMenu(client);
+      }
     }
   }
   return Plugin_Handled;
