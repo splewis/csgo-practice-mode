@@ -324,9 +324,9 @@ public void OnPluginStart() {
 
   RegAdminCmd("sm_exitpractice", Command_ExitPracticeMode, ADMFLAG_CHANGEMAP,
               "Exits practice mode");
-    PM_AddChatAlias(".noprac", "sm_exitpractice");
-    PM_AddChatAlias(".endprac", "sm_exitpractice");
-    PM_AddChatAlias(".exitprac", "sm_exitpractice");
+  PM_AddChatAlias(".noprac", "sm_exitpractice");
+  PM_AddChatAlias(".endprac", "sm_exitpractice");
+  PM_AddChatAlias(".exitprac", "sm_exitpractice");
   RegAdminCmd("sm_translategrenades", Command_TranslateGrenades, ADMFLAG_CHANGEMAP,
               "Translates all grenades on this map");
   RegAdminCmd("sm_fixgrenades", Command_FixGrenades, ADMFLAG_CHANGEMAP,
@@ -631,8 +631,8 @@ public void OnPluginStart() {
   g_MaxGrenadesSavedCvar = CreateConVar(
       "sm_practicemode_max_grenades_saved", "512",
       "Maximum number of grenades that may be saved per-map, per-client. Set to 0 to disable.");
-  g_OpenMenuOnStart =
-      CreateConVar("sm_practicemode_menu_on_start", "1", "Whether to open setup menu when starting practicemode");
+  g_OpenMenuOnStart = CreateConVar("sm_practicemode_menu_on_start", "1",
+                                   "Whether to open setup menu when starting practicemode");
   g_PracModeCanBeStartedCvar =
       CreateConVar("sm_practicemode_can_be_started", "1", "Whether practicemode may be started");
   g_SharedAllNadesCvar = CreateConVar(
