@@ -1188,6 +1188,8 @@ public void ReadPracticeSettings() {
     kv.GoBack();
   }
   if (g_MapList.Length == 0) {
+    g_MapList.PushString("de_ancient");
+    g_MapList.PushString("de_anubis");
     g_MapList.PushString("de_cache");
     g_MapList.PushString("de_cbble");
     g_MapList.PushString("de_dust2");
