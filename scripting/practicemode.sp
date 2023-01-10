@@ -125,6 +125,10 @@ GrenadeType g_LastGrenadeType[MAXPLAYERS + 1];
 float g_LastGrenadeOrigin[MAXPLAYERS + 1][3];
 float g_LastGrenadeVelocity[MAXPLAYERS + 1][3];
 
+bool g_LastGrenadeByTypeThrown[MAXPLAYERS + 1][GrenadeType];
+float g_LastGrenadeByTypeOrigin[MAXPLAYERS + 1][GrenadeType][3];
+float g_LastGrenadeByTypeVelocity[MAXPLAYERS + 1][GrenadeType][3];
+
 // Respawn values set by clients in the current session
 bool g_SavedRespawnActive[MAXPLAYERS + 1];
 float g_SavedRespawnOrigin[MAXPLAYERS + 1][3];
@@ -378,6 +382,24 @@ public void OnPluginStart() {
     RegConsoleCmd("sm_throw", Command_Throw);
     PM_AddChatAlias(".throw", "sm_throw");
     PM_AddChatAlias(".rethrow", "sm_throw");
+
+    RegConsoleCmd("sm_throwsmoke", Command_ThrowSmoke);
+    PM_AddChatAlias(".throwsmoke", "sm_throwsmoke");
+    PM_AddChatAlias(".resmoke", "sm_throwsmoke");
+
+    RegConsoleCmd("sm_throwflash", Command_ThrowFlash);
+    PM_AddChatAlias(".throwflash", "sm_throwflash");
+    PM_AddChatAlias(".reflash", "sm_throwflash");
+
+    RegConsoleCmd("sm_throwmolotov", Command_ThrowMolotov);
+    PM_AddChatAlias(".throwmolotov", "sm_throwmolotov");
+    PM_AddChatAlias(".remolotov", "sm_throwmolotov");
+    PM_AddChatAlias(".remolly", "sm_throwmolotov");
+
+    RegConsoleCmd("sm_throwhenade", Command_ThrowHENade);
+    PM_AddChatAlias(".thrownade", "sm_throwhenade");
+    PM_AddChatAlias(".renade", "sm_throwhenade");
+    PM_AddChatAlias(".rehe", "sm_throwhenade");
   }
 
   // Bot commands
@@ -1631,5 +1653,10 @@ public void CSU_OnThrowGrenade(int client, int entity, GrenadeType grenadeType, 
   g_LastGrenadeType[client] = grenadeType;
   g_LastGrenadeOrigin[client] = origin;
   g_LastGrenadeVelocity[client] = velocity;
+
+  g_LastGrenadeByTypeThrown[client][grenadeType] = true;
+  g_LastGrenadeByTypeOrigin[client][grenadeType] = origin;
+  g_LastGrenadeByTypeVelocity[client][grenadeType] = velocity;
+
   Replays_OnThrowGrenade(client, entity, grenadeType, origin, velocity);
 }

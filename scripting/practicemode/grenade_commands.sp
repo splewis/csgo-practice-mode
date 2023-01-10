@@ -570,6 +570,97 @@ public Action Command_Throw(int client, int args) {
   return Plugin_Handled;
 }
 
+public Action Command_ThrowSmoke(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  if (!g_CSUtilsLoaded) {
+    PM_Message(client, "You need the csutils plugin installed to use that command.");
+    return Plugin_Handled;
+  }
+
+  if (g_LastGrenadeByTypeThrown[client][GrenadeType_Smoke]) {
+    PM_Message(client, "Throwing your last smoke.");
+    CSU_ThrowGrenade(client, GrenadeType_Smoke, g_LastGrenadeByTypeOrigin[client][GrenadeType_Smoke],
+                      g_LastGrenadeByTypeVelocity[client][GrenadeType_Smoke]);
+  } else {
+    PM_Message(client, "Can't throw you last smoke; you haven't thrown any!");
+  }
+
+  return Plugin_Handled;
+}
+
+public Action Command_ThrowFlash(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  if (!g_CSUtilsLoaded) {
+    PM_Message(client, "You need the csutils plugin installed to use that command.");
+    return Plugin_Handled;
+  }
+
+  if (g_LastGrenadeByTypeThrown[client][GrenadeType_Flash]) {
+    PM_Message(client, "Throwing your last flash.");
+    CSU_ThrowGrenade(client, GrenadeType_Flash, g_LastGrenadeByTypeOrigin[client][GrenadeType_Flash],
+                      g_LastGrenadeByTypeVelocity[client][GrenadeType_Flash]);
+  } else {
+    PM_Message(client, "Can't throw you last flash; you haven't thrown any!");
+  }
+
+  return Plugin_Handled;
+}
+
+public Action Command_ThrowMolotov(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  if (!g_CSUtilsLoaded) {
+    PM_Message(client, "You need the csutils plugin installed to use that command.");
+    return Plugin_Handled;
+  }
+
+  GrenadeType mollyType = GrenadeType_Molotov;
+  int team = GetClientTeam(client);
+
+  if (team == 3) {
+    mollyType = GrenadeType_Incendiary;
+  }
+
+  if (g_LastGrenadeByTypeThrown[client][mollyType]) {
+    PM_Message(client, "Throwing your last molotov.");
+    CSU_ThrowGrenade(client, mollyType, g_LastGrenadeByTypeOrigin[client][mollyType],
+                      g_LastGrenadeByTypeVelocity[client][mollyType]);
+  } else {
+    PM_Message(client, "Can't throw you last molotov; you haven't thrown any!");
+  }
+
+  return Plugin_Handled;
+}
+
+public Action Command_ThrowHENade(int client, int args) {
+  if (!g_InPracticeMode) {
+    return Plugin_Handled;
+  }
+
+  if (!g_CSUtilsLoaded) {
+    PM_Message(client, "You need the csutils plugin installed to use that command.");
+    return Plugin_Handled;
+  }
+
+  if (g_LastGrenadeByTypeThrown[client][GrenadeType_HE]) {
+    PM_Message(client, "Throwing your last HE grenade.");
+    CSU_ThrowGrenade(client, GrenadeType_HE, g_LastGrenadeByTypeOrigin[client][GrenadeType_HE],
+                      g_LastGrenadeByTypeVelocity[client][GrenadeType_HE]);
+  } else {
+    PM_Message(client, "Can't throw you last HE grenade; you haven't thrown any!");
+  }
+
+  return Plugin_Handled;
+}
+
 public Action Command_TestFlash(int client, int args) {
   if (!g_InPracticeMode) {
     return Plugin_Handled;
