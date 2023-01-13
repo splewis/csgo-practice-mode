@@ -15,6 +15,8 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
   CreateNative("PM_MessageToAll", Native_MessageToAll);
   CreateNative("PM_AddChatAlias", Native_AddChatAlias);
   RegPluginLibrary("practicemode");
+
+  return APLRes_Success;
 }
 
 public int Native_StartPracticeMode(Handle plugin, int numParams) {
@@ -85,7 +87,7 @@ public int Native_IsSettingEnabled(Handle plugin, int numParams) {
 public int Native_Message(Handle plugin, int numParams) {
   int client = GetNativeCell(1);
   if (client != 0 && (!IsClientConnected(client) || !IsClientInGame(client)))
-    return;
+    return 0;
 
   char buffer[1024];
   int bytesWritten = 0;
@@ -107,6 +109,8 @@ public int Native_Message(Handle plugin, int numParams) {
     Colorize(finalMsg, sizeof(finalMsg));
     PrintToChat(client, finalMsg);
   }
+
+  return 0;
 }
 
 public int Native_MessageToAll(Handle plugin, int numParams) {
@@ -135,6 +139,8 @@ public int Native_MessageToAll(Handle plugin, int numParams) {
       PrintToConsole(i, finalMsg);
     }
   }
+
+  return 0;
 }
 
 public int Native_AddChatAlias(Handle plugin, int numParams) {
@@ -148,4 +154,6 @@ public int Native_AddChatAlias(Handle plugin, int numParams) {
     g_ChatAliases.PushString(alias);
     g_ChatAliasesCommands.PushString(command);
   }
+
+  return 0;
 }
