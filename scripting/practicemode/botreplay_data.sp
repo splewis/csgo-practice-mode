@@ -48,6 +48,8 @@ public int ReplaysMenuHandler(Menu menu, MenuAction action, int param1, int para
   } else if (action == MenuAction_End) {
     delete menu;
   }
+
+  return 0;
 }
 
 public void MaybeWriteNewReplayData() {

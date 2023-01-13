@@ -1105,6 +1105,8 @@ public Action OnClientSayCommand(int client, const char[] command, const char[] 
   if (g_AllowNoclipCvar.IntValue != 0 && StrEqual(text, ".noclip") && IsPlayer(client)) {
     PerformNoclipAction(client);
   }
+
+  return Plugin_Handled;
 }
 
 public void PerformNoclipAction(int client) {
@@ -1375,11 +1377,12 @@ public void OnEntityCreated(int entity, const char[] className) {
 // the owner is set by the time practicemode gets to the grenade.
 public int OnEntitySpawned(int entity) {
   RequestFrame(DelayedOnEntitySpawned, entity);
+  return 0;
 }
 
 public int DelayedOnEntitySpawned(int entity) {
   if (!IsValidEdict(entity)) {
-    return;
+    return 0;
   }
 
   char className[CLASS_LENGTH];
@@ -1441,6 +1444,8 @@ public int DelayedOnEntitySpawned(int entity) {
       }
     }
   }
+
+  return 0;
 }
 
 public Action Timer_TeleportClient(Handle timer, int serial) {
@@ -1450,6 +1455,8 @@ public Action Timer_TeleportClient(Handle timer, int serial) {
     TeleportEntity(client, g_TestingFlashOrigins[client], g_TestingFlashAngles[client], velocity);
     SetEntityMoveType(client, MOVETYPE_NONE);
   }
+
+  return Plugin_Handled;
 }
 
 public Action Timer_FakeGrenadeBack(Handle timer, int serial) {
@@ -1457,11 +1464,13 @@ public Action Timer_FakeGrenadeBack(Handle timer, int serial) {
   if (g_InPracticeMode && IsPlayer(client)) {
     FakeClientCommand(client, "sm_lastgrenade");
   }
+
+  return Plugin_Handled;
 }
 
 public Action Event_WeaponFired(Event event, const char[] name, bool dontBroadcast) {
   if (!g_InPracticeMode) {
-    return;
+    return Plugin_Handled;
   }
 
   int userid = event.GetInt("userid");
@@ -1472,13 +1481,17 @@ public Action Event_WeaponFired(Event event, const char[] name, bool dontBroadca
   if (IsGrenadeWeapon(weapon) && IsPlayer(client)) {
     AddGrenadeToHistory(client);
   }
+
+  return Plugin_Handled;
 }
 
 public Action Event_SmokeDetonate(Event event, const char[] name, bool dontBroadcast) {
   if (!g_InPracticeMode) {
-    return;
+    return Plugin_Handled;
   }
   GrenadeDetonateTimerHelper(event, "smoke grenade");
+
+  return Plugin_Handled;
 }
 
 public void GrenadeDetonateTimerHelper(Event event, const char[] grenadeName) {
@@ -1503,7 +1516,7 @@ public void GrenadeDetonateTimerHelper(Event event, const char[] grenadeName) {
 
 public Action Event_FlashDetonate(Event event, const char[] name, bool dontBroadcast) {
   if (!g_InPracticeMode) {
-    return;
+    return Plugin_Handled;
   }
 
   int userid = event.GetInt("userid");
@@ -1515,6 +1528,8 @@ public Action Event_FlashDetonate(Event event, const char[] name, bool dontBroad
   }
 
   g_LastFlashDetonateTime[client] = GetGameTime();
+
+  return Plugin_Handled;
 }
 
 public void GetTestingFlashInfo(int serial) {

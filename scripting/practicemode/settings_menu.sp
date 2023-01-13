@@ -50,4 +50,6 @@ public int SettingsMenuHandler(Menu menu, MenuAction action, int param1, int par
   } else if (action == MenuAction_End) {
     delete menu;
   }
+
+  return 0;
 }

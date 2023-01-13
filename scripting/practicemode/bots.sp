@@ -51,6 +51,8 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
   if (IsPMBot(victim)) {
     g_BotDeathTime[victim] = GetGameTime();
   }
+
+  return Plugin_Handled;
 }
 
 public Action Timer_RespawnBots(Handle timer) {
@@ -447,7 +449,7 @@ public Action Event_BotDamageDealtEvent(Event event, const char[] name, bool don
 // It probably needs to use the flashbang_detonate event (so piggyback on Event_FlashDetonate).
 public Action Event_PlayerBlind(Event event, const char[] name, bool dontBroadcast) {
   if (!g_InPracticeMode) {
-    return;
+    return Plugin_Handled;
   }
 
   int userid = event.GetInt("userid");
@@ -471,6 +473,8 @@ public Action Event_PlayerBlind(Event event, const char[] name, bool dontBroadca
   if (g_ClientNoFlash[client]) {
     RequestFrame(KillFlashEffect, GetClientSerial(client));
   }
+
+  return Plugin_Handled;
 }
 
 public void KillFlashEffect(int serial) {

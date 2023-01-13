@@ -183,7 +183,7 @@ stock bool IsReplayPlaying(int role = -1) {
 public void GotoReplayStart(int client, const char[] id, int role) {
   char filepath[PLATFORM_MAX_PATH + 1];
   GetRoleFile(id, role, filepath, sizeof(filepath));
-  int header[BMFileHeader];
+  BMFileHeader header;
   BMError error = BotMimic_GetFileHeaders(filepath, header, sizeof(header));
   if (error != BM_NoError) {
     char errorString[128];
@@ -195,16 +195,16 @@ public void GotoReplayStart(int client, const char[] id, int role) {
   float origin[3];
   float angles[3];
   float velocity[3];
-  Array_Copy(header[BMFH_initialPosition], origin, 3);
-  Array_Copy(header[BMFH_initialAngles], angles, 3);
+  Array_Copy(header.BMFH_initialPosition, origin, 3);
+  Array_Copy(header.BMFH_initialAngles, angles, 3);
   TeleportEntity(client, origin, angles, velocity);
 }
 
 // Functions to add a replay nade during a recording session to the practicemode-extra data
 // saved with replays.
-public void AddReplayNade(int client, GrenadeType type, float delay, const float[3] personOrigin,
-                   const float[3] personAngles, const float[3] grenadeOrigin,
-                   const float[3] grenadeVelocity) {
+public void AddReplayNade(int client, GrenadeType type, float delay, const float personOrigin[3],
+                   const float personAngles[3], const float grenadeOrigin[3],
+                   const float grenadeVelocity[3]) {
   int index = g_NadeReplayData[client].Push(type);
   g_NadeReplayData[client].Set(index, view_as<int>(delay), 1);
   g_NadeReplayData[client].Set(index, view_as<int>(personOrigin[0]), 2);

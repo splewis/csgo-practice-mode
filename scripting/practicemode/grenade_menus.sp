@@ -236,7 +236,7 @@ public int Grenade_PlayerAndCategoryHandler(Menu menu, MenuAction action, int pa
 
     if (StrEqual(buffer, "all")) {
       GiveGrenadeMenu(client, GrenadeMenuType_OneCategory, 0, "all");
-      return;
+      return 0;
     }
 
     // split buffer from "auth name" (seperated by whitespace)
@@ -252,6 +252,8 @@ public int Grenade_PlayerAndCategoryHandler(Menu menu, MenuAction action, int pa
   } else if (action == MenuAction_End) {
     delete menu;
   }
+
+  return 0;
 }
 
 public int Grenade_NadeHandler(Menu menu, MenuAction action, int param1, int param2) {
@@ -270,6 +272,8 @@ public int Grenade_NadeHandler(Menu menu, MenuAction action, int param1, int par
   } else if (action == MenuAction_End) {
     delete menu;
   }
+
+  return 0;
 }
 
 int SortIdArrayByName(int index1, int index2, Handle array, Handle hndl) {
@@ -352,4 +356,6 @@ public Action _CountCategoryNades_Helper(const char[] ownerName, const char[] ow
     p.WriteCell(count);
     p.WriteString(cat);
   }
+
+  return Plugin_Handled;
 }

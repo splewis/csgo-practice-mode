@@ -372,8 +372,8 @@ public void GetGrenadeVector(const char[] auth, const char[] id, const char[] ke
   }
 }
 
-public void SetGrenadeVectors(const char[] auth, const char[] id, const float[3] origin,
-                       const float[3] angles) {
+public void SetGrenadeVectors(const char[] auth, const char[] id, const float origin[3],
+                       const float angles[3]) {
   g_UpdatedGrenadeKv = true;
   if (g_GrenadeLocationsKv.JumpToKey(auth)) {
     if (g_GrenadeLocationsKv.JumpToKey(id)) {
@@ -386,7 +386,7 @@ public void SetGrenadeVectors(const char[] auth, const char[] id, const float[3]
 }
 
 public void SetGrenadeParameters(const char[] auth, const char[] id, GrenadeType type,
-                          const float[3] grenadeOrigin, const float[3] grenadeVelocity) {
+                          const float grenadeOrigin[3], const float grenadeVelocity[3]) {
   if (!IsGrenade(type)) {
     return;
   }
@@ -453,7 +453,7 @@ public float GetClientGrenadeFloat(int id, const char[] key) {
   return GetGrenadeFloat(auth, nadeId, key);
 }
 
-public void SetClientGrenadeVectors(int id, const float[3] origin, const float[3] angles) {
+public void SetClientGrenadeVectors(int id, const float origin[3], const float angles[3]) {
   char auth[AUTH_LENGTH];
   char nadeId[GRENADE_ID_LENGTH];
   IntToString(id, nadeId, sizeof(nadeId));
@@ -461,8 +461,8 @@ public void SetClientGrenadeVectors(int id, const float[3] origin, const float[3
   SetGrenadeVectors(auth, nadeId, origin, angles);
 }
 
-public void SetClientGrenadeParameters(int id, GrenadeType type, const float[3] grenadeOrigin,
-                                const float[3] grenadeVelocity) {
+public void SetClientGrenadeParameters(int id, GrenadeType type, const float grenadeOrigin[3],
+                                const float grenadeVelocity[3]) {
   char auth[AUTH_LENGTH];
   char nadeId[GRENADE_ID_LENGTH];
   IntToString(id, nadeId, sizeof(nadeId));
@@ -644,6 +644,8 @@ public Action TranslateGrenadeHelper(const char[] ownerName, const char[] ownerA
   origin[0] += dx;
   origin[1] += dy;
   origin[2] += dz;
+
+  return Plugin_Handled;
 }
 
 public int FindNextGrenadeId(int client, int currentId) {
@@ -746,6 +748,8 @@ public Action IsCorrectionNeededHelper(const char[] ownerName, const char[] owne
     g_RepeatIdSeen = true;
   }
   g_AllIds.Push(id);
+
+  return Plugin_Handled;
 }
 
 public void CorrectGrenadeIds() {
@@ -790,6 +794,8 @@ public Action CorrectGrenadeIdsHelper(const char[] ownerName, const char[] owner
     }
   }
   g_NewKv.Rewind();
+
+  return Plugin_Handled;
 }
 
 public bool CanEditGrenade(int client, int id) {
